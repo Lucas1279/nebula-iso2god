@@ -7,6 +7,8 @@ import json
 import os
 import secrets
 import shutil
+import socket
+import sys
 import tempfile
 import threading
 import urllib.parse
@@ -14,6 +16,8 @@ import webbrowser
 from pathlib import Path
 
 HOST, PORT = "127.0.0.1", 8765
+CONNECT_TIMEOUT = 25
+TRANSFER_IDLE_TIMEOUT = 180  # Xbox USB/network writes can pause; allow 3 minutes without a packet.
 ROOT = Path(__file__).resolve().parent
 TOKEN = secrets.token_urlsafe(32)
 LOCK = threading.Lock()
@@ -33,8 +37,13 @@ def send_json(handler, status, obj):
 
 def ftp_login(cfg):
     ftp = ftplib.FTP()
-    ftp.connect(cfg["host"], cfg["port"], timeout=25)
+    ftp.connect(cfg["host"], cfg["port"], timeout=CONNECT_TIMEOUT)
     ftp.login(cfg["user"], cfg["password"])
+    # Keep connection/login failures quick, but tolerate slow Xbox USB/HDD writes.
+    ftp.timeout = TRANSFER_IDLE_TIMEOUT
+    control = getattr(ftp, "sock", None)
+    if control is not None:
+        control.settimeout(TRANSFER_IDLE_TIMEOUT)
     ftp.set_pasv(True)
     return ftp
 
@@ -222,10 +231,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         item["sent"] = item["expected"]
                         item["state"] = "done"
                 except Exception as exc:
+                    message = str(exc) or exc.__class__.__name__
+                    if isinstance(exc, (TimeoutError, socket.timeout)) or message.lower() == "timed out":
+                        message = "FTP transfer stalled for 180 seconds. Check the Xbox/USB/network, then retry; wired Ethernet is more reliable."
                     with LOCK:
                         item["state"] = "error"
-                        item["error"] = str(exc) or exc.__class__.__name__
-                    raise
+                        item["error"] = message
+                    raise RuntimeError(message) from exc
                 finally:
                     if ftp is not None:
                         try: ftp.quit()
@@ -266,7 +278,8 @@ def main():
     print("Loopback-only: this service is not exposed to your network or the internet.")
     print("Keep this window open. Press Ctrl+C to stop it.")
     try:
-        webbrowser.open(f"http://{HOST}:{PORT}/")
+        if "--no-browser" not in sys.argv[1:]:
+            webbrowser.open(f"http://{HOST}:{PORT}/")
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass

@@ -21,3 +21,8 @@ This build adds an **Upload to Xbox via FTP** output mode. Because GitHub Pages 
 - This does not make packages boot on retail/unmodded consoles; Iso2God-style unsigned GODs require a compatible JTAG/RGH setup.
 
 If `Hdd1:/` is not accepted, use your dashboard's FTP configuration or an FTP client to confirm the exact root path, then enter that base path in the app.
+
+
+## FTP stall timeout
+
+The helper allows up to 180 seconds without FTP data before failing a transfer, which is more tolerant of slow Xbox USB/network writes than the earlier 25-second timeout. A transfer that stalls longer than that still fails; use wired Ethernet when possible.
