@@ -273,7 +273,7 @@ footer a{color:#9edcff}
       <div class="setup" id="ftpSetup" hidden>
         <strong>Xbox FTP connection (same home network only)</strong>
         <p class="muted small" style="margin:6px 0 10px">Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. Do not expose FTP to the internet or set up port forwarding. The ISO stays in your browser; the helper sends only the finished GOD files to the Xbox.</p>
-        <p class="muted small" style="margin:0 0 12px"><strong>Need the helper?</strong> <a href="https://github.com/Lucas1279/nebula-iso2god/archive/refs/heads/main.zip" target="_blank" rel="noopener">Download the project ZIP from GitHub</a>. Unzip it, run <code>python3 ftp_helper.py</code>, and use the local page it opens; FTP won’t work directly from the public GitHub Pages page.</p>
+        <p class="muted small" style="margin:0 0 12px"><strong>Need the helper?</strong> Download the project ZIP, unzip it, run <code>python3 ftp_helper.py</code>, and use the local page it opens. FTP won’t work directly from the public GitHub Pages page.<br><a class="btn small" style="display:inline-block;text-decoration:none;margin-top:8px" href="https://github.com/Lucas1279/nebula-iso2god/archive/refs/heads/main.zip" target="_blank" rel="noopener">⬇ Download helper bundle (.zip)</a></p>
         <div class="grid2">
           <div><label class="f" for="ftpHost">Xbox IP address</label><input id="ftpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
           <div><label class="f" for="ftpPort">FTP port</label><input id="ftpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
@@ -1658,6 +1658,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.ftpActivity = 'uploading';
       setFtpLive('Connecting to Xbox to upload ' + shortName + '…', 0);
       let finished = false, failure = null;
+      let lastSent = 0, lastSampleAt = performance.now(), liveRate = 0;
       const finishRequest = bridgeRequest('/api/file/finish', { id }).then(() => { finished = true; }).catch(err => { failure = err; finished = true; });
       while (!finished) {
         try {
@@ -1667,14 +1668,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             setFtpLive('Connecting to Xbox for ' + shortName + '…', 0);
           } else if (status.state === 'uploading') {
             const frac = total ? Math.min(1, sent / total) : 0;
-            setFtpLive('Uploading ' + shortName + ' to Xbox: ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)', frac);
+            const now = performance.now();
+            if (sent > lastSent) {
+              liveRate = (sent - lastSent) * 1000 / Math.max(1, now - lastSampleAt);
+              lastSent = sent; lastSampleAt = now;
+            }
+            const rateLabel = liveRate ? ' · ' + fmtBytes(liveRate) + '/s' : '';
+            const etaLabel = liveRate && total > sent ? ' · ~' + fmtDuration((total - sent) * 1000 / liveRate) + ' for this part' : '';
+            setFtpLive('Uploading ' + shortName + ' to Xbox: ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + rateLabel + etaLabel, frac);
           } else if (status.state === 'done') {
             setFtpLive('Xbox received ' + shortName + '; waiting for FTP confirmation…', 1);
           } else if (status.state === 'error') {
-            throw new Error(status.error || 'FTP upload failed.');
+            failure = new Error(status.error || 'FTP upload failed.');
           }
         } catch (err) {
-          if (err && err.message && /FTP upload failed/.test(err.message)) failure = err;
+          if (err && /FTP upload failed/.test(err.message || '')) failure = err;
         }
         if (!finished) await new Promise(resolve => setTimeout(resolve, 500));
       }
