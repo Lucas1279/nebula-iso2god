@@ -34,16 +34,18 @@ body{
 @keyframes drift1{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(6vmax,3vmax,0) scale(1.12)}}
 @keyframes drift2{from{transform:translate3d(0,0,0) scale(1.08)}to{transform:translate3d(-5vmax,4vmax,0) scale(.96)}}
 .planet{position:fixed; right:-70px; bottom:-90px; width:min(430px,55vw); z-index:0; pointer-events:none; opacity:.8; filter:drop-shadow(0 0 60px rgba(90,140,255,.35))}
-.completion-ufo{position:fixed;left:50%;top:42vh;width:clamp(170px,22vw,235px);height:auto;z-index:5;pointer-events:none;visibility:hidden;opacity:0;filter:drop-shadow(0 5px 13px rgba(56,189,248,.22))}
+.completion-ufo{position:fixed;left:50%;top:42vh;width:min(235px,35vw);height:auto;z-index:5;pointer-events:none;visibility:hidden;opacity:0;filter:drop-shadow(0 5px 13px rgba(56,189,248,.22))}
 .completion-ufo svg{display:block;width:100%;height:auto;overflow:visible}
-.completion-ufo.progressing{width:220px;visibility:visible;opacity:1;transform:translate(-50%,-94%);transition:left .14s linear,top .14s linear;filter:drop-shadow(0 0 8px rgba(52,211,153,.85)) drop-shadow(0 0 20px rgba(56,189,248,.72))}
-.completion-ufo.takeoff{width:clamp(170px,22vw,235px);visibility:visible;animation:ufo-takeoff 2.55s cubic-bezier(.2,.72,.25,1) both}
+.completion-ufo.progressing{position:absolute;width:min(220px,35vw);visibility:visible;opacity:1;transform:translate(-50%,-94%);transition:left .12s linear;filter:drop-shadow(0 0 8px rgba(52,211,153,.85)) drop-shadow(0 0 20px rgba(56,189,248,.72))}
+.completion-ufo.approaching{position:absolute;width:min(220px,35vw);visibility:visible;opacity:1;animation:ufo-return 1s cubic-bezier(.18,.72,.3,1) both}
+.completion-ufo.takeoff{position:fixed;width:min(235px,35vw);visibility:visible;animation:ufo-takeoff 2.55s cubic-bezier(.2,.72,.25,1) both}
 .completion-ufo .ufo-disc{opacity:.55}
 .completion-ufo.progressing .ufo-disc{opacity:1}
 .completion-ufo.takeoff .ufo-disc-lift{transform-box:fill-box;transform-origin:center;animation:ufo-disc-lift .72s cubic-bezier(.2,.75,.25,1) both}
+@keyframes ufo-return{0%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0}100%{transform:translate3d(-50%,-94%,0) scale(1);opacity:1}}
 @keyframes ufo-takeoff{0%{transform:translate3d(-50%,-94%,0) scale(.72);opacity:.98;visibility:visible}16%{transform:translate3d(calc(-50% + 2vw),-130%,0) scale(.8);opacity:1}100%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0;visibility:hidden}}
 @keyframes ufo-disc-lift{0%{transform:translateY(9px) scale(.72);opacity:.55}100%{transform:translateY(0) scale(1);opacity:1}}
-@media(prefers-reduced-motion:reduce){.completion-ufo.progressing,.completion-ufo.takeoff{animation:none!important;opacity:0!important;visibility:hidden!important}}
+@media(prefers-reduced-motion:reduce){.completion-ufo.progressing,.completion-ufo.approaching,.completion-ufo.takeoff{animation:none!important;opacity:0!important;visibility:hidden!important}}
 .wrap{position:relative; z-index:2; max-width:1080px; margin:0 auto; padding:34px 20px 80px}
 header.hero{text-align:center; padding:26px 10px 8px}
 .orbit-badge{display:inline-flex; gap:8px; align-items:center; padding:7px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(10,16,40,.6); color:var(--muted); font-size:.83rem; letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(8px)}
@@ -2262,8 +2264,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }, 1000);
     els.doneCard.hidden = true;
     els.progressCard.classList.remove('is-complete');
-    $('completionUfo').classList.remove('progressing', 'takeoff');
+    els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '0%';
     els.progressCard.hidden = false;
+    positionCompletionUfo('overallBar', 0);
     els.cancelBtn.disabled = false;
     els.convertBtn.disabled = true;
     setInputsEnabled(false);
@@ -2480,7 +2483,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.zipName.textContent = '';
     els.detailsCard.hidden = true; els.doneCard.hidden = true;
     els.doneCard.classList.remove('is-complete'); els.progressCard.classList.remove('is-complete');
-    $('completionUfo').classList.remove('progressing', 'takeoff');
+    resetCompletionUfo();
     els.downloadsBox.hidden = true; els.errorBox.hidden = true;
     els.progressCard.hidden = true; els.logEl.innerHTML = '';
     els.titleInput.value = '';
@@ -2520,26 +2523,78 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     window.addEventListener('resize',confettiResize);
     confettiRaf=requestAnimationFrame(frame);
   }
+  let completionUfoBarId = '';
+  let completionUfoAway = false;
+  let completionUfoReturning = false;
+  let completionUfoTakeoffTimer = 0;
+  let completionUfoReturnTimer = 0;
   function positionCompletionUfo(barId, fraction) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const craft = $('completionUfo'), fill = $(barId);
-    if (!craft || !fill || craft.classList.contains('takeoff')) return;
-    const track = fill.parentElement, rect = track.getBoundingClientRect();
+    if (!craft || !fill) return;
+    if (craft.classList.contains('takeoff')) {
+      if (completionUfoTakeoffTimer) { clearTimeout(completionUfoTakeoffTimer); completionUfoTakeoffTimer = 0; }
+      craft.classList.remove('takeoff');
+      completionUfoAway = true;
+    }
+    const track = fill.parentElement, lane = track.parentElement;
     const pct = Math.max(0, Math.min(1, Number(fraction) || 0));
-    const halfCraft = (craft.getBoundingClientRect().width || 140) / 2;
-    const endpoint = rect.left + rect.width * pct;
-    craft.style.left = Math.max(halfCraft + 8, Math.min(window.innerWidth - halfCraft - 8, endpoint)) + 'px';
-    craft.style.top = (rect.top + rect.height / 2) + 'px';
-    craft.classList.add('progressing');
+    if (completionUfoTakeoffTimer) { clearTimeout(completionUfoTakeoffTimer); completionUfoTakeoffTimer = 0; }
+    const returning = completionUfoReturning;
+    if (!returning) craft.classList.remove('takeoff', 'approaching', 'progressing');
+    if (craft.parentElement !== lane) lane.appendChild(craft);
+    craft.style.position = '';
+    completionUfoBarId = barId;
+    craft.style.left = (pct * 100) + '%';
+    craft.style.top = (track.offsetTop + track.offsetHeight / 2) + 'px';
+    if (completionUfoAway && pct === 0 && !returning) {
+      completionUfoAway = false;
+      completionUfoReturning = true;
+      craft.classList.add('approaching');
+      completionUfoReturnTimer = setTimeout(() => {
+        craft.classList.remove('approaching');
+        craft.classList.add('progressing');
+        completionUfoReturning = false;
+        completionUfoReturnTimer = 0;
+      }, 1000);
+    } else if (returning) {
+      // Leave the approach animation running while the bar begins to advance.
+    } else {
+      craft.classList.add('progressing');
+    }
+  }
+  function resetCompletionUfo() {
+    const craft = $('completionUfo');
+    if (completionUfoTakeoffTimer) { clearTimeout(completionUfoTakeoffTimer); completionUfoTakeoffTimer = 0; }
+    if (completionUfoReturnTimer) { clearTimeout(completionUfoReturnTimer); completionUfoReturnTimer = 0; }
+    if (completionUfoReturning || craft.classList.contains('takeoff')) completionUfoAway = true;
+    completionUfoReturning = false;
+    completionUfoBarId = '';
+    craft.classList.remove('progressing', 'approaching', 'takeoff');
   }
   function launchCompletionUfo() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const craft = $('completionUfo');
-    if (!craft) return;
-    craft.classList.remove('progressing', 'takeoff');
+    const craft = $('completionUfo'), fill = $(completionUfoBarId);
+    if (!craft || !fill) return;
+    if (completionUfoReturnTimer) { clearTimeout(completionUfoReturnTimer); completionUfoReturnTimer = 0; }
+    completionUfoReturning = false;
+    const trackRect = fill.parentElement.getBoundingClientRect();
+    const current = craft.getBoundingClientRect();
+    const x = current.left + current.width / 2;
+    const y = trackRect.top + trackRect.height / 2;
+    craft.classList.remove('progressing', 'approaching', 'takeoff');
+    craft.style.position = 'fixed';
+    craft.style.left = x + 'px';
+    craft.style.top = y + 'px';
+    document.body.appendChild(craft);
     void craft.offsetWidth;
     craft.classList.add('takeoff');
-    setTimeout(() => craft.classList.remove('takeoff'), 2700);
+    completionUfoBarId = '';
+    completionUfoAway = true;
+    completionUfoTakeoffTimer = setTimeout(() => {
+      craft.classList.remove('takeoff');
+      completionUfoTakeoffTimer = 0;
+    }, 2700);
   }
   function celebrateCompletion(){launchCompletionUfo();launchCompletionMeteors();fireConfetti();}
 
