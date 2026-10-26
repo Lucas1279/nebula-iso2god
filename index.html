@@ -186,6 +186,10 @@ footer a{color:#9edcff}
       <div class="bar-wrap"><div class="bar" id="overallBar"></div></div>
       <div class="bar-wrap thin"><div class="bar thin" id="phaseBar"></div></div>
       <div class="stats-row"><span id="bytesEl">—</span><span>Speed: <span id="speedEl">—</span></span><span>Big discs take a few minutes — hashing about 2 million blocks is normal.</span></div>
+      <div id="ftpLive" hidden style="margin-top:12px">
+        <div class="muted small" id="ftpLiveText" aria-live="polite">Waiting for FTP transfer…</div>
+        <div class="bar-wrap thin"><div class="bar thin" id="ftpLiveBar" style="width:0%"></div></div>
+      </div>
       <div class="btn-row">
         <button class="btn danger" id="cancelBtn" type="button" disabled>Cancel conversion</button>
       </div>
@@ -269,6 +273,7 @@ footer a{color:#9edcff}
       <div class="setup" id="ftpSetup" hidden>
         <strong>Xbox FTP connection (same home network only)</strong>
         <p class="muted small" style="margin:6px 0 10px">Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. Do not expose FTP to the internet or set up port forwarding. The ISO stays in your browser; the helper sends only the finished GOD files to the Xbox.</p>
+        <p class="muted small" style="margin:0 0 12px"><strong>Need the helper?</strong> <a href="https://github.com/Lucas1279/nebula-iso2god/archive/refs/heads/main.zip" target="_blank" rel="noopener">Download the project ZIP from GitHub</a>. Unzip it, run <code>python3 ftp_helper.py</code>, and use the local page it opens; FTP won’t work directly from the public GitHub Pages page.</p>
         <div class="grid2">
           <div><label class="f" for="ftpHost">Xbox IP address</label><input id="ftpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
           <div><label class="f" for="ftpPort">FTP port</label><input id="ftpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
@@ -1252,6 +1257,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     progressCard: $('progressCard'), phaseLabel: $('phaseLabel'), overallBar: $('overallBar'),
     overallPct: $('overallPct'), phaseBar: $('phaseBar'), speedEl: $('speedEl'),
     etaEl: $('etaEl'), bytesEl: $('bytesEl'), logEl: $('logEl'),
+    ftpLive: $('ftpLive'), ftpLiveText: $('ftpLiveText'), ftpLiveBar: $('ftpLiveBar'),
     doneCard: $('doneCard'), doneSummary: $('doneSummary'), outputTree: $('outputTree'),
     downloadsBox: $('downloadsBox'), downloadList: $('downloadList'),
     zipDownloadBtn: $('zipDownloadBtn'), convertAnotherBtn: $('convertAnotherBtn'),
@@ -1270,6 +1276,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     result: null, collectedFiles: [], zipBlob: null, zipBlobName: '',
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
+    lastOverall: 0, elapsedTimer: null, ftpActivity: '',
   };
 
   /* ---------------- formatting / logging ---------------- */
@@ -1522,6 +1529,20 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!response.ok) throw new Error(result.error || ('Local helper returned HTTP ' + response.status));
     return result;
   }
+  async function bridgeGet(path) {
+    if (!state.ftpToken) throw new Error('Local FTP helper is not running.');
+    const response = await fetch(path, { headers: { 'X-Nebula-Token': state.ftpToken }, cache: 'no-store' });
+    let result = {};
+    try { result = await response.json(); } catch (_) {}
+    if (!response.ok) throw new Error(result.error || ('Local helper returned HTTP ' + response.status));
+    return result;
+  }
+  function setFtpLive(message, fraction) {
+    els.ftpLive.hidden = false;
+    els.ftpLiveText.textContent = message;
+    const pct = Math.max(0, Math.min(100, (Number(fraction) || 0) * 100));
+    els.ftpLiveBar.style.width = pct.toFixed(1) + '%';
+  }
   els.ftpConnectBtn.addEventListener('click', async () => {
     clearError();
     els.ftpConnectBtn.disabled = true;
@@ -1613,6 +1634,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       this.written = 0;
       const r = await bridgeRequest('/api/file/begin', { segments, size: expectedSize });
       this.id = r.id;
+      const shortName = segments[segments.length - 1];
+      state.ftpActivity = 'staging';
+      setFtpLive('Staging ' + shortName + ' on Mac: 0 / ' + fmtBytes(expectedSize) + ' (not sent to Xbox yet)', 0);
       log('Staging ' + segments.join('/') + ' for FTP transfer…');
     }
     async write(chunk) {
@@ -1622,19 +1646,51 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         const part = blob.slice(off, Math.min(blob.size, off + unit));
         await bridgeRequest('/api/file/chunk?id=' + encodeURIComponent(this.id), part, true);
         this.written += part.size;
+        const shortName = this.segments[this.segments.length - 1];
+        setFtpLive('Staging ' + shortName + ' on Mac: ' + fmtBytes(this.written) + ' / ' + fmtBytes(this.expected) + ' (not sent to Xbox yet)', this.expected ? this.written / this.expected : 0);
       }
     }
     async endFile() {
       if (this.written !== this.expected) throw new Error('Staged ' + this.written + ' bytes; expected ' + this.expected + '.');
       const name = this.segments.join('/');
-      await bridgeRequest('/api/file/finish', { id: this.id });
+      const shortName = this.segments[this.segments.length - 1];
+      const id = this.id;
+      state.ftpActivity = 'uploading';
+      setFtpLive('Connecting to Xbox to upload ' + shortName + '…', 0);
+      let finished = false, failure = null;
+      const finishRequest = bridgeRequest('/api/file/finish', { id }).then(() => { finished = true; }).catch(err => { failure = err; finished = true; });
+      while (!finished) {
+        try {
+          const status = await bridgeGet('/api/file/status?id=' + encodeURIComponent(id));
+          const sent = Number(status.sent || 0), total = Number(status.expected || this.expected);
+          if (status.state === 'connecting') {
+            setFtpLive('Connecting to Xbox for ' + shortName + '…', 0);
+          } else if (status.state === 'uploading') {
+            const frac = total ? Math.min(1, sent / total) : 0;
+            setFtpLive('Uploading ' + shortName + ' to Xbox: ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)', frac);
+          } else if (status.state === 'done') {
+            setFtpLive('Xbox received ' + shortName + '; waiting for FTP confirmation…', 1);
+          } else if (status.state === 'error') {
+            throw new Error(status.error || 'FTP upload failed.');
+          }
+        } catch (err) {
+          if (err && err.message && /FTP upload failed/.test(err.message)) failure = err;
+        }
+        if (!finished) await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      await finishRequest;
+      if (failure) throw failure;
+      await bridgeRequest('/api/file/ack', { id });
       this.id = null;
+      state.ftpActivity = '';
+      setFtpLive('Uploaded ' + shortName + ' to Xbox (' + fmtBytes(this.written) + ').', 1);
       log('Uploaded ' + name + ' (' + fmtBytes(this.written) + ') to Xbox.');
     }
-    async finish() {}
+    async finish() { state.ftpActivity = ''; setFtpLive('All package files uploaded to Xbox.', 1); }
     async abort() {
       if (this.id) { try { await bridgeRequest('/api/file/abort', { id: this.id }); } catch (_) {} }
       this.id = null;
+      state.ftpActivity = '';
     }
   }
 
@@ -1652,6 +1708,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   function onProgress(p) {
     const now = performance.now();
+    state.lastOverall = p.overall;
     if (p.phase !== state.phaseKey) {
       state.phaseKey = p.phase;
       state.phaseStart = now;
@@ -1728,6 +1785,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.zipBlob = null;
     state.phaseKey = '';
     state.startTime = performance.now();
+    state.lastOverall = 0;
+    state.ftpActivity = '';
+    els.ftpLive.hidden = state.outputMode !== 'ftp';
+    if (state.outputMode === 'ftp') setFtpLive('Preparing Xbox FTP upload…', 0);
+    state.elapsedTimer = setInterval(() => {
+      if (!state.converting) return;
+      const elapsed = performance.now() - state.startTime;
+      const ftpLabel = state.ftpActivity === 'uploading' ? ' · FTP upload active'
+        : state.ftpActivity === 'staging' ? ' · staging next file on Mac' : '';
+      const eta = state.lastOverall > 0.01 ? elapsed * (1 - state.lastOverall) / state.lastOverall : NaN;
+      els.etaEl.textContent = ' elapsed ' + fmtDuration(elapsed) + ftpLabel + (ftpLabel ? '' : (isFinite(eta) ? ' · ~' + fmtDuration(eta) + ' left' : ''));
+    }, 1000);
     els.doneCard.hidden = true;
     els.progressCard.hidden = false;
     els.cancelBtn.disabled = false;
@@ -1770,6 +1839,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
     } finally {
       state.converting = false;
+      if (state.elapsedTimer) { clearInterval(state.elapsedTimer); state.elapsedTimer = null; }
       els.cancelBtn.disabled = true;
       setInputsEnabled(true);
       updateConvertEnabled();

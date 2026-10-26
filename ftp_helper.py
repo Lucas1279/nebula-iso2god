@@ -55,6 +55,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     server_version = "NebulaLocalBridge/1.0"
 
     def log_message(self, fmt, *args):
+        # Avoid flooding Terminal with the live progress polling and 4 MiB data chunks.
+        if self.path.startswith("/api/file/chunk?") or self.path.startswith("/api/file/status?"):
+            return
         # Never log request bodies or FTP credentials.
         print("[bridge] " + (fmt % args))
 
@@ -80,6 +83,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return send_json(self, 200, {"token": TOKEN})
         if parsed.path == "/api/status":
             return send_json(self, 200, {"connected": CONFIG is not None})
+        if parsed.path == "/api/file/status":
+            if not self._authorized():
+                return
+            ident = urllib.parse.parse_qs(parsed.query).get("id", [""])[0]
+            with LOCK:
+                item = ACTIVE.get(ident)
+                if not item:
+                    return send_json(self, 404, {"error": "No active transfer status."})
+                status = {"state": item.get("state", "staging"),
+                          "sent": item.get("sent", 0),
+                          "expected": item.get("expected", 0),
+                          "error": item.get("error", "")}
+            return send_json(self, 200, status)
         if parsed.path == "/" or parsed.path == "/index.html":
             target = ROOT / "index.html"
             if not target.is_file():
@@ -138,38 +154,50 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 ident = secrets.token_urlsafe(18)
                 fd, tmp = tempfile.mkstemp(prefix="nebula-ftp-", suffix=".part")
                 os.close(fd)
-                ACTIVE[ident] = {"segments": segments, "expected": expected, "written": 0, "tmp": tmp}
+                with LOCK:
+                    ACTIVE[ident] = {"segments": segments, "expected": expected, "written": 0,
+                                     "sent": 0, "state": "staging", "error": "", "tmp": tmp}
                 return send_json(self, 200, {"id": ident})
 
             if parsed.path == "/api/file/chunk":
                 ident = urllib.parse.parse_qs(parsed.query).get("id", [""])[0]
-                item = ACTIVE.get(ident)
-                if not item:
-                    raise ValueError("No active file upload.")
+                with LOCK:
+                    item = ACTIVE.get(ident)
+                if not item or item.get("state") != "staging":
+                    raise ValueError("No active staging upload.")
                 body = self._body()
-                if item["written"] + len(body) > item["expected"]:
-                    raise ValueError("Received more bytes than expected.")
-                with open(item["tmp"], "ab") as out:
-                    out.write(body)
-                item["written"] += len(body)
-                return send_json(self, 200, {"written": item["written"]})
+                with LOCK:
+                    if item["written"] + len(body) > item["expected"]:
+                        raise ValueError("Received more bytes than expected.")
+                    with open(item["tmp"], "ab") as out:
+                        out.write(body)
+                    item["written"] += len(body)
+                    written = item["written"]
+                return send_json(self, 200, {"written": written})
 
             if parsed.path == "/api/file/finish":
                 data = json.loads(self._body().decode("utf-8"))
                 ident = str(data.get("id", ""))
-                item = ACTIVE.pop(ident, None)
+                with LOCK:
+                    item = ACTIVE.get(ident)
                 if not item:
                     raise ValueError("No active file upload.")
                 if item["written"] != item["expected"]:
                     try: os.unlink(item["tmp"])
                     except OSError: pass
-                    raise ValueError(f"File was incomplete ({item['written']} of {item['expected']} bytes).")
+                    with LOCK:
+                        item["state"] = "error"
+                        item["error"] = f"File was incomplete ({item['written']} of {item['expected']} bytes)."
+                    raise ValueError(item["error"])
                 cfg = CONFIG
                 if not cfg:
-                    os.unlink(item["tmp"])
                     raise ValueError("FTP connection was closed.")
-                ftp = ftp_login(cfg)
+                with LOCK:
+                    item["state"] = "connecting"
+                    item["sent"] = 0
+                ftp = None
                 try:
+                    ftp = ftp_login(cfg)
                     ftp.cwd(cfg["basePath"])
                     for seg in item["segments"][:-1]:
                         try: ftp.mkd(seg)
@@ -179,18 +207,46 @@ class Handler(http.server.BaseHTTPRequestHandler):
                             except Exception: raise exc
                         else:
                             ftp.cwd(seg)
+                    with LOCK:
+                        item["state"] = "uploading"
+                    sent = 0
+                    def report_block(block):
+                        nonlocal sent
+                        sent += len(block)
+                        with LOCK:
+                            item["sent"] = sent
                     with open(item["tmp"], "rb") as src:
-                        ftp.storbinary("STOR " + item["segments"][-1], src, blocksize=1024 * 1024)
+                        ftp.storbinary("STOR " + item["segments"][-1], src,
+                                       blocksize=1024 * 1024, callback=report_block)
+                    with LOCK:
+                        item["sent"] = item["expected"]
+                        item["state"] = "done"
+                except Exception as exc:
+                    with LOCK:
+                        item["state"] = "error"
+                        item["error"] = str(exc) or exc.__class__.__name__
+                    raise
                 finally:
-                    try: ftp.quit()
-                    except Exception: pass
+                    if ftp is not None:
+                        try: ftp.quit()
+                        except Exception: pass
                     try: os.unlink(item["tmp"])
                     except OSError: pass
                 return send_json(self, 200, {"ok": True, "bytes": item["written"]})
 
+            if parsed.path == "/api/file/ack":
+                data = json.loads(self._body().decode("utf-8"))
+                ident = str(data.get("id", ""))
+                with LOCK:
+                    item = ACTIVE.get(ident)
+                    if item and item.get("state") == "done":
+                        ACTIVE.pop(ident, None)
+                return send_json(self, 200, {"ok": True})
+
             if parsed.path == "/api/file/abort":
                 data = json.loads(self._body().decode("utf-8"))
-                item = ACTIVE.pop(str(data.get("id", "")), None)
+                with LOCK:
+                    item = ACTIVE.pop(str(data.get("id", "")), None)
                 if item:
                     try: os.unlink(item["tmp"])
                     except OSError: pass
