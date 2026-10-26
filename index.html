@@ -293,6 +293,7 @@ footer a{color:#9edcff}
           <div><label class="f" for="ftpPassword">FTP password</label><input id="ftpPassword" type="password" autocomplete="off"></div>
           <div style="grid-column:1/-1"><label class="f" for="ftpPath">Xbox FTP base path</label><input id="ftpPath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Usually the HDD root exposed by your dashboard; confirm the path in Aurora/FSD if connection testing fails.</div></div>
         </div>
+        <label class="check small"><input id="rememberFtpIso" type="checkbox"><span>Remember Xbox IP and username on this Mac/browser. The FTP password is never saved.</span></label>
         <div class="btn-row"><button class="btn" id="ftpConnectBtn" type="button" disabled>Test connection</button><span class="muted" id="ftpStatus">Start ftp_helper.py locally to enable FTP upload.</span></div>
         <p class="muted tiny">The helper runs only on this PC and binds to loopback. It stages one file at a time (up to one data part, about 163 MiB) before sending it by FTP.</p>
       </div>
@@ -328,6 +329,7 @@ footer a{color:#9edcff}
     <section class="card" id="rawContentUploadCard" data-workflow="raw" aria-labelledby="rawUploadHeading" hidden>
       <h2 id="rawUploadHeading">📦 Upload existing XBLA/XBLIG content</h2>
       <p class="muted small" style="line-height:1.6">Drop the game’s <strong>8-character Title ID folder</strong> (for example <code>58410B1D</code>) or its parent game folder below. The uploader finds the Title ID and copies files from its <code>000D0000</code> folder unchanged—no manual ID entry, conversion, or renaming. Destination: <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000/</code>. Same-named files may be overwritten.</p>
+      <div class="setup" style="margin-top:12px"><strong>Need the local FTP helper?</strong><div class="muted small" style="margin-top:4px">Download and start the helper before testing the Xbox connection. On Mac, use the one-file launcher; it opens Terminal, which must stay open during transfer.</div><div class="btn-row"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File.zip"> Mac one-file launcher (.zip)</a></div></div>
       <div class="grid2">
         <div><label class="f" for="rawFtpHost">Xbox IP address</label><input id="rawFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
         <div><label class="f" for="rawFtpPort">FTP port</label><input id="rawFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
@@ -335,6 +337,7 @@ footer a{color:#9edcff}
         <div><label class="f" for="rawFtpPassword">FTP password</label><input id="rawFtpPassword" type="password" autocomplete="off"></div>
         <div style="grid-column:1/-1"><label class="f" for="rawFtpPath">Xbox FTP base path</label><input id="rawFtpPath" type="text" value="Usb1" autocomplete="off"><div class="muted tiny">Example: Usb1. Do not add the Content path here; the uploader adds it.</div></div>
       </div>
+      <label class="check small"><input id="rememberFtpRaw" type="checkbox"><span>Remember Xbox IP and username on this Mac/browser. The FTP password is never saved.</span></label>
       <div class="btn-row"><button class="btn" id="rawFtpConnectBtn" type="button" disabled>Test connection</button><span class="muted" id="rawFtpStatus">Start the local helper and open its local page to enable FTP.</span></div>
       <div id="rawDropZone" class="drop raw-drop-zone" role="button" tabindex="0" aria-label="Drop or choose a Title ID or game folder">
         <div class="big" aria-hidden="true">📦</div>
@@ -1286,7 +1289,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     modeFolder: $('modeFolder'), modeZip: $('modeZip'), modeFiles: $('modeFiles'), modeFtp: $('modeFtp'),
     folderSetup: $('folderSetup'), zipSetup: $('zipSetup'), filesSetup: $('filesSetup'), ftpSetup: $('ftpSetup'),
     ftpHost: $('ftpHost'), ftpPort: $('ftpPort'), ftpUser: $('ftpUser'), ftpPassword: $('ftpPassword'), ftpPath: $('ftpPath'),
-    ftpConnectBtn: $('ftpConnectBtn'), ftpStatus: $('ftpStatus'),
+    ftpConnectBtn: $('ftpConnectBtn'), ftpStatus: $('ftpStatus'), rememberFtpIso: $('rememberFtpIso'), rememberFtpRaw: $('rememberFtpRaw'),
     rawFtpHost: $('rawFtpHost'), rawFtpPort: $('rawFtpPort'), rawFtpUser: $('rawFtpUser'), rawFtpPassword: $('rawFtpPassword'), rawFtpPath: $('rawFtpPath'),
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
     taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), heroIsoIntro: $('heroIsoIntro'), isoSteps: $('isoSteps'), supportBadges: $('supportBadges'),
@@ -1318,6 +1321,54 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
     lastOverall: 0, elapsedTimer: null, ftpActivity: '',
   };
+
+  const FTP_IDENTITY_KEY = 'nebula-iso2god-ftp-identity-v1';
+  function identityFields(source) {
+    return source === 'raw' ? [els.rawFtpHost, els.rawFtpUser] : [els.ftpHost, els.ftpUser];
+  }
+  function setRememberCheckboxes(checked) {
+    els.rememberFtpIso.checked = checked;
+    els.rememberFtpRaw.checked = checked;
+  }
+  function saveFtpIdentity(source, invalidateConnections) {
+    const [hostField, userField] = identityFields(source);
+    const host = hostField.value.trim();
+    const user = userField.value;
+    for (const [h, u] of [[els.ftpHost, els.ftpUser], [els.rawFtpHost, els.rawFtpUser]]) { h.value = host; u.value = user; }
+    try { localStorage.setItem(FTP_IDENTITY_KEY, JSON.stringify({ host, user })); } catch (_) {}
+    if (invalidateConnections) {
+      state.ftpConnected = false;
+      state.rawFtpConnected = false;
+      els.ftpStatus.textContent = 'Saved settings changed; test the FTP connection again.';
+      els.rawFtpStatus.textContent = 'Saved settings changed; test the FTP connection again.';
+      updateConvertEnabled();
+    }
+  }
+  function changeRememberFtp(source) {
+    const field = source === 'raw' ? els.rememberFtpRaw : els.rememberFtpIso;
+    if (!field.checked) {
+      setRememberCheckboxes(false);
+      try { localStorage.removeItem(FTP_IDENTITY_KEY); } catch (_) {}
+      return;
+    }
+    setRememberCheckboxes(true);
+    saveFtpIdentity(source, false);
+  }
+  function restoreFtpIdentity() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(FTP_IDENTITY_KEY) || 'null');
+      if (saved && typeof saved.host === 'string' && typeof saved.user === 'string') {
+        for (const [h, u] of [[els.ftpHost, els.ftpUser], [els.rawFtpHost, els.rawFtpUser]]) { h.value = saved.host; u.value = saved.user; }
+        setRememberCheckboxes(true);
+      }
+    } catch (_) {}
+  }
+  function persistIdentityOnInput(source) {
+    if (els.rememberFtpIso.checked || els.rememberFtpRaw.checked) saveFtpIdentity(source, true);
+  }
+  els.rememberFtpIso.addEventListener('change', () => changeRememberFtp('iso'));
+  els.rememberFtpRaw.addEventListener('change', () => changeRememberFtp('raw'));
+  restoreFtpIdentity();
 
   /* ---------------- formatting / logging ---------------- */
   function fmtBytes(n) {
@@ -1635,7 +1686,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   });
   for (const el of [els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath]) {
-    el.addEventListener('input', () => { state.ftpConnected = false; els.ftpStatus.textContent = 'Settings changed; test the FTP connection again.'; updateConvertEnabled(); });
+    el.addEventListener('input', () => {
+      state.ftpConnected = false;
+      els.ftpStatus.textContent = 'Settings changed; test the FTP connection again.';
+      if (el === els.ftpHost || el === els.ftpUser) persistIdentityOnInput('iso');
+      updateConvertEnabled();
+    });
   }
   els.rawFtpConnectBtn.addEventListener('click', async () => {
     els.rawFtpConnectBtn.disabled = true;
@@ -1663,6 +1719,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     el.addEventListener('input', () => {
       state.rawFtpConnected = false;
       els.rawFtpStatus.textContent = 'Settings changed; test the raw-file FTP connection again.';
+      if (el === els.rawFtpHost || el === els.rawFtpUser) persistIdentityOnInput('raw');
       updateRawUploadEnabled();
     });
   }

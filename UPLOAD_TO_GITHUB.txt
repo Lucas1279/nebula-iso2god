@@ -1,4 +1,4 @@
-Website update: ISO converter + XBLA/XBLIG folder uploader
+Website update package
 
 Upload/replace these files in the root of the GitHub repository used by GitHub Pages, commit to the published branch, then wait for Pages to redeploy:
 - index.html
@@ -7,4 +7,4 @@ Upload/replace these files in the root of the GitHub repository used by GitHub P
 - nebula-iso2god-timeout-fix.zip
 - Nebula-ISO2GOD-One-File.zip
 
-The page has two top-level task choices: Convert an ISO and Upload existing XBLA/XBLIG content. The raw-upload panel appears only when selected. It accepts a dropped 8-character Title ID folder (for example 58410B1D) or its parent game folder, derives the ID automatically, and uploads files found directly in 000D0000 unchanged. The raw drop box is styled to match the ISO drop box.
+Includes ISO converter and separate XBLA/XBLIG folder uploader, shared remember-IP/username controls (password never saved), and updated helper download buttons in both FTP sections.

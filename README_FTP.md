@@ -27,7 +27,7 @@ The helper creates missing folders. A file with the same name in that destinatio
 ## Important safety and limitations
 
 - Use FTP only on a trusted home LAN. Xbox FTP is normally unencrypted. Do not enable router port forwarding or expose the console's FTP port to the public internet.
-- The helper binds only to `127.0.0.1` (your own computer), not to your LAN. FTP credentials are held in memory only until the helper exits.
+- The helper binds only to `127.0.0.1` (your own computer), not to your LAN. The optional “Remember Xbox IP and username” checkbox stores only those two values in the browser’s local storage on this Mac; the FTP password is never saved. The checkboxes on both task tabs share the same saved values.
 - For ISO conversion, the ISO itself is never uploaded; only generated package files are sent to the Xbox.
 - The helper stages one file at a time. Ensure temporary disk space is available for the largest file being sent (raw files may be much larger than a single GOD data part).
 - The helper allows up to 180 seconds without FTP data before a transfer times out. Wired Ethernet and a stable USB/HDD connection can reduce stalls.
