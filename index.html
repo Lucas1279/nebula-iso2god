@@ -1965,6 +1965,19 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.chooseZipBtn.hidden = true;
     els.zipSetupNote.textContent = 'This browser cannot stream a ZIP to a chosen file, so the ZIP will be offered as a normal browser download when conversion finishes. For multi-GB games the individual-files mode is more reliable here.';
   }
+  fetch('/api/token', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(data => {
+    if (data && data.token) {
+      state.ftpToken = data.token;
+      els.ftpConnectBtn.disabled = false;
+      els.ftpStatus.textContent = 'Local helper ready. Enter the Xbox FTP settings and test the connection.';
+    } else {
+      els.ftpConnectBtn.disabled = true;
+      els.ftpStatus.textContent = 'FTP requires the local helper; start ftp_helper.py and use its local page.';
+    }
+  }).catch(() => {
+    els.ftpConnectBtn.disabled = true;
+    els.ftpStatus.textContent = 'FTP requires the local helper; start ftp_helper.py and use its local page.';
+  });
   updateConvertEnabled();
   initStarfield();
 })();
