@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nebula ISO2GOD — Xbox 360 ISO → GOD converter (in your browser)</title>
-<meta name="description" content="Convert Xbox 360 ISO disc images to Games on Demand (GOD) packages for JTAG/RGH consoles. 100% local in your browser — no uploads, nothing to install.">
+<meta name="description" content="Convert Xbox 360 ISO disc images to Games on Demand (GOD) packages for JTAG/RGH consoles. Local browser conversion with optional LAN FTP upload to a modded Xbox 360.">
 <meta name="theme-color" content="#070b24">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='30%25' r='80%25'%3E%3Cstop offset='0' stop-color='%23bcd7ff'/%3E%3Cstop offset='.55' stop-color='%236f8dff'/%3E%3Cstop offset='1' stop-color='%23252a7a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%23050a24'/%3E%3Ccircle cx='32' cy='32' r='16' fill='url(%23g)'/%3E%3Cellipse cx='32' cy='35' rx='26' ry='7' fill='none' stroke='%23c4b5fd' stroke-width='3' transform='rotate(-14 32 35)'/%3E%3Ccircle cx='13' cy='13' r='1.7' fill='%23fff'/%3E%3Ccircle cx='51' cy='16' r='1.3' fill='%237dd3fc'/%3E%3Ccircle cx='47' cy='50' r='1.5' fill='%23f0abfc'/%3E%3C/svg%3E">
 <style>
@@ -146,12 +146,12 @@ footer a{color:#9edcff}
 
 <div class="wrap">
   <header class="hero">
-    <div class="orbit-badge"><span class="dot"></span> 100% local · No upload · No install</div>
+    <div class="orbit-badge"><span class="dot"></span> Local conversion · Optional Xbox FTP · No cloud upload</div>
     <h1>🪐 Nebula ISO2GOD</h1>
     <p>Convert an <strong>Xbox 360 ISO</strong> into a <strong>Games on Demand (GOD)</strong> package for a
        <strong>modded JTAG/RGH Xbox 360</strong> — the same SVOD format Iso2God creates on Windows,
-       built entirely in your browser. Import an ISO, pick where to save, convert, then copy the
-       <strong>Content</strong> folder to your console.</p>
+       converted in your browser. Import an ISO, choose a folder, ZIP, downloads, or optional FTP
+       transfer to your console over your home network.</p>
     <div class="badges" id="supportBadges"></div>
     <div class="steps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -251,6 +251,7 @@ footer a{color:#9edcff}
         <button class="mode-btn" id="modeFolder" type="button"><b>📁 Save to a folder (recommended)</b><span>Writes Content\… straight to a folder/USB you choose. Streams to disk — safest for huge games. Chrome/Edge.</span></button>
         <button class="mode-btn" id="modeZip" type="button"><b>🗜️ Download one ZIP</b><span>One .zip containing the Content folder (ZIP64, stored). Extract it, then copy to the console.</span></button>
         <button class="mode-btn" id="modeFiles" type="button"><b>⬇️ Individual file downloads</b><span>Header + each Data part as separate downloads. Works in any browser; you recreate the folders.</span></button>
+        <button class="mode-btn" id="modeFtp" type="button"><b>📡 Upload to Xbox via FTP</b><span>Send the completed package to your modded Xbox over your home network. Requires the local helper.</span></button>
       </div>
       <p class="muted small" id="outputModeNote" style="line-height:1.6"></p>
 
@@ -264,6 +265,19 @@ footer a{color:#9edcff}
       </div>
       <div class="setup" id="filesSetup" hidden>
         No setup needed. When conversion finishes, download buttons for the header, every <span class="kbd">Data####</span> part and a README will appear below. Your browser may ask you to allow multiple downloads.
+      </div>
+      <div class="setup" id="ftpSetup" hidden>
+        <strong>Xbox FTP connection (same home network only)</strong>
+        <p class="muted small" style="margin:6px 0 10px">Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. Do not expose FTP to the internet or set up port forwarding. The ISO stays in your browser; the helper sends only the finished GOD files to the Xbox.</p>
+        <div class="grid2">
+          <div><label class="f" for="ftpHost">Xbox IP address</label><input id="ftpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
+          <div><label class="f" for="ftpPort">FTP port</label><input id="ftpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
+          <div><label class="f" for="ftpUser">FTP username</label><input id="ftpUser" type="text" placeholder="Check your dash FTP settings" autocomplete="off"></div>
+          <div><label class="f" for="ftpPassword">FTP password</label><input id="ftpPassword" type="password" autocomplete="off"></div>
+          <div style="grid-column:1/-1"><label class="f" for="ftpPath">Xbox FTP base path</label><input id="ftpPath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Usually the HDD root exposed by your dashboard; confirm the path in Aurora/FSD if connection testing fails.</div></div>
+        </div>
+        <div class="btn-row"><button class="btn" id="ftpConnectBtn" type="button" disabled>Test connection</button><span class="muted" id="ftpStatus">Start ftp_helper.py locally to enable FTP upload.</span></div>
+        <p class="muted tiny">The helper runs only on this PC and binds to loopback. It stages one file at a time (up to one data part, about 163 MiB) before sending it by FTP.</p>
       </div>
 
       <div class="btn-row" style="margin-top:20px">
@@ -319,8 +333,7 @@ footer a{color:#9edcff}
           <p><strong>Browser notes:</strong> Chrome/Edge give the best experience (direct folder saving + streaming ZIPs).
           Firefox/Safari still work via ZIP/individual downloads, but multi-GB browser downloads can be memory-hungry there.
           Conversion speed is mostly SHA-1 hashing on one CPU core plus your disk speed.</p>
-          <p><strong>Privacy:</strong> this page has no server component and makes no network requests. Use “Save page” and it
-          even works offline. The only data written is the output you choose.</p>
+          <p><strong>Privacy:</strong> by default the converter runs in your browser and makes no network requests. FTP upload is optional and requires the local helper; it sends the completed GOD files to the Xbox over your home LAN. FTP credentials are held in helper memory only while it runs. Do not expose the Xbox FTP server to the public internet.</p>
           <p><strong>Original Xbox games:</strong> images containing <code>default.xbe</code> are written as Xbox Original
           packages (<code>00005000</code>). Playing them still needs the console’s Xbox backwards-compatibility files/hacked
           compatibility partition — the GOD is only the container.</p>
@@ -1229,8 +1242,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     detailsCard: $('detailsCard'), errorBox: $('errorBox'),
     titleInput: $('gameTitle'), titleSource: $('titleSource'),
     trimEnd: $('trimEnd'), trimNone: $('trimNone'), contentPrefix: $('contentPrefix'),
-    modeFolder: $('modeFolder'), modeZip: $('modeZip'), modeFiles: $('modeFiles'),
-    folderSetup: $('folderSetup'), zipSetup: $('zipSetup'), filesSetup: $('filesSetup'),
+    modeFolder: $('modeFolder'), modeZip: $('modeZip'), modeFiles: $('modeFiles'), modeFtp: $('modeFtp'),
+    folderSetup: $('folderSetup'), zipSetup: $('zipSetup'), filesSetup: $('filesSetup'), ftpSetup: $('ftpSetup'),
+    ftpHost: $('ftpHost'), ftpPort: $('ftpPort'), ftpUser: $('ftpUser'), ftpPassword: $('ftpPassword'), ftpPath: $('ftpPath'),
+    ftpConnectBtn: $('ftpConnectBtn'), ftpStatus: $('ftpStatus'),
     chooseFolderBtn: $('chooseFolderBtn'), folderName: $('folderName'),
     chooseZipBtn: $('chooseZipBtn'), zipName: $('zipName'), zipSetupNote: $('zipSetupNote'),
     convertBtn: $('convertBtn'), cancelBtn: $('cancelBtn'), resetBtn: $('resetBtn'),
@@ -1250,6 +1265,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     file: null, reader: null, analysis: null,
     outputMode: hasDirPicker ? 'folder' : 'zip',
     dirHandle: null, zipHandle: null, zipSuggestedName: '',
+    ftpToken: null, ftpConnected: false,
     converting: false, cancelRequested: false,
     result: null, collectedFiles: [], zipBlob: null, zipBlobName: '',
     wakeLock: null,
@@ -1320,30 +1336,34 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function setMode(mode) {
     state.outputMode = mode;
-    for (const [m, btn] of [['folder', els.modeFolder], ['zip', els.modeZip], ['files', els.modeFiles]]) {
+    for (const [m, btn] of [['folder', els.modeFolder], ['zip', els.modeZip], ['files', els.modeFiles], ['ftp', els.modeFtp]]) {
       btn.classList.toggle('active', m === mode);
       btn.setAttribute('aria-pressed', m === mode ? 'true' : 'false');
     }
     els.folderSetup.hidden = mode !== 'folder';
     els.zipSetup.hidden = mode !== 'zip';
     els.filesSetup.hidden = mode !== 'files';
+    els.ftpSetup.hidden = mode !== 'ftp';
     els.outputModeNote.textContent =
       mode === 'folder' ? 'Best option: the Content folder is written straight to disk as it converts (nothing is held in memory), and that folder can go directly onto your console drive/USB.'
       : mode === 'zip' ? (hasSavePicker
           ? 'The whole Content folder is streamed into one ZIP (stored, with ZIP64 for >4 GiB games). Extract it and copy the Content folder to your console.'
           : 'The whole Content folder becomes one ZIP download. On this browser the ZIP is assembled as a browser download, which can be heavy for multi-GB games — the individual-files option below is gentler here.')
-      : 'Each output file (header, Data0000, Data0001, …) gets its own download button when conversion finishes. Create the folders shown and place the files into them.';
+      : mode === 'files' ? 'Each output file (header, Data0000, Data0001, …) gets its own download button when conversion finishes. Create the folders shown and place the files into them.'
+      : 'The helper writes each package file to your Xbox HDD over FTP. FTP is unencrypted; use this only on your trusted home LAN. The ISO itself is never sent.';
     updateConvertEnabled();
   }
   els.modeFolder.addEventListener('click', () => setMode('folder'));
   els.modeZip.addEventListener('click', () => setMode('zip'));
   els.modeFiles.addEventListener('click', () => setMode('files'));
+  els.modeFtp.addEventListener('click', () => setMode('ftp'));
 
   function updateConvertEnabled() {
     let ok = !!state.analysis && !state.converting;
     let hint = '';
     if (ok && state.outputMode === 'folder' && !state.dirHandle) { ok = false; hint = 'Choose an output folder first.'; }
     if (ok && state.outputMode === 'zip' && hasSavePicker && !state.zipHandle) { ok = false; hint = 'Choose where to save the ZIP first.'; }
+    if (ok && state.outputMode === 'ftp' && !state.ftpConnected) { ok = false; hint = 'Test the Xbox FTP connection first.'; }
     els.convertBtn.disabled = !ok;
     els.convertBtn.textContent = state.converting ? 'Converting…' : (hint || 'Convert ISO → GOD');
   }
@@ -1430,7 +1450,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%';
     els.overallPct.textContent = '';
     els.logEl.innerHTML = '';
-    log('Imported "' + file.name + '" (' + fmtBytes(file.size) + '). Reading the XDVDFS filesystem from the file — nothing is uploaded.');
+    log('Imported "' + file.name + '" (' + fmtBytes(file.size) + '). Reading the XDVDFS filesystem locally; the source ISO is not uploaded.');
     try {
       state.reader = E.makeBlobReader(file);
       const analysis = await E.analyzeIso(state.reader, {
@@ -1492,6 +1512,41 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     updateConvertEnabled();
   });
+  async function bridgeRequest(path, body, raw) {
+    if (!state.ftpToken) throw new Error('Local FTP helper is not running. Start ftp_helper.py and open the local page it launches.');
+    const headers = { 'X-Nebula-Token': state.ftpToken };
+    if (!raw) headers['Content-Type'] = 'application/json';
+    const response = await fetch(path, { method: 'POST', headers, body: raw ? body : JSON.stringify(body) });
+    let result = {};
+    try { result = await response.json(); } catch (_) {}
+    if (!response.ok) throw new Error(result.error || ('Local helper returned HTTP ' + response.status));
+    return result;
+  }
+  els.ftpConnectBtn.addEventListener('click', async () => {
+    clearError();
+    els.ftpConnectBtn.disabled = true;
+    els.ftpStatus.textContent = 'Testing FTP connection…';
+    try {
+      const r = await bridgeRequest('/api/connect', {
+        host: els.ftpHost.value.trim(), port: Number(els.ftpPort.value || 21),
+        user: els.ftpUser.value, password: els.ftpPassword.value, basePath: els.ftpPath.value.trim() || 'Hdd1:/'
+      });
+      state.ftpConnected = true;
+      els.ftpStatus.textContent = 'Connected. Remote base: ' + r.cwd;
+      log('Xbox FTP connection tested successfully.');
+    } catch (err) {
+      state.ftpConnected = false;
+      els.ftpStatus.textContent = 'Not connected.';
+      showError('FTP connection failed: ' + err.message + '\nCheck the Xbox IP, dashboard FTP settings, and base path.');
+    } finally {
+      els.ftpConnectBtn.disabled = false;
+      updateConvertEnabled();
+    }
+  });
+  for (const el of [els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath]) {
+    el.addEventListener('input', () => { state.ftpConnected = false; els.ftpStatus.textContent = 'Settings changed; test the FTP connection again.'; updateConvertEnabled(); });
+  }
+
   els.chooseZipBtn.addEventListener('click', async () => {
     try {
       const name = state.zipSuggestedName || 'game [GOD].zip';
@@ -1548,6 +1603,39 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const dir = await navigateDir(rootHandle, layout.baseSegments, true);
     try { await dir.removeEntry(layout.headerName + '.data', { recursive: true }); } catch (_) {}
     try { await dir.removeEntry(layout.headerName); } catch (_) {}
+  }
+
+  class FTPWriter {
+    constructor(token) { this.token = token; this.id = null; this.segments = null; this.written = 0; this.expected = 0; }
+    async beginFile(segments, expectedSize) {
+      this.segments = segments;
+      this.expected = expectedSize;
+      this.written = 0;
+      const r = await bridgeRequest('/api/file/begin', { segments, size: expectedSize });
+      this.id = r.id;
+      log('Staging ' + segments.join('/') + ' for FTP transfer…');
+    }
+    async write(chunk) {
+      const blob = chunk instanceof Blob ? chunk : new Blob([chunk]);
+      const unit = 4 * 1024 * 1024;
+      for (let off = 0; off < blob.size; off += unit) {
+        const part = blob.slice(off, Math.min(blob.size, off + unit));
+        await bridgeRequest('/api/file/chunk?id=' + encodeURIComponent(this.id), part, true);
+        this.written += part.size;
+      }
+    }
+    async endFile() {
+      if (this.written !== this.expected) throw new Error('Staged ' + this.written + ' bytes; expected ' + this.expected + '.');
+      const name = this.segments.join('/');
+      await bridgeRequest('/api/file/finish', { id: this.id });
+      this.id = null;
+      log('Uploaded ' + name + ' (' + fmtBytes(this.written) + ') to Xbox.');
+    }
+    async finish() {}
+    async abort() {
+      if (this.id) { try { await bridgeRequest('/api/file/abort', { id: this.id }); } catch (_) {} }
+      this.id = null;
+    }
   }
 
   /* ---------------- conversion ---------------- */
@@ -1622,6 +1710,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             abort: async () => { zipBlobSinkParts = []; },
           });
         }
+      } else if (state.outputMode === 'ftp') {
+        if (!state.ftpConnected || !state.ftpToken) throw new Error('Test the FTP connection using the local helper first.');
+        writer = new FTPWriter(state.ftpToken);
       } else {
         writer = new E.CollectWriter();
       }
@@ -1687,7 +1778,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function setInputsEnabled(enabled) {
     for (const el of [els.titleInput, els.trimEnd, els.trimNone, els.contentPrefix,
-      els.modeFolder, els.modeZip, els.modeFiles, els.chooseFolderBtn, els.chooseZipBtn, els.browseBtn]) {
+      els.modeFolder, els.modeZip, els.modeFiles, els.modeFtp, els.chooseFolderBtn, els.chooseZipBtn,
+      els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath, els.ftpConnectBtn, els.browseBtn]) {
       if (el) el.disabled = !enabled || (el === els.modeFolder && !hasDirPicker);
     }
   }
@@ -1703,6 +1795,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       where = 'Your ZIP is ready — use the big download button below, extract it, and copy the <strong>Content</strong> folder to your Xbox 360 drive.';
     } else if (state.outputMode === 'zip') {
       where = 'Saved as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and copy the <strong>Content</strong> folder to your Xbox 360 drive.';
+    } else if (state.outputMode === 'ftp') {
+      where = 'Uploaded the GOD package to your Xbox over FTP. Rescan the Content path in Aurora/FreeStyle Dash after the transfer completes.';
     } else {
       where = 'Download every file below, recreate the folder layout shown next to each one exactly, then copy the <strong>Content</strong> folder to your Xbox 360 drive. A README with the same layout is included below.';
     }
