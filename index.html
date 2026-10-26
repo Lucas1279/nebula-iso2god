@@ -270,7 +270,7 @@ footer a{color:#9edcff}
       <input id="archiveInput" type="file" accept=".7z,application/x-7z-compressed" hidden>
       <div class="setup" id="archiveImportPanel" style="margin-top:10px">
         <strong>Import a .7z archive</strong>
-        <div class="muted small" style="margin-top:4px;line-height:1.55">The archive is processed locally in your browser; no Mac helper is needed for this import, and nothing is uploaded. Only ISO/XISO/XSF/IMG/BIN images are extracted; other archive entries are skipped. The original archive on your Mac is not changed. Use a recent Chrome or Edge browser and allow enough site storage for the extracted image. Password-protected archives are not supported.</div>
+        <div class="muted small" style="margin-top:4px;line-height:1.55">The archive is processed locally in your browser; the archive and extracted images are not uploaded. Only ISO/XISO/XSF/IMG/BIN images are extracted; other entries are skipped, and the original archive is unchanged. Use recent Safari, Chrome, or Edge from HTTPS or the updated local helper at 127.0.0.1 (not by opening the HTML file directly), and allow enough site storage for the extracted image. Password-protected archives are not supported.</div>
         <div class="muted small" id="archiveStatus" role="status" aria-live="polite" hidden style="margin-top:9px"></div>
         <div class="bar-wrap thin" id="archiveProgressWrap" hidden style="margin-top:8px"><div class="bar thin" id="archiveProgressBar" style="width:0%"></div></div>
         <div class="btn-row" style="margin-top:8px"><button class="btn small danger" id="archiveCancelBtn" type="button" hidden>Cancel archive import</button></div>
@@ -377,7 +377,7 @@ footer a{color:#9edcff}
       <div class="setup" id="ftpSetup" hidden>
         <strong>Xbox FTP connection (same home network only)</strong>
         <p class="muted small" style="margin:6px 0 10px">Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. Do not expose FTP to the internet or set up port forwarding. The ISO stays in your browser; the helper sends only the finished GOD files to the Xbox.</p>
-        <div class="muted small" style="margin:0 0 12px;line-height:1.6"><strong>Need the helper?</strong> FTP runs through a local helper on your Mac; it won’t work directly from the public page. Choose a download:<div class="btn-row" style="margin-top:9px"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File.zip"> Mac one-file launcher (.zip)</a></div><div class="muted tiny" style="margin-top:7px">Mac launcher: unzip and open <code>Nebula ISO2GOD.command</code> (Control-click → Open if prompted). Python 3 is required; keep its Terminal window open while using FTP. FTP is unencrypted—use only on your trusted home network.</div></div>
+        <div class="muted small" style="margin:0 0 12px;line-height:1.6"><strong>Need the helper?</strong> FTP runs through a local helper on your Mac; it won’t work directly from the public page. Choose a download:<div class="btn-row" style="margin-top:9px"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip"> Fixed Mac one-file launcher (.zip)</a></div><div class="muted tiny" style="margin-top:7px">The fixed Mac ZIP includes execute permission; unzip and open <code>Nebula ISO2GOD.command</code>. For an older copy that shows “could not be executed because you do not have appropriate access privileges,” open Terminal, type <code>chmod u+x </code>, drag the command file into Terminal, and press Return. If macOS shows a separate unidentified-developer warning, Control-click → Open. Python 3 is required; keep Terminal open during FTP. FTP is unencrypted—use only on your trusted home network.</div></div>
         <div class="grid2">
           <div><label class="f" for="ftpHost">Xbox IP address</label><input id="ftpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
           <div><label class="f" for="ftpPort">FTP port</label><input id="ftpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
@@ -421,7 +421,7 @@ footer a{color:#9edcff}
     <section class="card" id="rawContentUploadCard" data-workflow="raw" aria-labelledby="rawUploadHeading" hidden>
       <h2 id="rawUploadHeading">📦 Upload existing XBLA/XBLIG content</h2>
       <p class="muted small" style="line-height:1.6">Drop the game’s <strong>8-character Title ID folder</strong> (for example <code>58410B1D</code>) or its parent game folder below. The uploader finds the Title ID and copies files from its <code>000D0000</code> folder unchanged—no manual ID entry, conversion, or renaming. Destination: <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000/</code>. Same-named files may be overwritten.</p>
-      <div class="setup" style="margin-top:12px"><strong>Need the local FTP helper?</strong><div class="muted small" style="margin-top:4px">Download and start the helper before testing the Xbox connection. On Mac, use the one-file launcher; it opens Terminal, which must stay open during transfer.</div><div class="btn-row"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File.zip"> Mac one-file launcher (.zip)</a></div></div>
+      <div class="setup" style="margin-top:12px"><strong>Need the local FTP helper?</strong><div class="muted small" style="margin-top:4px">Download and start the helper before testing the Xbox connection. On Mac, use the fixed one-file launcher; its ZIP includes execute permission. For older copies that trigger an access-privileges alert, open Terminal, type <code>chmod u+x </code>, drag the .command file into Terminal, and press Return. Keep Terminal open during transfer.</div><div class="btn-row"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip"> Fixed Mac one-file launcher (.zip)</a></div></div>
       <div class="grid2">
         <div><label class="f" for="rawFtpHost">Xbox IP address</label><input id="rawFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
         <div><label class="f" for="rawFtpPort">FTP port</label><input id="rawFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
@@ -1832,7 +1832,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     await cleanupArchiveImports();
     if (id !== state.archiveRequestId || !state.archiveBusy) return;
     if (!navigator.storage || typeof navigator.storage.getDirectory !== 'function') {
-      await failArchiveImport(id, '', 'This browser does not support the Origin Private File System (OPFS) required for local extraction. Use a recent Chrome or Edge browser.');
+      await failArchiveImport(id, '', 'This browser does not expose the Origin Private File System (OPFS) required for local extraction. Use recent Safari, Chrome, or Edge on HTTPS or localhost; do not open the HTML file directly.');
       return;
     }
     const tempDir = 'nebula-7z-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
@@ -1883,8 +1883,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     worker.onerror = async event => {
       if (state.archiveWorker === worker) state.archiveWorker = null;
       worker.terminate();
-      await failArchiveImport(id, tempDir, event.message || 'The 7z worker could not run. Check that the app is served from a supported browser origin.');
-    };
+      const detail = event.error?.message || event.message || '';
+      const source = event.filename ? ' (' + event.filename + (event.lineno ? ':' + event.lineno : '') + ')' : '';
+      const diagnostic = detail ? ': ' + detail : '';
+      await failArchiveImport(id, tempDir, 'The 7z worker failed to load' + diagnostic + source + '. Use HTTPS or the updated local helper at 127.0.0.1, not file://. If using the Mac helper, update/restart it so its /vendor/un7z-opfs worker and WASM files are available.');
+    }; 
     log('Starting local .7z import for "' + file.name + '" (' + fmtBytes(file.size) + ').');
     try { worker.postMessage({ type: 'extract', id, archive: file, destPath: tempDir }); }
     catch (err) { void failArchiveImport(id, tempDir, 'Could not pass the selected archive to the local worker: ' + (err.message || String(err))); }

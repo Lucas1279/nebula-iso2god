@@ -1,15 +1,18 @@
 Website update package
 
-Upload/replace these items in the root of the GitHub repository used by GitHub Pages, commit to the published branch, then wait for Pages to redeploy:
+To publish this update, upload/replace these files in the root of the GitHub repository used by GitHub Pages, commit to the published branch, then wait for Pages to redeploy:
 - index.html
 - ftp_helper.py
 - README_FTP.md
 - the complete vendor/ directory (keep its subfolders and files)
 - nebula-iso2god-timeout-fix.zip
 - Nebula-ISO2GOD-One-File.zip
+- Nebula-ISO2GOD-One-File-Fixed.zip
 
-The website's ISO task can import one .7z archive locally in a recent Chrome or Edge browser. The worker reads the selected archive in File slices and extracts only supported image entries to browser storage; other contents are skipped and no archive data is uploaded. The original archive is unchanged. Keep vendor/un7z-opfs/ next to index.html for this feature.
+The Mac download includes an executable .command file. The fixed filename is used by the website so browsers are less likely to serve a cached old archive. Both the local helper and hosted site now expose the worker and WASM assets from vendor/ with the correct JavaScript/WebAssembly MIME types, which allows the .7z module worker to load. Upload the refreshed index, helper, vendor tree, and ZIPs together.
 
-FTP transfer pauses on a failed package-file transfer and offers “Retry file & continue.” The helper retains the complete staged file on this computer until retry succeeds or the transfer is cancelled. A retry resends only that current file from byte zero using FTP STOR (not byte-offset resume), overwrites any partial console copy, and continues the current ISO/job; completed files stay in place. Keep the page and helper running while paused.
+The ISO workflow can import .7z archives locally in recent Safari, Chrome, or Edge when opened over HTTPS or the updated local helper at http://127.0.0.1:8765/ (not file://). Supported disc images are extracted to browser storage; other entries are skipped and the original archive is unchanged.
 
-Includes separate ISO and XBLA/XBLIG workflows, saved IP/username options (password never saved), sequential-only FTP uploads, and completion meteor/confetti animations for successful conversion and raw upload. Animations respect the system reduced-motion setting.
+FTP transfer pauses on a failed package-file transfer and offers “Retry file & continue.” A retry resends only the current file from byte zero using FTP STOR (not byte-offset resume), overwrites any partial console copy, and continues the current ISO/job; completed files stay in place. Keep the page and helper open while paused.
+
+Includes separate ISO and XBLA/XBLIG workflows, saved IP/username options (password never saved), sequential-only FTP uploads, and completion animations for successful conversion and raw upload. Animations respect the system reduced-motion setting.

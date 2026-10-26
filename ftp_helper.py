@@ -89,8 +89,31 @@ class Handler(http.server.BaseHTTPRequestHandler):
             raise ValueError("Request chunk exceeds 8 MiB.")
         return self.rfile.read(size)
 
+    def _serve_vendor_asset(self, encoded_path):
+        """Serve only JS/WASM files bundled under vendor for local browser workers."""
+        vendor_root = (ROOT / "vendor").resolve()
+        try:
+            requested = urllib.parse.unquote(encoded_path).lstrip("/")
+            target = (ROOT / requested).resolve(strict=True)
+            target.relative_to(vendor_root)
+        except (OSError, ValueError):
+            return send_json(self, 404, {"error": "Not found."})
+        if not target.is_file() or target.suffix.lower() not in (".js", ".wasm"):
+            return send_json(self, 404, {"error": "Not found."})
+        data = target.read_bytes()
+        content_type = "application/wasm" if target.suffix.lower() == ".wasm" else "text/javascript; charset=utf-8"
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(data)
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path.startswith("/vendor/"):
+            return self._serve_vendor_asset(parsed.path)
         if parsed.path == "/api/token":
             return send_json(self, 200, {"token": TOKEN})
         if parsed.path == "/api/status":
