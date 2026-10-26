@@ -35,13 +35,14 @@ body{
 @keyframes drift2{from{transform:translate3d(0,0,0) scale(1.08)}to{transform:translate3d(-5vmax,4vmax,0) scale(.96)}}
 .planet{position:fixed; right:-70px; bottom:-90px; width:min(430px,55vw); z-index:0; pointer-events:none; opacity:.8; filter:drop-shadow(0 0 60px rgba(90,140,255,.35))}
 .completion-ufo{position:fixed;left:50%;top:42vh;width:clamp(170px,22vw,235px);height:auto;z-index:5;pointer-events:none;visibility:hidden;opacity:0;filter:drop-shadow(0 5px 13px rgba(56,189,248,.22))}
-.completion-ufo.progressing{width:140px;visibility:visible;opacity:1;transform:translate(-50%,-108%);transition:left .14s linear,top .14s linear;filter:drop-shadow(0 0 8px rgba(52,211,153,.85)) drop-shadow(0 0 20px rgba(56,189,248,.72))}
+.completion-ufo svg{display:block;width:100%;height:auto;overflow:visible}
+.completion-ufo.progressing{width:220px;visibility:visible;opacity:1;transform:translate(-50%,-94%);transition:left .14s linear,top .14s linear;filter:drop-shadow(0 0 8px rgba(52,211,153,.85)) drop-shadow(0 0 20px rgba(56,189,248,.72))}
 .completion-ufo.takeoff{width:clamp(170px,22vw,235px);visibility:visible;animation:ufo-takeoff 2.55s cubic-bezier(.2,.72,.25,1) both}
-.completion-ufo .ufo-disc{transform-box:fill-box;transform-origin:center;opacity:.55}
-.completion-ufo.progressing .ufo-disc{opacity:1;transform:translateY(0) scale(1)}
-.completion-ufo.takeoff .ufo-disc{animation:ufo-disc-lift .72s cubic-bezier(.2,.75,.25,1) both}
-@keyframes ufo-takeoff{0%{transform:translate3d(-50%,-108%,0) scale(.72);opacity:.98;visibility:visible}16%{transform:translate3d(calc(-50% + 2vw),-130%,0) scale(.8);opacity:1}100%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0;visibility:hidden}}
-@keyframes ufo-disc-lift{0%{transform:translateY(17px) scale(.72);opacity:.55}100%{transform:translateY(0) scale(1);opacity:1}}
+.completion-ufo .ufo-disc{opacity:.55}
+.completion-ufo.progressing .ufo-disc{opacity:1}
+.completion-ufo.takeoff .ufo-disc-lift{transform-box:fill-box;transform-origin:center;animation:ufo-disc-lift .72s cubic-bezier(.2,.75,.25,1) both}
+@keyframes ufo-takeoff{0%{transform:translate3d(-50%,-94%,0) scale(.72);opacity:.98;visibility:visible}16%{transform:translate3d(calc(-50% + 2vw),-130%,0) scale(.8);opacity:1}100%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0;visibility:hidden}}
+@keyframes ufo-disc-lift{0%{transform:translateY(9px) scale(.72);opacity:.55}100%{transform:translateY(0) scale(1);opacity:1}}
 @media(prefers-reduced-motion:reduce){.completion-ufo.progressing,.completion-ufo.takeoff{animation:none!important;opacity:0!important;visibility:hidden!important}}
 .wrap{position:relative; z-index:2; max-width:1080px; margin:0 auto; padding:34px 20px 80px}
 header.hero{text-align:center; padding:26px 10px 8px}
@@ -87,9 +88,11 @@ h1{font-size:clamp(2.3rem,6vw,4.2rem); line-height:1.02; margin:18px 0 10px; let
 .btn{appearance:none; border:1px solid rgba(145,170,255,.38); background:linear-gradient(180deg, rgba(58,76,150,.85), rgba(30,40,96,.9)); color:var(--text);
   border-radius:12px; padding:11px 18px; font-weight:700; cursor:pointer; font-size:.96rem; transition:.18s; box-shadow:0 8px 24px rgba(0,0,0,.28)}
 .btn:hover:not(:disabled){transform:translateY(-1px); border-color:rgba(160,190,255,.7)}
-.btn:disabled{opacity:.48; cursor:not-allowed}
+.btn:disabled{opacity:1;cursor:not-allowed;color:#dbe5f8;background:linear-gradient(180deg,#303a59,#232b48);border-color:rgba(161,177,212,.34);box-shadow:none}
+.btn.primary:disabled{background:linear-gradient(92deg,#4b5b74,#545b78);color:#f0f4ff;border:1px solid rgba(190,203,226,.3);box-shadow:none}
+.btn:focus-visible,.mode-btn:focus-visible{outline:2px solid #7dd3fc;outline-offset:3px}
 .btn.primary{background:linear-gradient(92deg,#38bdf8,#818cf8 55%,#e879f9); color:#071022; border:none; box-shadow:0 12px 34px rgba(99,140,255,.35)}
-.btn.primary:disabled{background:linear-gradient(92deg,#4b5d85,#5b5f91); color:#c7cdf0}
+
 .btn.small{padding:8px 13px; font-size:.88rem}
 .btn.danger{background:linear-gradient(180deg,#6b2234,#451422); border-color:rgba(255,130,155,.45)}
 .btn-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:14px}
@@ -111,11 +114,14 @@ input[type=text]:focus{outline:2px solid rgba(110,231,255,.6); outline-offset:1p
 .mode-btn{flex:1 1 190px; text-align:left; border-radius:15px; border:1px solid var(--line); background:rgba(8,12,34,.62); color:var(--text); padding:13px 14px; cursor:pointer; line-height:1.45;transition:border-color .2s,box-shadow .24s,transform .2s,background .24s}
 .mode-btn b{display:block; font-size:.99rem}.mode-btn span{color:var(--muted); font-size:.85rem}
 .mode-btn.active{border-color:var(--accent); box-shadow:0 0 0 1px rgba(110,231,255,.45), 0 12px 28px rgba(0,0,0,.28); background:linear-gradient(180deg, rgba(28,48,105,.75), rgba(13,20,55,.85))}
-.mode-btn:disabled{opacity:.45; cursor:not-allowed}
+.mode-btn:disabled{opacity:1;cursor:not-allowed;background:rgba(17,24,43,.92);border-color:rgba(160,175,205,.35);color:#e0e7f5}
+.mode-btn:disabled span{color:#b5c1dc}
 .setup{margin-top:12px; padding:14px; border:1px solid var(--line); border-radius:14px; background:rgba(5,9,26,.62); line-height:1.55}
 .raw-drop-zone{min-height:210px;display:flex;flex-direction:column;justify-content:center;align-items:center}
 .raw-drop-zone.drag-active{border-color:transparent;background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
 .raw-drop-zone:focus-visible{outline:2px solid rgba(110,231,255,.7);outline-offset:3px}
+#ftpStatus,#rawFtpStatus,#rawFtpUploadResult,#ftpLiveText,#rawFtpLiveText{min-width:0;overflow-wrap:anywhere}
+#rawSelectedFiles{max-width:100%;overflow-wrap:anywhere}
 #ftpStatus.is-connected,#rawFtpStatus.is-connected{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-size:1rem;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12);overflow-wrap:anywhere}
 #ftpStatus.is-connected::before,#rawFtpStatus.is-connected::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251f;font-size:.9rem;font-weight:900;line-height:1}
 .workflow-mode-hidden{display:none!important}
@@ -130,7 +136,7 @@ input[type=text]:focus{outline:2px solid rgba(110,231,255,.6); outline-offset:1p
 pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; background:rgba(2,5,18,.86); border:1px solid rgba(120,150,255,.2); color:#bfe9ff; font-size:.84rem; line-height:1.55}
 .progress-head{display:flex; justify-content:space-between; gap:14px; align-items:baseline; flex-wrap:wrap}
 .bar-wrap{height:15px; border-radius:999px; background:rgba(255,255,255,.09); overflow:hidden; margin-top:13px; border:1px solid rgba(150,175,255,.16)}
-.ufo-progress-lane{height:96px;position:relative;display:flex;align-items:flex-end;padding-bottom:13px;margin-top:2px}
+.ufo-progress-lane{height:140px;position:relative;display:flex;align-items:flex-end;padding-bottom:13px;margin-top:2px}
 .ufo-progress-lane>.bar-wrap{width:100%;margin-top:0}
 .bar{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9); box-shadow:0 0 22px rgba(120,160,255,.65); transition:width .18s}
 .bar.thin{height:100%; background:linear-gradient(90deg,#34d399,#38bdf8)}
@@ -199,10 +205,12 @@ footer a{color:#9edcff}
     </defs>
     <path d="M78 58 L142 58 L168 108 L52 108 Z" fill="url(#ufoBeam)"/>
     <path d="M80 59 L58 104 M140 59 L162 104" fill="none" stroke="#34d399" stroke-opacity=".24" stroke-width="1.5"/>
-    <g class="ufo-disc" transform="translate(110 91)">
-      <ellipse rx="19" ry="7" fill="url(#ufoDisc)" stroke="#d1fae5" stroke-width="1.5"/>
-      <ellipse rx="5" ry="2.2" fill="#102234" stroke="#dbeafe" stroke-width="1"/>
-      <path d="M-13 0 Q0 5 13 0" fill="none" stroke="#ecfeff" stroke-opacity=".75" stroke-width="1"/>
+    <g class="ufo-disc" transform="translate(110 112)">
+      <g class="ufo-disc-lift">
+        <ellipse rx="20" ry="7.5" fill="url(#ufoDisc)" stroke="#d1fae5" stroke-width="1.8"/>
+        <ellipse rx="5" ry="2.3" fill="#102234" stroke="#dbeafe" stroke-width="1.1"/>
+        <path d="M-14 0 Q0 5.5 14 0" fill="none" stroke="#ecfeff" stroke-opacity=".9" stroke-width="1.1"/>
+      </g>
     </g>
     <path d="M75 55 Q78 31 110 28 Q142 31 145 55 Z" fill="url(#ufoDome)" stroke="#dbeafe" stroke-opacity=".8" stroke-width="2"/>
     <ellipse cx="110" cy="58" rx="55" ry="15" fill="url(#ufoHull)" stroke="#dbeafe" stroke-width="2"/>
