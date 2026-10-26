@@ -38,9 +38,13 @@ body{
 header.hero{text-align:center; padding:26px 10px 8px}
 .orbit-badge{display:inline-flex; gap:8px; align-items:center; padding:7px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(10,16,40,.6); color:var(--muted); font-size:.83rem; letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(8px)}
 .orbit-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--accent3); box-shadow:0 0 12px var(--accent3)}
+@keyframes nebula-gradient-shift{from{background-position:0% 50%}to{background-position:100% 50%}}
+.credit-gradient{font-weight:800;text-decoration:none;background:linear-gradient(100deg,#b9e8ff 0%,#9dc5ff 35%,#b6adff 66%,#e5a7f3 100%);background-size:140% 100%;background-position:100% 50%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:nebula-gradient-shift 9s ease-in-out infinite alternate;animation-delay:-4.5s}
+.credit-gradient:hover{text-decoration:underline;text-decoration-color:#b6adff}
 h1{font-size:clamp(2.3rem,6vw,4.2rem); line-height:1.02; margin:18px 0 10px; letter-spacing:-.03em;
-  background:linear-gradient(92deg,#fff 12%,#9fd8ff 38%,#c4b5fd 62%,#f0abfc 88%); -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter:drop-shadow(0 6px 26px rgba(110,140,255,.25))}
+  background:linear-gradient(100deg,#b9e8ff 0%,#9dc5ff 35%,#b6adff 66%,#e5a7f3 100%); background-size:140% 100%; background-position:0% 50%;
+  -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  animation:nebula-gradient-shift 9s ease-in-out infinite alternate; filter:drop-shadow(0 6px 26px rgba(110,140,255,.25))}
 .hero p{max-width:760px; margin:0 auto; color:var(--muted); font-size:clamp(1rem,2vw,1.14rem); line-height:1.65}
 .hero p strong{color:var(--text)}
 .badges{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:18px 0 4px}
@@ -59,9 +63,15 @@ h1{font-size:clamp(2.3rem,6vw,4.2rem); line-height:1.02; margin:18px 0 10px; let
 .card h2{margin:0 0 6px; font-size:1.35rem; letter-spacing:-.01em}
 .card h3{margin:22px 0 8px; font-size:1.02rem}
 .muted{color:var(--muted)} .small{font-size:.88rem} .tiny{font-size:.8rem}
-.drop{margin-top:14px; border:2px dashed rgba(140,170,255,.45); border-radius:20px; padding:38px 20px; text-align:center; cursor:pointer; transition:.2s;
+.drop{position:relative;isolation:isolate;margin-top:14px;border:2px dashed rgba(140,170,255,.45);border-radius:20px;padding:38px 20px;text-align:center;cursor:pointer;transition:.2s;
   background:radial-gradient(560px 240px at 50% 0%, rgba(110,140,255,.16), transparent 70%), rgba(8,12,32,.55)}
-.drop:hover,.drop.dragover{border-color:var(--accent); background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75); transform:translateY(-1px)}
+.drop::before{display:none;content:"";position:absolute;inset:0;padding:2px;border-radius:inherit;background:linear-gradient(110deg,#b9e8ff,#9dc5ff,#b6adff,#e5a7f3);background-size:220% 100%;background-position:0% 50%;opacity:.78;pointer-events:none;z-index:0;animation:nebula-gradient-shift 6s linear infinite alternate;
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude}
+.drop>*{position:relative;z-index:1}
+.drop:hover,.drop.dragover{border-color:var(--accent);background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
+@supports (-webkit-mask-composite:xor){.drop{border-color:transparent}.drop::before{display:block}.drop:hover,.drop.dragover,.raw-drop-zone.drag-active{border-color:transparent}}
+@supports (mask-composite:exclude){.drop{border-color:transparent}.drop::before{display:block}.drop:hover,.drop.dragover,.raw-drop-zone.drag-active{border-color:transparent}}
+.drop:hover::before,.drop.dragover::before,.raw-drop-zone.drag-active::before{opacity:1;animation-duration:3s}
 .drop .big{font-size:2.6rem; line-height:1}
 .drop .t{font-size:1.16rem; font-weight:750; margin-top:10px}
 .drop .s{color:var(--muted); margin-top:6px; line-height:1.55}
@@ -95,7 +105,7 @@ input[type=text]:focus{outline:2px solid rgba(110,231,255,.6); outline-offset:1p
 .mode-btn:disabled{opacity:.45; cursor:not-allowed}
 .setup{margin-top:12px; padding:14px; border:1px solid var(--line); border-radius:14px; background:rgba(5,9,26,.62); line-height:1.55}
 .raw-drop-zone{min-height:210px;display:flex;flex-direction:column;justify-content:center;align-items:center}
-.raw-drop-zone.drag-active{border-color:var(--accent);background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
+.raw-drop-zone.drag-active{border-color:transparent;background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
 .raw-drop-zone:focus-visible{outline:2px solid rgba(110,231,255,.7);outline-offset:3px}
 .workflow-mode-hidden{display:none!important}
 .workflow-switch{margin:0 0 18px}
@@ -135,7 +145,7 @@ footer a{color:#9edcff}
   .card{padding:19px}
 }
 @media (max-width:520px){.raw-steps{gap:3px;padding:7px 8px}.raw-step{gap:5px;padding:0 2px;font-size:.78rem}.raw-step .n{width:21px;height:21px;font-size:.75rem}.raw-step-sep{font-size:.9rem}}
-@media (prefers-reduced-motion:reduce){.nebula{animation:none} html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){.nebula,h1,.credit-gradient,.drop::before{animation:none!important} html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -194,7 +204,7 @@ footer a{color:#9edcff}
           <button class="btn primary" id="browseBtn" type="button">Browse for ISO(s)…</button>
         </div>
       </div>
-      <input id="fileInput" type="file" accept=".iso,.xiso,.img,.bin,application/octet-stream" multiple hidden>
+      <input id="fileInput" type="file" accept=".iso,.xiso,.xsf,.img,.bin,application/octet-stream" multiple hidden>
       <div class="setup" id="batchHint" hidden aria-live="polite"></div>
       <div id="errorBox" role="alert" hidden></div>
       <div class="warn-note small"><strong>Only convert backups of games you own.</strong> Like Iso2God, the finished package has a blank LIVE signature, so it boots on <strong>JTAG/RGH</strong> consoles — not on retail hardware.</div>
@@ -401,6 +411,7 @@ footer a{color:#9edcff}
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
+    <div class="tiny" style="margin-top:8px">Built by <a class="credit-gradient" href="https://github.com/Lucas1279" target="_blank" rel="noopener noreferrer">Lucas1279 on GitHub</a> · <a href="https://github.com/Lucas1279/nebula-iso2god" target="_blank" rel="noopener noreferrer">Source code</a></div>
   </footer>
 </div>
 <noscript><div style="position:relative;z-index:5;max-width:800px;margin:20px auto;padding:18px;background:#451422;color:#ffd7de;border-radius:14px">This converter needs JavaScript — the ISO is processed locally in your browser, so the conversion engine is JavaScript.</div></noscript>
@@ -1328,7 +1339,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     dirHandle: null, zipHandle: null, zipSuggestedName: '',
     ftpToken: null, ftpConnected: false, rawFtpConnected: false, rawUploading: false, rawFiles: [], taskMode: 'iso',
     converting: false, cancelRequested: false,
-    batchFiles: [], batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false,
+    batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0,
     result: null, collectedFiles: [], zipBlob: null, zipBlobName: '',
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
@@ -1395,7 +1406,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!isFinite(ms) || ms < 0) return '—';
     const s = Math.round(ms / 1000);
     if (s < 60) return s + 's';
-    return Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's';
+    const hours = Math.floor(s / 3600);
+    const minutes = Math.floor((s % 3600) / 60);
+    const seconds = s % 60;
+    return hours ? hours + 'h ' + String(minutes).padStart(2, '0') + 'm ' + String(seconds).padStart(2, '0') + 's'
+      : minutes + 'm ' + String(seconds).padStart(2, '0') + 's';
   }
   function log(msg) {
     const t = new Date().toLocaleTimeString([], { hour12: false });
@@ -1495,22 +1510,29 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function updateBatchHint() {
     const count = state.batchFiles.length;
-    if (count < 2) { els.batchHint.hidden = true; els.batchHint.textContent = ''; return; }
+    if (count < 2 && !state.batchSkipped) { els.batchHint.hidden = true; els.batchHint.textContent = ''; return; }
     els.batchHint.hidden = false;
-    if (state.batchRunning) {
+    if (count === 0) {
+      els.batchHint.textContent = 'No supported ISO files queued; ignored ' + state.batchSkipped + ' unsupported file(s). Choose .iso, .xiso, .xsf, .img, or .bin files.';
+    } else if (state.batchRunning) {
       const activeIndex = Math.min(state.batchCompleted, count - 1);
       const active = state.batchFiles[activeIndex];
-      els.batchHint.textContent = 'FTP batch ' + (activeIndex + 1) + ' of ' + count + ' · ' + state.batchCompleted + ' completed · Now: ' + (active ? active.name : 'preparing') + '. Files run sequentially to preserve normal per-ISO conversion speed.';
+      const batchElapsed = state.batchStartTime ? ' · batch elapsed ' + fmtDuration(Date.now() - state.batchStartTime) : '';
+      const skippedNote = state.batchSkipped ? ' · skipped ' + state.batchSkipped + ' unsupported' : '';
+      els.batchHint.textContent = 'FTP batch ' + (activeIndex + 1) + ' of ' + count + ' · ' + state.batchCompleted + ' completed · Now: ' + (active ? active.name : 'preparing') + batchElapsed + skippedNote + '. Files run sequentially to preserve normal per-ISO conversion speed';
     } else if (state.batchFinished) {
+      const batchDuration = state.batchStartTime && state.batchEndTime ? ' in ' + fmtDuration(state.batchEndTime - state.batchStartTime) : '';
+      const skippedNote = state.batchSkipped ? ' (' + state.batchSkipped + ' unsupported file(s) skipped)' : '';
       els.batchHint.textContent = state.batchCompleted === count
-        ? 'Batch complete: all ' + count + ' ISO packages were converted and uploaded to the Xbox one after another.'
+        ? 'Batch complete: all ' + count + ' ISO packages were converted and uploaded to the Xbox one after another' + batchDuration + skippedNote + '.'
         : state.cancelRequested
-          ? 'Batch cancelled after ' + state.batchCompleted + ' completed ISO(s). Completed packages remain on the Xbox; delete any partial package from the interrupted ISO before retrying.'
-          : 'Batch stopped after ' + state.batchCompleted + ' of ' + count + ' ISO(s). Completed packages remain on the Xbox; delete any partial package from the failed ISO, then select only the remaining ISO(s) to retry.';
+          ? 'Batch cancelled after ' + state.batchCompleted + ' completed ISO(s)' + batchDuration + skippedNote + '. Completed packages remain on the Xbox; delete any partial package from the interrupted ISO before retrying.'
+          : 'Batch stopped after ' + state.batchCompleted + ' of ' + count + ' ISO(s)' + batchDuration + skippedNote + '. Completed packages remain on the Xbox; delete any partial package from the failed ISO, then select only the remaining ISO(s) to retry.';
     } else {
       const ftpReady = state.outputMode === 'ftp' && state.ftpConnected;
-      els.batchHint.textContent = count + ' ISOs queued. They will be converted and uploaded one at a time, keeping normal per-ISO speed. Current trim/path settings apply to all; each game name is detected separately. ' +
-        (ftpReady ? 'Ready — choose Convert & upload batch.' : 'Select Xbox FTP output and test the connection to enable the batch.');
+      els.batchHint.textContent = count + ' ISO' + (count === 1 ? '' : 's') + ' queued' + (state.batchSkipped ? '; ignored ' + state.batchSkipped + ' unsupported file(s)' : '') + '. ' +
+        (count > 1 ? 'They will be converted and uploaded one at a time, keeping normal per-ISO speed. Current trim/path settings apply to all; each game name is detected separately. ' : '') +
+        (count > 1 ? (ftpReady ? 'Ready — choose Convert & upload batch.' : 'Select Xbox FTP output and test the connection to enable the batch.') : 'The selected ISO will use the normal single-file workflow.');
     }
   }
   function updateConvertEnabled() {
@@ -1643,17 +1665,30 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   });
   function selectIsoFiles(fileList) {
     if (state.converting || state.batchRunning) return;
-    const files = Array.from(fileList || []);
-    if (!files.length) return;
+    const incoming = Array.from(fileList || []);
+    if (!incoming.length) return;
+    const files = incoming.filter(f => /\.(?:iso|xiso|xsf|img|bin)$/i.test(f.name) || !/\.[^./]+$/.test(f.name));
+    state.batchFiles = files;
+    state.batchSkipped = incoming.length - files.length;
+    state.batchIndex = 0; state.batchCompleted = 0; state.batchRunning = false; state.batchFinished = false;
+    state.batchStartTime = 0; state.batchEndTime = 0; state.analysis = null;
+    if (!files.length) {
+      updateBatchHint();
+      showError('No supported ISO/XISO/XSF image files were selected. Choose .iso, .xiso, .xsf, .img, or .bin files.');
+      updateConvertEnabled();
+      return;
+    }
     state.batchFiles = files;
     state.batchIndex = 0;
     state.batchCompleted = 0;
     state.batchRunning = false;
     state.batchFinished = false;
+    state.batchStartTime = 0; state.batchEndTime = 0;
     state.analysis = null;
     updateBatchHint();
     updateConvertEnabled();
     if (files.length > 1) log('Queued ' + files.length + ' ISO files. Multi-ISO batches use sequential FTP uploads.');
+    if (state.batchSkipped) log('Ignored ' + state.batchSkipped + ' unsupported file(s) from the selection.');
     acceptFile(files[0]);
   }
   els.fileInput.addEventListener('change', () => {
@@ -2072,9 +2107,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const phaseElapsed = (now - state.phaseStart) / 1000;
     const speed = phaseElapsed > 0.3 && p.done > 0 ? p.done / phaseElapsed : 0;
     els.speedEl.textContent = speed ? fmtBytes(speed) + '/s' : '—';
-    const totalElapsed = now - state.startTime;
+    const totalElapsed = Date.now() - state.startTime;
     const eta = p.overall > 0.01 ? totalElapsed * (1 - p.overall) / p.overall : NaN;
-    els.etaEl.textContent = ' elapsed ' + fmtDuration(totalElapsed) + (isFinite(eta) ? ' · ~' + fmtDuration(eta) + ' left' : '');
+    const elapsedLabel = state.batchRunning
+      ? ' batch elapsed ' + fmtDuration(Date.now() - state.batchStartTime) + ' · this ISO ' + fmtDuration(totalElapsed)
+      : ' elapsed ' + fmtDuration(totalElapsed);
+    els.etaEl.textContent = elapsedLabel + (isFinite(eta) ? ' · ~' + fmtDuration(eta) + (state.batchRunning ? ' left this ISO' : ' left') : '');
     els.phaseLabel.textContent = (state.batchRunning ? 'Batch ' + (state.batchIndex + 1) + '/' + state.batchFiles.length + ' · ' : '') + p.phaseLabel + (p.partIndex !== undefined && p.phase === 'write' ? ' — Data' + String(p.partIndex).padStart(4, '0') : '');
   }
 
@@ -2132,18 +2170,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.collectedFiles = [];
     state.zipBlob = null;
     state.phaseKey = '';
-    state.startTime = performance.now();
+    state.startTime = Date.now();
     state.lastOverall = 0;
     state.ftpActivity = '';
     els.ftpLive.hidden = state.outputMode !== 'ftp';
     if (state.outputMode === 'ftp') setFtpLive('Preparing Xbox FTP upload…', 0);
     state.elapsedTimer = setInterval(() => {
       if (!state.converting) return;
-      const elapsed = performance.now() - state.startTime;
+      const elapsed = Date.now() - state.startTime;
       const ftpLabel = state.ftpActivity === 'uploading' ? ' · FTP upload active'
         : state.ftpActivity === 'staging' ? ' · staging next file on Mac' : '';
       const eta = state.lastOverall > 0.01 ? elapsed * (1 - state.lastOverall) / state.lastOverall : NaN;
-      els.etaEl.textContent = ' elapsed ' + fmtDuration(elapsed) + ftpLabel + (ftpLabel ? '' : (isFinite(eta) ? ' · ~' + fmtDuration(eta) + ' left' : ''));
+      const elapsedLabel = state.batchRunning
+        ? ' batch elapsed ' + fmtDuration(Date.now() - state.batchStartTime) + ' · this ISO ' + fmtDuration(elapsed)
+        : ' elapsed ' + fmtDuration(elapsed);
+      els.etaEl.textContent = elapsedLabel + ftpLabel + (ftpLabel ? '' : (isFinite(eta) ? ' · ~' + fmtDuration(eta) + ' left this ISO' : ''));
     }, 1000);
     els.doneCard.hidden = true;
     els.progressCard.hidden = false;
@@ -2163,7 +2204,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         isCancelled: () => state.cancelRequested,
       });
       state.result = result;
-      const mins = fmtDuration(performance.now() - state.startTime);
+      const mins = fmtDuration(Date.now() - state.startTime);
       if (state.outputMode === 'files') state.collectedFiles = writer.files;
       if (state.outputMode === 'zip' && zipBlobSinkParts) {
         state.zipBlob = new Blob(zipBlobSinkParts, { type: 'application/zip' });
@@ -2211,6 +2252,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.batchFinished = false;
     state.batchIndex = 0;
     state.batchCompleted = 0;
+    state.batchStartTime = Date.now(); state.batchEndTime = 0;
     state.cancelRequested = false;
     const destinations = new Set();
     setInputsEnabled(false);
@@ -2243,6 +2285,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } finally {
       state.batchRunning = false;
       state.batchFinished = true;
+      state.batchEndTime = Date.now();
       els.cancelBtn.disabled = true;
       els.cancelBtn.textContent = 'Cancel conversion';
       setInputsEnabled(true);
@@ -2351,7 +2394,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   });
   function resetAll() {
     state.file = null; state.reader = null; state.analysis = null;
-    state.batchFiles = []; state.batchIndex = 0; state.batchCompleted = 0; state.batchRunning = false; state.batchFinished = false;
+    state.batchFiles = []; state.batchSkipped = 0; state.batchIndex = 0; state.batchCompleted = 0; state.batchRunning = false; state.batchFinished = false; state.batchStartTime = 0; state.batchEndTime = 0;
     els.fileInput.value = ''; updateBatchHint();
     state.result = null; state.collectedFiles = []; state.zipBlob = null;
     state.zipHandle = null;
