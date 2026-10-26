@@ -34,6 +34,13 @@ body{
 @keyframes drift1{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(6vmax,3vmax,0) scale(1.12)}}
 @keyframes drift2{from{transform:translate3d(0,0,0) scale(1.08)}to{transform:translate3d(-5vmax,4vmax,0) scale(.96)}}
 .planet{position:fixed; right:-70px; bottom:-90px; width:min(430px,55vw); z-index:0; pointer-events:none; opacity:.8; filter:drop-shadow(0 0 60px rgba(90,140,255,.35))}
+.completion-ufo{position:fixed;left:50%;top:42vh;width:clamp(170px,22vw,235px);height:auto;z-index:1;pointer-events:none;visibility:hidden;opacity:0;filter:drop-shadow(0 5px 13px rgba(56,189,248,.22))}
+.completion-ufo.fly{visibility:visible;animation:ufo-completion-flyby 5.4s cubic-bezier(.22,.61,.36,1) both}
+.completion-ufo .ufo-disc{transform-box:fill-box;transform-origin:center;opacity:.55}
+.completion-ufo.fly .ufo-disc{animation:ufo-disc-lift 1.15s cubic-bezier(.2,.75,.25,1) .35s both}
+@keyframes ufo-completion-flyby{0%{transform:translate3d(calc(-50vw - 250px),18px,0) rotate(-4deg) scale(.88);opacity:0;visibility:visible}12%{opacity:.76}50%{transform:translate3d(-50%,0,0) rotate(0) scale(1);opacity:.78}88%{opacity:.76}100%{transform:translate3d(calc(50vw + 250px),-12px,0) rotate(3deg) scale(.94);opacity:0;visibility:hidden}}
+@keyframes ufo-disc-lift{0%{transform:translateY(20px) scale(.7);opacity:.35}100%{transform:translateY(0) scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.completion-ufo.fly{animation:none!important;opacity:0!important;visibility:hidden!important}}
 .wrap{position:relative; z-index:2; max-width:1080px; margin:0 auto; padding:34px 20px 80px}
 header.hero{text-align:center; padding:26px 10px 8px}
 .orbit-badge{display:inline-flex; gap:8px; align-items:center; padding:7px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(10,16,40,.6); color:var(--muted); font-size:.83rem; letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(8px)}
@@ -107,6 +114,9 @@ input[type=text]:focus{outline:2px solid rgba(110,231,255,.6); outline-offset:1p
 .raw-drop-zone{min-height:210px;display:flex;flex-direction:column;justify-content:center;align-items:center}
 .raw-drop-zone.drag-active{border-color:transparent;background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
 .raw-drop-zone:focus-visible{outline:2px solid rgba(110,231,255,.7);outline-offset:3px}
+#ftpStatus.is-connected,#rawFtpStatus.is-connected{display:inline-flex;align-items:center;gap:12px;max-width:100%;padding:10px 16px 10px 12px;border:1px solid rgba(16,185,129,.78);border-radius:17px;background:linear-gradient(110deg,rgba(8,52,48,.9),rgba(13,40,58,.92));color:#c7ffe5;font-size:clamp(1.08rem,2.2vw,1.38rem);font-weight:850;line-height:1.35;box-shadow:0 0 20px rgba(16,185,129,.11);overflow-wrap:anywhere}
+#ftpStatus.is-connected::before,#rawFtpStatus.is-connected::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:linear-gradient(105deg,#34d399,#38bdf8);color:#06251f;font-size:1.25rem;font-weight:950;line-height:1;box-shadow:0 0 16px rgba(56,189,248,.2)}
+@media(max-width:600px){#ftpStatus.is-connected,#rawFtpStatus.is-connected{gap:8px;padding:8px 10px;font-size:.91rem}#ftpStatus.is-connected::before,#rawFtpStatus.is-connected::before{flex-basis:29px;width:29px;height:29px;font-size:1.05rem}}
 .workflow-mode-hidden{display:none!important}
 .workflow-switch{margin:0 0 18px}
 .workflow-switch .mode-btn:hover:not(:disabled){transform:translateY(-2px)}
@@ -176,6 +186,30 @@ footer a{color:#9edcff}
   <ellipse cx="250" cy="268" rx="224" ry="52" fill="none" stroke="url(#rg)" stroke-width="5" opacity=".8" transform="rotate(-13 250 268)"/>
   <circle cx="382" cy="122" r="17" fill="#dbeafe" opacity=".8"/><circle cx="96" cy="108" r="8" fill="#f0abfc" opacity=".7"/>
 </svg>
+<div class="completion-ufo" id="completionUfo" aria-hidden="true">
+  <svg viewBox="0 0 220 120" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ufoBeam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34d399" stop-opacity=".22"/><stop offset="1" stop-color="#38bdf8" stop-opacity=".06"/></linearGradient>
+      <linearGradient id="ufoHull" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1f8ff"/><stop offset=".38" stop-color="#91a7c4"/><stop offset=".72" stop-color="#d9e8f4"/><stop offset="1" stop-color="#58748e"/></linearGradient>
+      <linearGradient id="ufoDisc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#34d399"/><stop offset=".55" stop-color="#a7f3d0"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+      <radialGradient id="ufoDome" cx="35%" cy="25%"><stop offset="0" stop-color="#e0f2fe" stop-opacity=".95"/><stop offset="1" stop-color="#38bdf8" stop-opacity=".48"/></radialGradient>
+    </defs>
+    <path d="M78 58 L142 58 L168 108 L52 108 Z" fill="url(#ufoBeam)"/>
+    <path d="M80 59 L58 104 M140 59 L162 104" fill="none" stroke="#34d399" stroke-opacity=".24" stroke-width="1.5"/>
+    <g class="ufo-disc" transform="translate(110 91)">
+      <ellipse rx="19" ry="7" fill="url(#ufoDisc)" stroke="#d1fae5" stroke-width="1.5"/>
+      <ellipse rx="5" ry="2.2" fill="#102234" stroke="#dbeafe" stroke-width="1"/>
+      <path d="M-13 0 Q0 5 13 0" fill="none" stroke="#ecfeff" stroke-opacity=".75" stroke-width="1"/>
+    </g>
+    <path d="M75 55 Q78 31 110 28 Q142 31 145 55 Z" fill="url(#ufoDome)" stroke="#dbeafe" stroke-opacity=".8" stroke-width="2"/>
+    <ellipse cx="110" cy="58" rx="55" ry="15" fill="url(#ufoHull)" stroke="#dbeafe" stroke-width="2"/>
+    <path d="M56 58 Q110 77 164 58" fill="none" stroke="#526b84" stroke-width="4" opacity=".8"/>
+    <ellipse cx="110" cy="56" rx="50" ry="8" fill="none" stroke="#38bdf8" stroke-width="2" opacity=".9"/>
+    <circle cx="77" cy="59" r="3" fill="#34d399"/><circle cx="94" cy="63" r="3" fill="#34d399"/>
+    <circle cx="126" cy="63" r="3" fill="#38bdf8"/><circle cx="143" cy="59" r="3" fill="#38bdf8"/>
+    <ellipse cx="110" cy="54" rx="9" ry="3" fill="#f0f9ff" opacity=".85"/>
+  </svg>
+</div>
 
 <div class="wrap">
   <header class="hero">
@@ -1373,8 +1407,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (invalidateConnections) {
       state.ftpConnected = false;
       state.rawFtpConnected = false;
-      els.ftpStatus.textContent = 'Saved settings changed; test the FTP connection again.';
-      els.rawFtpStatus.textContent = 'Saved settings changed; test the FTP connection again.';
+      setFtpStatus(els.ftpStatus, 'Saved settings changed; test the FTP connection again.');
+      setFtpStatus(els.rawFtpStatus, 'Saved settings changed; test the FTP connection again.');
       updateConvertEnabled();
     }
   }
@@ -1764,10 +1798,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.rawFtpLiveBar.style.width = pct.toFixed(1) + '%';
     }
   }
+  function setFtpStatus(el, message) {
+    el.textContent = message;
+    el.classList.toggle('is-connected', message.startsWith('Connected. Remote base:'));
+  }
   els.ftpConnectBtn.addEventListener('click', async () => {
     clearError();
     els.ftpConnectBtn.disabled = true;
-    els.ftpStatus.textContent = 'Testing FTP connection…';
+    setFtpStatus(els.ftpStatus, 'Testing FTP connection…');
     try {
       const r = await bridgeRequest('/api/connect', {
         host: els.ftpHost.value.trim(), port: Number(els.ftpPort.value || 21),
@@ -1775,12 +1813,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       });
       state.ftpConnected = true;
       state.rawFtpConnected = false;
-      els.ftpStatus.textContent = 'Connected. Remote base: ' + r.cwd;
-      els.rawFtpStatus.textContent = 'The FTP connection settings changed; test the raw-file uploader connection again if needed.';
+      setFtpStatus(els.ftpStatus, 'Connected. Remote base: ' + r.cwd);
+      setFtpStatus(els.rawFtpStatus, 'The FTP connection settings changed; test the raw-file uploader connection again if needed.');
       log('Xbox FTP connection tested successfully.');
     } catch (err) {
       state.ftpConnected = false;
-      els.ftpStatus.textContent = 'Not connected.';
+      setFtpStatus(els.ftpStatus, 'Not connected.');
       showError('FTP connection failed: ' + err.message + '\nCheck the Xbox IP, dashboard FTP settings, and base path.');
     } finally {
       els.ftpConnectBtn.disabled = false;
@@ -1790,14 +1828,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   for (const el of [els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath]) {
     el.addEventListener('input', () => {
       state.ftpConnected = false;
-      els.ftpStatus.textContent = 'Settings changed; test the FTP connection again.';
+      setFtpStatus(els.ftpStatus, 'Settings changed; test the FTP connection again.');
       if (el === els.ftpHost || el === els.ftpUser) persistIdentityOnInput('iso');
       updateConvertEnabled();
     });
   }
   els.rawFtpConnectBtn.addEventListener('click', async () => {
     els.rawFtpConnectBtn.disabled = true;
-    els.rawFtpStatus.textContent = 'Testing FTP connection…';
+    setFtpStatus(els.rawFtpStatus, 'Testing FTP connection…');
     try {
       const r = await bridgeRequest('/api/connect', {
         host: els.rawFtpHost.value.trim(), port: Number(els.rawFtpPort.value || 21),
@@ -1805,12 +1843,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       });
       state.rawFtpConnected = true;
       state.ftpConnected = false;
-      els.rawFtpStatus.textContent = 'Connected. Remote base: ' + r.cwd;
-      els.ftpStatus.textContent = 'A separate raw-file FTP connection is active. Test the converter FTP connection again before converting via FTP.';
+      setFtpStatus(els.rawFtpStatus, 'Connected. Remote base: ' + r.cwd);
+      setFtpStatus(els.ftpStatus, 'A separate raw-file FTP connection is active. Test the converter FTP connection again before converting via FTP.');
       log('Xbox FTP connection tested for existing content-file upload.');
     } catch (err) {
       state.rawFtpConnected = false;
-      els.rawFtpStatus.textContent = 'Not connected: ' + err.message;
+      setFtpStatus(els.rawFtpStatus, 'Not connected: ' + err.message);
     } finally {
       els.rawFtpConnectBtn.disabled = !state.ftpToken;
       updateConvertEnabled();
@@ -1820,7 +1858,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   for (const el of [els.rawFtpHost, els.rawFtpPort, els.rawFtpUser, els.rawFtpPassword, els.rawFtpPath]) {
     el.addEventListener('input', () => {
       state.rawFtpConnected = false;
-      els.rawFtpStatus.textContent = 'Settings changed; test the raw-file FTP connection again.';
+      setFtpStatus(els.rawFtpStatus, 'Settings changed; test the raw-file FTP connection again.');
       if (el === els.rawFtpHost || el === els.rawFtpUser) persistIdentityOnInput('raw');
       updateRawUploadEnabled();
     });
@@ -2466,7 +2504,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     window.addEventListener('resize',confettiResize);
     confettiRaf=requestAnimationFrame(frame);
   }
-  function celebrateCompletion(){launchCompletionMeteors();fireConfetti();}
+  function launchCompletionUfo() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const craft = $('completionUfo');
+    if (!craft) return;
+    craft.classList.remove('fly');
+    void craft.offsetWidth;
+    craft.classList.add('fly');
+    setTimeout(() => craft.classList.remove('fly'), 5600);
+  }
+  function celebrateCompletion(){launchCompletionUfo();launchCompletionMeteors();fireConfetti();}
 
   /* ---------------- space background ---------------- */
   function initStarfield() {
@@ -2571,19 +2618,19 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.ftpToken = data.token;
       els.ftpConnectBtn.disabled = false;
       els.rawFtpConnectBtn.disabled = false;
-      els.ftpStatus.textContent = 'Local helper ready. Enter the Xbox FTP settings and test the connection.';
-      els.rawFtpStatus.textContent = 'Local helper ready. Enter the Xbox FTP settings below and test the connection.';
+      setFtpStatus(els.ftpStatus, 'Local helper ready. Enter the Xbox FTP settings and test the connection.');
+      setFtpStatus(els.rawFtpStatus, 'Local helper ready. Enter the Xbox FTP settings below and test the connection.');
     } else {
       els.ftpConnectBtn.disabled = true;
       els.rawFtpConnectBtn.disabled = true;
-      els.ftpStatus.textContent = 'FTP requires the local helper; start ftp_helper.py and use its local page.';
-      els.rawFtpStatus.textContent = 'FTP requires the local helper; start it and use its local page.';
+      setFtpStatus(els.ftpStatus, 'FTP requires the local helper; start ftp_helper.py and use its local page.');
+      setFtpStatus(els.rawFtpStatus, 'FTP requires the local helper; start it and use its local page.');
     }
   }).catch(() => {
     els.ftpConnectBtn.disabled = true;
     els.rawFtpConnectBtn.disabled = true;
-    els.ftpStatus.textContent = 'FTP requires the local helper; start ftp_helper.py and use its local page.';
-    els.rawFtpStatus.textContent = 'FTP requires the local helper; start it and use its local page.';
+    setFtpStatus(els.ftpStatus, 'FTP requires the local helper; start ftp_helper.py and use its local page.');
+    setFtpStatus(els.rawFtpStatus, 'FTP requires the local helper; start it and use its local page.');
   });
   updateConvertEnabled();
   initStarfield();
