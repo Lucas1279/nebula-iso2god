@@ -51,15 +51,15 @@ h1{font-size:clamp(2.3rem,6vw,4.2rem); line-height:1.02; margin:18px 0 10px; let
 .badge{font-size:.8rem; padding:6px 11px; border-radius:999px; border:1px solid var(--line); background:rgba(12,18,44,.66)}
 .badge.ok{color:#9ff3d2}.badge.warn{color:#ffd98a}
 .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:26px 0 4px}
-.raw-steps{display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:100%;margin:20px auto 4px;padding:8px 12px;border:1px solid var(--line);border-radius:16px;background:rgba(10,14,34,.72);backdrop-filter:blur(14px)}
+.raw-steps{display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:100%;margin:20px auto 4px;padding:8px 12px;border:1px solid var(--line);border-radius:16px;background:rgba(10,14,34,.72);backdrop-filter:blur(10px)}
 .raw-step{display:inline-flex;align-items:center;gap:7px;padding:0 5px;color:var(--text);font-size:.9rem;font-weight:700;white-space:nowrap}
 .raw-step .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06101f;font-size:.82rem;font-weight:800}
 .raw-step-sep{color:var(--muted);opacity:.65;font-size:1.05rem}
-.step{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:15px 16px; backdrop-filter:blur(14px)}
+.step{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:15px 16px; backdrop-filter:blur(10px)}
 .step b{display:flex; align-items:center; gap:9px; font-size:.98rem}
 .step .n{display:inline-grid; place-items:center; width:27px;height:27px;border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#06101f; font-weight:800}
 .step span{display:block; color:var(--muted); font-size:.88rem; line-height:1.5; margin-top:7px}
-.card{background:var(--panel); border:1px solid var(--line); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); backdrop-filter:blur(16px); padding:24px; margin-top:22px}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); backdrop-filter:blur(10px); padding:24px; margin-top:22px}
 .card h2{margin:0 0 6px; font-size:1.35rem; letter-spacing:-.01em}
 .card h3{margin:22px 0 8px; font-size:1.02rem}
 .muted{color:var(--muted)} .small{font-size:.88rem} .tiny{font-size:.8rem}
@@ -122,13 +122,23 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 .bar{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9); box-shadow:0 0 22px rgba(120,160,255,.65); transition:width .18s}
 .bar.thin{height:100%; background:linear-gradient(90deg,#34d399,#38bdf8)}
 .bar-wrap.thin{height:8px; margin-top:9px}
+.is-complete .bar{background:linear-gradient(90deg,#34d399,#38bdf8);box-shadow:0 0 18px rgba(56,189,248,.52),0 0 25px rgba(52,211,153,.28)}
+.is-complete .bar-wrap{border-color:rgba(52,211,153,.46)}
+#rawFtpLive.is-complete .bar-wrap.thin{height:10px}
+#ftpLive.is-complete #ftpLiveText,#rawFtpLive.is-complete #rawFtpLiveText{color:#c8ffe6;font-size:1rem;font-weight:800}
+#rawFtpUploadResult.is-complete{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12)}
+#rawFtpUploadResult.is-complete::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251d;font-size:.9rem;font-weight:900}
 .stats-row{display:flex; flex-wrap:wrap; gap:8px 20px; color:var(--muted); font-size:.9rem; margin-top:11px}
 #logEl{margin-top:14px; max-height:230px; overflow:auto; padding:13px 14px; border-radius:13px; background:rgba(1,4,14,.88); border:1px solid rgba(110,150,255,.18);
   font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.79rem; line-height:1.55; color:#a9f0cf}
 .done-banner{font-size:1.09rem; line-height:1.65}
+#doneCard.is-complete{border-color:rgba(52,211,153,.62);background:linear-gradient(115deg,rgba(8,45,43,.60),rgba(8,31,48,.68)),var(--panel);box-shadow:0 0 0 1px rgba(52,211,153,.12) inset,0 18px 58px rgba(0,0,0,.48),0 0 30px rgba(56,189,248,.12)}
+#doneCard.is-complete #doneH{color:#bfffe6;text-shadow:0 0 18px rgba(52,211,153,.18)}
+#doneCard.is-complete .done-banner{margin:12px 0 16px;padding:13px 16px;border:1px solid rgba(52,211,153,.42);border-left:4px solid #34d399;border-radius:12px;background:linear-gradient(105deg,rgba(52,211,153,.12),rgba(56,189,248,.12));color:#d5fbea}
+#doneCard.is-complete .done-banner .muted{color:#b6d9dc}
 .download-row{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(130,155,255,.14); flex-wrap:wrap}
 .download-row code{word-break:break-all; color:#bfe9ff}
-details.faq{background:var(--panel); border:1px solid var(--line); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); backdrop-filter:blur(16px); padding:24px; margin-top:22px}
+details.faq{background:var(--panel); border:1px solid var(--line); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); backdrop-filter:blur(10px); padding:24px; margin-top:22px}
 summary{cursor:pointer; font-weight:800; font-size:1.08rem}
 summary:focus-visible{outline:2px solid rgba(110,231,255,.7); outline-offset:4px; border-radius:8px}
 .faq-body{color:var(--muted); line-height:1.68; font-size:.94rem}
@@ -369,7 +379,7 @@ footer a{color:#9edcff}
         <div class="muted tiny" id="rawSelectedFiles" aria-live="polite" style="margin-top:8px">No valid content files selected.</div>
       </div>
       <p class="muted tiny">Original filenames and file bytes are preserved. Missing destination folders are created automatically. Multiple selected files are uploaded one after another, not in parallel.</p>
-      <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult">Connect first, then drop/select a Title ID folder.</span></div>
+      <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult" role="status" aria-live="polite">Connect first, then drop/select a Title ID folder.</span></div>
       <div id="rawFtpLive" hidden style="margin-top:12px"><div class="muted small" id="rawFtpLiveText" aria-live="polite"></div><div class="bar-wrap thin"><div class="bar thin" id="rawFtpLiveBar" style="width:0%"></div></div></div>
     </section>
 
@@ -1626,6 +1636,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.collectedFiles = [];
     state.zipBlob = null;
     els.doneCard.hidden = true;
+    els.doneCard.classList.remove('is-complete');
+    els.progressCard.classList.remove('is-complete');
     els.downloadsBox.hidden = true;
     els.detailsCard.hidden = true;
     els.progressCard.hidden = false;
@@ -1648,7 +1660,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           ', Media ID ' + E.hex32(analysis.executionInfo.mediaId) +
           ', disc ' + (analysis.executionInfo.discNumber || 1) + '/' + (analysis.executionInfo.discCount || 1) + '.');
       els.phaseLabel.textContent = 'Ready to convert';
-      els.detailsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!state.batchRunning) els.detailsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
       console.error(err);
       showError('Could not read that ISO: ' + (err && err.message ? err.message : String(err)));
@@ -1742,10 +1754,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpLive.hidden = false;
     els.ftpLiveText.textContent = message;
     const pct = Math.max(0, Math.min(100, (Number(fraction) || 0) * 100));
+    const completed = message.startsWith('All package files uploaded') || message.startsWith('All selected content files were uploaded');
+    els.ftpLive.classList.toggle('is-complete', completed);
     els.ftpLiveBar.style.width = pct.toFixed(1) + '%';
     if (state.rawUploading) {
       els.rawFtpLive.hidden = false;
       els.rawFtpLiveText.textContent = message;
+      els.rawFtpLive.classList.toggle('is-complete', completed);
       els.rawFtpLiveBar.style.width = pct.toFixed(1) + '%';
     }
   }
@@ -1824,6 +1839,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     return result;
   }
   function setRawFiles(filesWithPaths) {
+    els.rawFtpUploadResult.classList.remove('is-complete');
     state.rawFiles = extractTitleIdItems(filesWithPaths || []);
     if (state.rawFiles.length) {
       const ids = [...new Set(state.rawFiles.map(x => x.titleId))];
@@ -2035,6 +2051,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     state.rawUploading = true;
     els.rawFtpLive.hidden = false;
+    els.rawFtpLive.classList.remove('is-complete');
+    els.rawFtpLiveText.textContent = 'Starting upload…';
+    els.rawFtpLiveBar.style.width = '0%';
+    els.rawFtpUploadResult.classList.remove('is-complete');
     els.rawFtpUploadResult.textContent = 'Starting upload…';
     updateConvertEnabled();
     try {
@@ -2055,12 +2075,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const ids = [...new Set(items.map(x => x.titleId))];
       setFtpLive('All selected content files were uploaded unchanged to 000D0000.', 1);
       els.rawFtpUploadResult.textContent = 'Complete: ' + items.length + ' file(s) copied for Title ID(s) ' + ids.join(', ') + '. Rescan Aurora.';
+      els.rawFtpUploadResult.classList.add('is-complete');
       state.rawFiles = [];
       els.rawContentFiles.value = '';
       els.rawSelectedFiles.textContent = 'Upload complete. Drop or choose another Title ID folder if needed.';
       log('Raw content upload complete (' + items.length + ' file(s)) for Title ID(s) ' + ids.join(', ') + '.');
       celebrateCompletion();
     } catch (err) {
+      els.rawFtpUploadResult.classList.remove('is-complete');
       els.rawFtpUploadResult.textContent = 'Upload failed: ' + err.message;
       setFtpLive('Upload failed. Do not launch a partial package; correct the issue and retry.', 0);
       log('Raw content upload failed: ' + err.message);
@@ -2187,12 +2209,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.etaEl.textContent = elapsedLabel + ftpLabel + (ftpLabel ? '' : (isFinite(eta) ? ' · ~' + fmtDuration(eta) + ' left this ISO' : ''));
     }, 1000);
     els.doneCard.hidden = true;
+    els.progressCard.classList.remove('is-complete');
     els.progressCard.hidden = false;
     els.cancelBtn.disabled = false;
     els.convertBtn.disabled = true;
     setInputsEnabled(false);
     updateConvertEnabled();
-    els.progressCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!state.batchRunning || state.batchIndex === 0) els.progressCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     log('Converting "' + state.file.name + '" → ' + options.gameTitle + ' [' + layout.titleHex + ']');
     log('Output: ' + layout.headerSegments.join('/') + ' + ' + plan.partCount + ' data part(s). Keep this tab open and in the foreground until it finishes.');
     if (!state.batchRunning) await requestWakeLock();
@@ -2212,6 +2235,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
       log('Conversion finished in ' + mins + '. Master hash-table root: ' + result.mhtHashHex);
       els.phaseLabel.textContent = 'Done ✓';
+      els.progressCard.classList.add('is-complete');
       els.overallBar.style.width = '100%'; els.phaseBar.style.width = '100%'; els.overallPct.textContent = '100%';
       renderDone(options, result, mins);
     } catch (err) {
@@ -2294,6 +2318,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       await releaseWakeLock();
     }
     if (state.batchCompleted === files.length) {
+      els.doneCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
       log('Batch complete: all ' + files.length + ' ISO packages were converted and uploaded sequentially.');
     } else if (state.cancelRequested) {
       log('Batch cancelled after ' + state.batchCompleted + ' completed ISO(s).');
@@ -2337,7 +2362,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       '<br><span class="muted">Console path: Hdd1:\\Content\\0000000000000000\\' + layout.titleHex + '\\' + layout.typeFolder + '\\' + layout.headerName +
       ' &nbsp;·&nbsp; Requires a JTAG/RGH console (Iso2God-style unsigned LIVE header).</span>';
     els.doneCard.hidden = false;
-    celebrateCompletion();
+    els.doneCard.classList.add('is-complete');
+    if (!state.batchRunning || state.batchIndex === state.batchFiles.length - 1) celebrateCompletion();
 
     els.zipDownloadBtn.hidden = !(state.outputMode === 'zip' && state.zipBlob);
     if (state.outputMode === 'files') {
@@ -2369,7 +2395,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } else {
       els.downloadsBox.hidden = true;
     }
-    els.doneCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!state.batchRunning) els.doneCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (state.outputMode === 'zip' && state.zipBlob) {
       // Kick off the download once automatically; the button stays for re-downloads.
       setTimeout(() => triggerDownload(state.zipBlob, state.zipBlobName), 400);
@@ -2400,6 +2426,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.zipHandle = null;
     els.zipName.textContent = '';
     els.detailsCard.hidden = true; els.doneCard.hidden = true;
+    els.doneCard.classList.remove('is-complete'); els.progressCard.classList.remove('is-complete');
     els.downloadsBox.hidden = true; els.errorBox.hidden = true;
     els.progressCard.hidden = true; els.logEl.innerHTML = '';
     els.titleInput.value = '';
@@ -2447,9 +2474,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const ctx = canvas.getContext('2d');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let stars = [], shooting = [], w = 0, h = 0, raf = 0, last = 0, showerUntil = 0;
-    let parX = 0, parY = 0, targetX = 0, targetY = 0;
+    let parX = 0, parY = 0, targetX = 0, targetY = 0, lastPaint = 0;
     function resize() {
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const dpr = Math.min(1.5, window.devicePixelRatio || 1);
       w = window.innerWidth; h = window.innerHeight;
       canvas.width = Math.floor(w * dpr); canvas.height = Math.floor(h * dpr);
       canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
@@ -2504,8 +2531,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
     }
     function frame(t) {
+      if (t - lastPaint < 1000 / 30) { raf = requestAnimationFrame(frame); return; }
       const dt = Math.min(0.05, (t - last) / 1000 || 0);
-      last = t;
+      last = t; lastPaint = t;
       for (const s of stars) { s.x -= s.drift * dt * 0.35; if (s.x < -4) s.x = w + 4; }
       for (let i = shooting.length - 1; i >= 0; i--) {
         const sh = shooting[i];
@@ -2527,7 +2555,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     document.addEventListener('visibilitychange', () => {
       if (reduced) return;
       if (document.hidden) cancelAnimationFrame(raf);
-      else { last = performance.now(); raf = requestAnimationFrame(frame); }
+      else { last = performance.now(); lastPaint = last; raf = requestAnimationFrame(frame); }
     });
   }
 
