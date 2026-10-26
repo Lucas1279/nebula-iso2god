@@ -1,0 +1,22 @@
+Nebula ISO2GOD website update package
+
+IMPORTANT: Publish this update to Lucas1279/nebula-iso2god (the ISO2GOD repository), not Lucas1279/Nebula-convert. These are separate websites.
+
+To publish from GitHub's website (no GitHub Desktop required): open the Lucas1279/nebula-iso2god repository, make sure you are on the branch used by GitHub Pages, and upload/replace these files at the repository root:
+- index.html
+- ftp_helper.py
+- README_FTP.md
+- the complete vendor/ directory (keep its subfolders and files)
+- nebula-iso2god-timeout-fix.zip
+- Nebula-ISO2GOD-One-File.zip
+- Nebula-ISO2GOD-One-File-Fixed.zip
+
+Commit the replacement files to the published branch, then wait for GitHub Pages to redeploy at https://lucas1279.github.io/nebula-iso2god/.
+
+This update adds .7z archive import to the XBLA/XBLIG uploader. In the raw-content task, the page extracts only files directly under an 8-character Title ID/000D0000 folder (for example 584111FF/000D0000), skips unrelated entries, and uploads the matching content file(s) unchanged. The original archive is never modified or uploaded. Extracted files stay in browser storage while FTP is active or a retry is available; they are cleared after success or when you replace the selection. The ISO workflow's existing .7z image import remains supported.
+
+The page also keeps the separate blue Xbox-transfer bar beneath the overall conversion bar, with the current Data####/filename, bytes, and transfer speed; the raw uploader shows its current filename. It includes the rotating UFO disc, staggered theme-matched lights, clearer .7z progress/storage guidance, and automatic cleanup. Data required for an FTP retry is retained.
+
+The .7z importer runs locally in a recent Safari, Chrome, or Edge browser on HTTPS or through the updated local helper at http://127.0.0.1:8765/ (not file://). Only matching content/image entries are extracted. Browser site storage must have enough free space for the extracted files. Password-protected or damaged archives are not supported.
+
+The app does not delete your downloaded .command/.zip files or files already written to the Xbox. FTP is unencrypted; use it only on a trusted home LAN.
