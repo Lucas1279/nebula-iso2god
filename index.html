@@ -313,6 +313,26 @@ footer a{color:#9edcff}
       </ol>
     </section>
 
+    <section class="card" id="rawContentUploadCard" aria-labelledby="rawUploadHeading">
+      <h2 id="rawUploadHeading">📦 Upload an existing XBLA/XBLIG content file</h2>
+      <p class="muted small" style="line-height:1.6">For files you already have (including extensionless/hash-named files): this sends the file unchanged—no ISO conversion, renaming, or repacking. It targets <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000/&lt;original filename&gt;</code>. A same-named file already there may be overwritten. Use only files you have the right to use.</p>
+      <div class="grid2">
+        <div><label class="f" for="rawFtpHost">Xbox IP address</label><input id="rawFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
+        <div><label class="f" for="rawFtpPort">FTP port</label><input id="rawFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
+        <div><label class="f" for="rawFtpUser">FTP username</label><input id="rawFtpUser" type="text" placeholder="Check your dash FTP settings" autocomplete="off"></div>
+        <div><label class="f" for="rawFtpPassword">FTP password</label><input id="rawFtpPassword" type="password" autocomplete="off"></div>
+        <div style="grid-column:1/-1"><label class="f" for="rawFtpPath">Xbox FTP base path</label><input id="rawFtpPath" type="text" value="Usb1" autocomplete="off"><div class="muted tiny">Example: Usb1. Do not add the Content path here; the uploader adds it.</div></div>
+      </div>
+      <div class="btn-row"><button class="btn" id="rawFtpConnectBtn" type="button" disabled>Test connection</button><span class="muted" id="rawFtpStatus">Start the local helper and open its local page to enable FTP.</span></div>
+      <div class="grid2" style="margin-top:14px">
+        <div><label class="f" for="rawTitleId">8-character Title ID</label><input id="rawTitleId" type="text" maxlength="8" placeholder="e.g. 58410B1D" autocomplete="off" spellcheck="false"></div>
+        <div><label class="f" for="rawContentFiles">Existing content file(s)</label><input id="rawContentFiles" type="file" multiple></div>
+      </div>
+      <p class="muted tiny">Original filenames are preserved. The uploader creates the standard <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000</code> folders if needed.</p>
+      <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult">Connect first, then select a Title ID and file(s).</span></div>
+      <div id="rawFtpLive" hidden style="margin-top:12px"><div class="muted small" id="rawFtpLiveText" aria-live="polite"></div><div class="bar-wrap thin"><div class="bar thin" id="rawFtpLiveBar" style="width:0%"></div></div></div>
+    </section>
+
     <details class="faq">
         <summary>🔭 How it works, compatibility &amp; troubleshooting</summary>
         <div class="faq-body">
@@ -1251,6 +1271,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     folderSetup: $('folderSetup'), zipSetup: $('zipSetup'), filesSetup: $('filesSetup'), ftpSetup: $('ftpSetup'),
     ftpHost: $('ftpHost'), ftpPort: $('ftpPort'), ftpUser: $('ftpUser'), ftpPassword: $('ftpPassword'), ftpPath: $('ftpPath'),
     ftpConnectBtn: $('ftpConnectBtn'), ftpStatus: $('ftpStatus'),
+    rawFtpHost: $('rawFtpHost'), rawFtpPort: $('rawFtpPort'), rawFtpUser: $('rawFtpUser'), rawFtpPassword: $('rawFtpPassword'), rawFtpPath: $('rawFtpPath'),
+    rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawTitleId: $('rawTitleId'), rawContentFiles: $('rawContentFiles'),
+    rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'),
     chooseFolderBtn: $('chooseFolderBtn'), folderName: $('folderName'),
     chooseZipBtn: $('chooseZipBtn'), zipName: $('zipName'), zipSetupNote: $('zipSetupNote'),
     convertBtn: $('convertBtn'), cancelBtn: $('cancelBtn'), resetBtn: $('resetBtn'),
@@ -1271,7 +1294,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     file: null, reader: null, analysis: null,
     outputMode: hasDirPicker ? 'folder' : 'zip',
     dirHandle: null, zipHandle: null, zipSuggestedName: '',
-    ftpToken: null, ftpConnected: false,
+    ftpToken: null, ftpConnected: false, rawFtpConnected: false, rawUploading: false,
     converting: false, cancelRequested: false,
     result: null, collectedFiles: [], zipBlob: null, zipBlobName: '',
     wakeLock: null,
@@ -1365,14 +1388,20 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.modeFiles.addEventListener('click', () => setMode('files'));
   els.modeFtp.addEventListener('click', () => setMode('ftp'));
 
+  function updateRawUploadEnabled() {
+    const titleOk = /^[0-9a-fA-F]{8}$/.test(els.rawTitleId.value.trim());
+    const filesOk = !!(els.rawContentFiles.files && els.rawContentFiles.files.length);
+    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && titleOk && filesOk && !state.rawUploading && !state.converting);
+  }
   function updateConvertEnabled() {
-    let ok = !!state.analysis && !state.converting;
+    let ok = !!state.analysis && !state.converting && !state.rawUploading;
     let hint = '';
     if (ok && state.outputMode === 'folder' && !state.dirHandle) { ok = false; hint = 'Choose an output folder first.'; }
     if (ok && state.outputMode === 'zip' && hasSavePicker && !state.zipHandle) { ok = false; hint = 'Choose where to save the ZIP first.'; }
     if (ok && state.outputMode === 'ftp' && !state.ftpConnected) { ok = false; hint = 'Test the Xbox FTP connection first.'; }
     els.convertBtn.disabled = !ok;
     els.convertBtn.textContent = state.converting ? 'Converting…' : (hint || 'Convert ISO → GOD');
+    updateRawUploadEnabled();
   }
 
   /* ---------------- details / estimates ---------------- */
@@ -1542,6 +1571,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpLiveText.textContent = message;
     const pct = Math.max(0, Math.min(100, (Number(fraction) || 0) * 100));
     els.ftpLiveBar.style.width = pct.toFixed(1) + '%';
+    if (state.rawUploading) {
+      els.rawFtpLive.hidden = false;
+      els.rawFtpLiveText.textContent = message;
+      els.rawFtpLiveBar.style.width = pct.toFixed(1) + '%';
+    }
   }
   els.ftpConnectBtn.addEventListener('click', async () => {
     clearError();
@@ -1553,7 +1587,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         user: els.ftpUser.value, password: els.ftpPassword.value, basePath: els.ftpPath.value.trim() || 'Hdd1:/'
       });
       state.ftpConnected = true;
+      state.rawFtpConnected = false;
       els.ftpStatus.textContent = 'Connected. Remote base: ' + r.cwd;
+      els.rawFtpStatus.textContent = 'The FTP connection settings changed; test the raw-file uploader connection again if needed.';
       log('Xbox FTP connection tested successfully.');
     } catch (err) {
       state.ftpConnected = false;
@@ -1567,6 +1603,37 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   for (const el of [els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath]) {
     el.addEventListener('input', () => { state.ftpConnected = false; els.ftpStatus.textContent = 'Settings changed; test the FTP connection again.'; updateConvertEnabled(); });
   }
+  els.rawFtpConnectBtn.addEventListener('click', async () => {
+    els.rawFtpConnectBtn.disabled = true;
+    els.rawFtpStatus.textContent = 'Testing FTP connection…';
+    try {
+      const r = await bridgeRequest('/api/connect', {
+        host: els.rawFtpHost.value.trim(), port: Number(els.rawFtpPort.value || 21),
+        user: els.rawFtpUser.value, password: els.rawFtpPassword.value, basePath: els.rawFtpPath.value.trim() || 'Usb1'
+      });
+      state.rawFtpConnected = true;
+      state.ftpConnected = false;
+      els.rawFtpStatus.textContent = 'Connected. Remote base: ' + r.cwd;
+      els.ftpStatus.textContent = 'A separate raw-file FTP connection is active. Test the converter FTP connection again before converting via FTP.';
+      log('Xbox FTP connection tested for existing content-file upload.');
+    } catch (err) {
+      state.rawFtpConnected = false;
+      els.rawFtpStatus.textContent = 'Not connected: ' + err.message;
+    } finally {
+      els.rawFtpConnectBtn.disabled = !state.ftpToken;
+      updateConvertEnabled();
+      updateRawUploadEnabled();
+    }
+  });
+  for (const el of [els.rawFtpHost, els.rawFtpPort, els.rawFtpUser, els.rawFtpPassword, els.rawFtpPath]) {
+    el.addEventListener('input', () => {
+      state.rawFtpConnected = false;
+      els.rawFtpStatus.textContent = 'Settings changed; test the raw-file FTP connection again.';
+      updateRawUploadEnabled();
+    });
+  }
+  els.rawTitleId.addEventListener('input', updateRawUploadEnabled);
+  els.rawContentFiles.addEventListener('change', updateRawUploadEnabled);
 
   els.chooseZipBtn.addEventListener('click', async () => {
     try {
@@ -1701,6 +1768,58 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.ftpActivity = '';
     }
   }
+
+  async function uploadRawContentFiles() {
+    const titleId = els.rawTitleId.value.trim().toUpperCase();
+    const files = Array.from(els.rawContentFiles.files || []);
+    if (!state.ftpToken || !state.rawFtpConnected) throw new Error('Test the raw-file FTP connection first.');
+    if (!/^[0-9A-F]{8}$/.test(titleId)) throw new Error('Enter an 8-character hexadecimal Title ID.');
+    if (!files.length) throw new Error('Choose at least one content file.');
+    const names = files.map(f => f.name);
+    if (new Set(names).size !== names.length) throw new Error('The selection contains duplicate filenames; choose unique names to avoid overwriting one with another.');
+    for (const file of files) {
+      const unsafeName = !file.name || file.name === '.' || file.name === '..' || file.name.includes('/') || file.name.includes('\\') || Array.from(file.name).some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127);
+      if (unsafeName) throw new Error('A selected filename contains unsupported characters. Rename it locally and try again.');
+      if (file.size > 20 * 1024 * 1024 * 1024) throw new Error(file.name + ' exceeds the 20 GiB per-file limit.');
+    }
+    state.rawUploading = true;
+    els.rawFtpLive.hidden = false;
+    els.rawFtpUploadResult.textContent = 'Starting upload…';
+    updateConvertEnabled();
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const segments = ['Content', '0000000000000000', titleId, '000D0000', file.name];
+        els.rawFtpUploadResult.textContent = 'Uploading ' + (i + 1) + ' of ' + files.length + ': ' + file.name;
+        const writer = new FTPWriter(state.ftpToken);
+        try {
+          await writer.beginFile(segments, file.size);
+          await writer.write(file);
+          await writer.endFile();
+        } catch (err) {
+          await writer.abort();
+          throw new Error('Stopped on ' + file.name + ': ' + err.message);
+        }
+      }
+      setFtpLive('All selected content files were uploaded unchanged to 000D0000.', 1);
+      els.rawFtpUploadResult.textContent = 'Complete: ' + files.length + ' file(s) copied to Content/0000000000000000/' + titleId + '/000D0000/. Rescan Aurora.';
+      log('Raw content upload complete (' + files.length + ' file(s)) to Title ID ' + titleId + '/000D0000.');
+    } catch (err) {
+      els.rawFtpUploadResult.textContent = 'Upload failed: ' + err.message;
+      setFtpLive('Upload failed. Do not launch a partial package; correct the issue and retry.', 0);
+      log('Raw content upload failed: ' + err.message);
+    } finally {
+      state.rawUploading = false;
+      updateConvertEnabled();
+      updateRawUploadEnabled();
+    }
+  }
+  els.rawFtpUploadBtn.addEventListener('click', () => {
+    uploadRawContentFiles().catch(err => {
+      els.rawFtpUploadResult.textContent = 'Upload not started: ' + err.message;
+      log('Raw content upload not started: ' + err.message);
+    });
+  });
 
   /* ---------------- conversion ---------------- */
   async function requestWakeLock() {
@@ -2047,14 +2166,20 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (data && data.token) {
       state.ftpToken = data.token;
       els.ftpConnectBtn.disabled = false;
+      els.rawFtpConnectBtn.disabled = false;
       els.ftpStatus.textContent = 'Local helper ready. Enter the Xbox FTP settings and test the connection.';
+      els.rawFtpStatus.textContent = 'Local helper ready. Enter the Xbox FTP settings below and test the connection.';
     } else {
       els.ftpConnectBtn.disabled = true;
+      els.rawFtpConnectBtn.disabled = true;
       els.ftpStatus.textContent = 'FTP requires the local helper; start ftp_helper.py and use its local page.';
+      els.rawFtpStatus.textContent = 'FTP requires the local helper; start it and use its local page.';
     }
   }).catch(() => {
     els.ftpConnectBtn.disabled = true;
+    els.rawFtpConnectBtn.disabled = true;
     els.ftpStatus.textContent = 'FTP requires the local helper; start ftp_helper.py and use its local page.';
+    els.rawFtpStatus.textContent = 'FTP requires the local helper; start it and use its local page.';
   });
   updateConvertEnabled();
   initStarfield();

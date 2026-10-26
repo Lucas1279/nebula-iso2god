@@ -54,7 +54,7 @@ def clean_segments(segments):
     result = []
     for seg in segments:
         name = str(seg)
-        if not name or name in (".", "..") or "/" in name or "\\" in name or "\x00" in name:
+        if not name or name in (".", "..") or "/" in name or "\\" in name or any(ord(ch) < 32 or ord(ch) == 127 for ch in name):
             raise ValueError("Unsafe path segment.")
         result.append(name)
     return result

@@ -1,28 +1,34 @@
 # Nebula ISO2GOD — optional FTP upload
 
-This build adds an **Upload to Xbox via FTP** output mode. Because GitHub Pages is a static HTTPS website and browsers cannot open raw FTP connections, FTP mode requires the small local Python helper included here. The helper serves this page at `http://127.0.0.1:8765/` and makes FTP connections from your PC to your Xbox.
+This build includes a local Python helper for FTP because a browser on GitHub Pages cannot open raw FTP connections. The helper serves the page at `http://127.0.0.1:8765/` and connects from your computer to your Xbox.
 
 ## Start it (Windows, macOS, or Linux)
 
 1. Install Python 3 if it is not already installed.
 2. Keep `index.html` and `ftp_helper.py` together in the same folder.
-3. Run `python ftp_helper.py` (Windows may use `py ftp_helper.py`). Keep the terminal window open. It should open the local app automatically; otherwise visit `http://127.0.0.1:8765/`.
-4. On the Xbox 360, enable the FTP server in Aurora or FreeStyle Dash and note the console's **LAN IP**, FTP port, username, and password.
-5. In the app, choose **Upload to Xbox via FTP**, enter those details, and test the connection. Set the base path to the HDD root exposed by your dashboard (the default is `Hdd1:/`; adjust it if your FTP server uses another spelling).
-6. Convert. Each output file is staged on the PC and then sent to the console. When finished, rescan the Content path in Aurora/FSD.
+3. Run `python3 ftp_helper.py` (Windows may use `py ftp_helper.py`). Keep the terminal open. The helper opens its local page automatically; otherwise visit `http://127.0.0.1:8765/`.
+4. On the Xbox 360, enable the FTP server in Aurora or FreeStyle Dash and note the console's LAN IP, FTP port, username, and password.
+5. In the app, enter the FTP details and test the connection. Use the HDD/USB root exposed by your dashboard. `Usb1` is an example that worked on one setup; names vary by console/dashboard.
+
+## Convert and send an ISO
+
+Choose **Upload to Xbox via FTP** in the ISO converter, test the connection, then convert. Each generated GOD package file is staged on the computer and sent to the console. Rescan the Content path in Aurora/FSD after the website reports a complete upload.
+
+## Send an existing XBLA/XBLIG content file unchanged
+
+Use the separate **Upload an existing XBLA/XBLIG content file** panel. Test its FTP connection, enter the 8-character hexadecimal Title ID, and select one or more existing files. The uploader preserves each filename and file's bytes; it does not convert or rename them. It creates and targets:
+
+`<FTP base>/Content/0000000000000000/<TitleID>/000D0000/<original filename>`
+
+The helper creates missing folders. A file with the same name in that destination may be overwritten. Do not start another upload while one is active; after a failed upload, treat the destination file as incomplete until a successful retry completes.
 
 ## Important safety and limitations
 
-- Use FTP only on a trusted home LAN. Xbox FTP is normally unencrypted. **Do not enable router port forwarding or expose the console's FTP port to the public internet.**
-- The helper binds only to `127.0.0.1` (your own computer), not to your LAN. It does not save FTP credentials to disk; they are held in memory only until the helper exits.
-- The ISO is never uploaded. Only the generated package files go from the browser through the local helper to the console.
-- The helper temporarily stages one output file at a time on the PC. Allow about 163 MiB of free temporary disk space for a typical full-size data part, plus room for the browser and source ISO.
-- If conversion or FTP fails partway through, remove the incomplete output from the Xbox before trying again. The existing output files with matching names may be replaced.
-- This does not make packages boot on retail/unmodded consoles; Iso2God-style unsigned GODs require a compatible JTAG/RGH setup.
+- Use FTP only on a trusted home LAN. Xbox FTP is normally unencrypted. Do not enable router port forwarding or expose the console's FTP port to the public internet.
+- The helper binds only to `127.0.0.1` (your own computer), not to your LAN. FTP credentials are held in memory only until the helper exits.
+- For ISO conversion, the ISO itself is never uploaded; only generated package files are sent to the Xbox.
+- The helper stages one file at a time. Ensure temporary disk space is available for the largest file being sent (raw files may be much larger than a single GOD data part).
+- The helper allows up to 180 seconds without FTP data before a transfer times out. Wired Ethernet and a stable USB/HDD connection can reduce stalls.
+- FTP transfer does not make unsigned GOD packages boot on retail/unmodded consoles; the ISO-to-GOD path requires compatible JTAG/RGH setup.
 
-If `Hdd1:/` is not accepted, use your dashboard's FTP configuration or an FTP client to confirm the exact root path, then enter that base path in the app.
-
-
-## FTP stall timeout
-
-The helper allows up to 180 seconds without FTP data before failing a transfer, which is more tolerant of slow Xbox USB/network writes than the earlier 25-second timeout. A transfer that stalls longer than that still fails; use wired Ethernet when possible.
+If the FTP base path is rejected, use your dashboard's FTP configuration or an FTP client to confirm the exact root path, then enter it in the relevant panel.
