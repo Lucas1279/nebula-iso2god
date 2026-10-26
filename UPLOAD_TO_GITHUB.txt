@@ -9,7 +9,7 @@ To publish this update, upload/replace these files in the root of the GitHub rep
 - Nebula-ISO2GOD-One-File.zip
 - Nebula-ISO2GOD-One-File-Fixed.zip
 
-The Mac download includes an executable .command file. The fixed filename is used by the website so browsers are less likely to serve a cached old archive. Both the local helper and hosted site now expose the worker and WASM assets from vendor/ with the correct JavaScript/WebAssembly MIME types, which allows the .7z module worker to load. Upload the refreshed index, helper, vendor tree, and ZIPs together.
+The Mac download includes an executable .command file. The fixed filename is used by the website so browsers are less likely to serve a cached old archive. Both the local helper and hosted site expose the worker and WASM assets from vendor/ with correct JavaScript/WebAssembly MIME types, which lets the .7z module worker load. The one-file launcher updates a shared `~/Library/Application Support/Nebula ISO2GOD` folder rather than keeping per-version installs; it removes its embedded temp archive after unpacking and cleans stale temp payloads from earlier launches.
 
 The ISO workflow can import .7z archives locally in recent Safari, Chrome, or Edge when opened over HTTPS or the updated local helper at http://127.0.0.1:8765/ (not file://). Supported disc images are extracted to browser storage; other entries are skipped and the original archive is unchanged.
 
