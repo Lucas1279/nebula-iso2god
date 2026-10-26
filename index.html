@@ -39,13 +39,22 @@ body{
 .completion-ufo.progressing{position:absolute;width:min(220px,35vw);visibility:visible;opacity:1;transform:translate(-50%,-94%);transition:left .12s linear;filter:drop-shadow(0 0 8px rgba(52,211,153,.85)) drop-shadow(0 0 20px rgba(56,189,248,.72))}
 .completion-ufo.approaching{position:absolute;width:min(220px,35vw);visibility:visible;opacity:1;animation:ufo-return 1s cubic-bezier(.18,.72,.3,1) both}
 .completion-ufo.takeoff{position:fixed;width:min(235px,35vw);visibility:visible;animation:ufo-takeoff 2.55s cubic-bezier(.2,.72,.25,1) both}
-.completion-ufo .ufo-disc{opacity:.55}
+.completion-ufo .ufo-disc{opacity:.55;transform-box:fill-box;transform-origin:center}
 .completion-ufo.progressing .ufo-disc{opacity:1}
+.completion-ufo.progressing .ufo-disc,.completion-ufo.approaching .ufo-disc,.completion-ufo.takeoff .ufo-disc{animation:ufo-disc-spin 8s linear infinite}
+.completion-ufo .ufo-light{transform-box:fill-box;transform-origin:center}
+.completion-ufo.progressing .ufo-light,.completion-ufo.approaching .ufo-light,.completion-ufo.takeoff .ufo-light{animation-name:ufo-light-blink;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.completion-ufo .ufo-light-cyan{--light-on:#67e8f9;--light-off:#155e75;animation-duration:2.7s;animation-delay:0s}
+.completion-ufo .ufo-light-blue{--light-on:#60a5fa;--light-off:#1e3a8a;animation-duration:3.05s;animation-delay:.38s}
+.completion-ufo .ufo-light-lavender{--light-on:#c4b5fd;--light-off:#5b21b6;animation-duration:2.55s;animation-delay:.79s}
+.completion-ufo .ufo-light-pink{--light-on:#f0abfc;--light-off:#86198f;animation-duration:3.25s;animation-delay:1.13s}
 .completion-ufo.takeoff .ufo-disc-lift{transform-box:fill-box;transform-origin:center;animation:ufo-disc-lift .72s cubic-bezier(.2,.75,.25,1) both}
 @keyframes ufo-return{0%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0}100%{transform:translate3d(-50%,-94%,0) scale(1);opacity:1}}
 @keyframes ufo-takeoff{0%{transform:translate3d(-50%,-94%,0) scale(.72);opacity:.98;visibility:visible}16%{transform:translate3d(calc(-50% + 2vw),-130%,0) scale(.8);opacity:1}100%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0;visibility:hidden}}
+@keyframes ufo-disc-spin{to{transform:rotate(360deg)}}
+@keyframes ufo-light-blink{0%,100%{opacity:.48;fill:var(--light-off);transform:scale(.9);filter:drop-shadow(0 0 0 var(--light-on))}42%,58%{opacity:1;fill:var(--light-on);transform:scale(1.12);filter:drop-shadow(0 0 5px var(--light-on))}}
 @keyframes ufo-disc-lift{0%{transform:translateY(9px) scale(.72);opacity:.55}100%{transform:translateY(0) scale(1);opacity:1}}
-@media(prefers-reduced-motion:reduce){.completion-ufo.progressing,.completion-ufo.approaching,.completion-ufo.takeoff{animation:none!important;opacity:0!important;visibility:hidden!important}}
+@media(prefers-reduced-motion:reduce){.completion-ufo.progressing,.completion-ufo.approaching,.completion-ufo.takeoff{animation:none!important;opacity:0!important;visibility:hidden!important}.completion-ufo .ufo-disc,.completion-ufo .ufo-light{animation:none!important}}
 .wrap{position:relative; z-index:2; max-width:1080px; margin:0 auto; padding:34px 20px 80px}
 header.hero{text-align:center; padding:26px 10px 8px}
 .orbit-badge{display:inline-flex; gap:8px; align-items:center; padding:7px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(10,16,40,.6); color:var(--muted); font-size:.83rem; letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(8px)}
@@ -146,6 +155,9 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 .ufo-progress-lane>.bar-wrap{width:100%;margin-top:0}
 .bar{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9); box-shadow:0 0 22px rgba(120,160,255,.65); transition:width .18s}
 .bar.thin{height:100%; background:linear-gradient(90deg,#34d399,#38bdf8)}
+#archiveProgressBar{transition:width .22s cubic-bezier(.22,.61,.36,1);will-change:width,transform}
+#archiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.35s ease-in-out infinite alternate}
+@keyframes archive-progress-sweep{from{transform:translateX(-108%);opacity:.58}to{transform:translateX(300%);opacity:1}}
 .bar-wrap.thin{height:8px; margin-top:9px}
 .is-complete .bar{background:linear-gradient(90deg,#34d399,#38bdf8);box-shadow:0 0 18px rgba(56,189,248,.52),0 0 25px rgba(52,211,153,.28)}
 .is-complete .bar-wrap{border-color:rgba(52,211,153,.46)}
@@ -180,7 +192,7 @@ footer a{color:#9edcff}
   .card{padding:19px}
 }
 @media (max-width:520px){.raw-steps{gap:3px;padding:7px 8px}.raw-step{gap:5px;padding:0 2px;font-size:.78rem}.raw-step .n{width:21px;height:21px;font-size:.75rem}.raw-step-sep{font-size:.9rem}}
-@media (prefers-reduced-motion:reduce){.nebula,h1,.credit-gradient,.drop::before{animation:none!important} html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){.nebula,h1,.credit-gradient,.drop::before,#archiveProgressBar.indeterminate{animation:none!important}#archiveProgressBar.indeterminate{transform:none} html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -211,19 +223,23 @@ footer a{color:#9edcff}
     </defs>
     <path d="M78 58 L142 58 L168 108 L52 108 Z" fill="url(#ufoBeam)"/>
     <path d="M80 59 L58 104 M140 59 L162 104" fill="none" stroke="#34d399" stroke-opacity=".24" stroke-width="1.5"/>
-    <g class="ufo-disc" transform="translate(110 112)">
-      <g class="ufo-disc-lift">
-        <ellipse rx="20" ry="7.5" fill="url(#ufoDisc)" stroke="#d1fae5" stroke-width="1.8"/>
-        <ellipse rx="5" ry="2.3" fill="#102234" stroke="#dbeafe" stroke-width="1.1"/>
-        <path d="M-14 0 Q0 5.5 14 0" fill="none" stroke="#ecfeff" stroke-opacity=".9" stroke-width="1.1"/>
+    <g transform="translate(110 112)">
+      <g class="ufo-disc">
+        <g class="ufo-disc-lift">
+          <ellipse rx="20" ry="7.5" fill="url(#ufoDisc)" stroke="#d1fae5" stroke-width="1.8"/>
+          <ellipse rx="5" ry="2.3" fill="#102234" stroke="#dbeafe" stroke-width="1.1"/>
+          <path d="M-14 0 Q0 5.5 14 0" fill="none" stroke="#ecfeff" stroke-opacity=".9" stroke-width="1.1"/>
+        </g>
       </g>
     </g>
     <path d="M75 55 Q78 31 110 28 Q142 31 145 55 Z" fill="url(#ufoDome)" stroke="#dbeafe" stroke-opacity=".8" stroke-width="2"/>
     <ellipse cx="110" cy="58" rx="55" ry="15" fill="url(#ufoHull)" stroke="#dbeafe" stroke-width="2"/>
     <path d="M56 58 Q110 77 164 58" fill="none" stroke="#526b84" stroke-width="4" opacity=".8"/>
     <ellipse cx="110" cy="56" rx="50" ry="8" fill="none" stroke="#38bdf8" stroke-width="2" opacity=".9"/>
-    <circle cx="77" cy="59" r="3" fill="#34d399"/><circle cx="94" cy="63" r="3" fill="#34d399"/>
-    <circle cx="126" cy="63" r="3" fill="#38bdf8"/><circle cx="143" cy="59" r="3" fill="#38bdf8"/>
+    <circle class="ufo-light ufo-light-cyan" cx="77" cy="59" r="3" fill="#67e8f9"/>
+    <circle class="ufo-light ufo-light-blue" cx="94" cy="63" r="3" fill="#60a5fa"/>
+    <circle class="ufo-light ufo-light-lavender" cx="126" cy="63" r="3" fill="#c4b5fd"/>
+    <circle class="ufo-light ufo-light-pink" cx="143" cy="59" r="3" fill="#f0abfc"/>
     <ellipse cx="110" cy="54" rx="9" ry="3" fill="#f0f9ff" opacity=".85"/>
   </svg>
 </div>
@@ -270,7 +286,7 @@ footer a{color:#9edcff}
       <input id="archiveInput" type="file" accept=".7z,application/x-7z-compressed" hidden>
       <div class="setup" id="archiveImportPanel" style="margin-top:10px">
         <strong>Import a .7z archive</strong>
-        <div class="muted small" style="margin-top:4px;line-height:1.55">The archive is processed locally in your browser; the archive and extracted images are not uploaded. Only ISO/XISO/XSF/IMG/BIN images are extracted; other entries are skipped, and the original archive is unchanged. Use recent Safari, Chrome, or Edge from HTTPS or the updated local helper at 127.0.0.1 (not by opening the HTML file directly), and allow enough site storage for the extracted image. Password-protected archives are not supported.</div>
+        <div class="muted small" style="margin-top:4px;line-height:1.55">The .7z is processed locally; nothing is uploaded during extraction. Only ISO/XISO/XSF/IMG/BIN images are extracted. Temporary images live in browser storage (not as Finder files) and are cleared automatically after a successful conversion/batch. If a job fails or is canceled, click Start over, choose a new import, or leave the page to clear them; while an FTP retry is pending, they stay available. The original archive is unchanged. Use recent Safari, Chrome, or Edge over HTTPS or the updated local helper at 127.0.0.1 (not file://), with free site storage roughly equal to the extracted image. Password-protected archives are not supported.</div>
         <div class="muted small" id="archiveStatus" role="status" aria-live="polite" hidden style="margin-top:9px"></div>
         <div class="bar-wrap thin" id="archiveProgressWrap" hidden style="margin-top:8px"><div class="bar thin" id="archiveProgressBar" style="width:0%"></div></div>
         <div class="btn-row" style="margin-top:8px"><button class="btn small danger" id="archiveCancelBtn" type="button" hidden>Cancel archive import</button></div>
@@ -377,7 +393,7 @@ footer a{color:#9edcff}
       <div class="setup" id="ftpSetup" hidden>
         <strong>Xbox FTP connection (same home network only)</strong>
         <p class="muted small" style="margin:6px 0 10px">Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. Do not expose FTP to the internet or set up port forwarding. The ISO stays in your browser; the helper sends only the finished GOD files to the Xbox.</p>
-        <div class="muted small" style="margin:0 0 12px;line-height:1.6"><strong>Need the helper?</strong> FTP runs through a local helper on your Mac; it won’t work directly from the public page. Choose a download:<div class="btn-row" style="margin-top:9px"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip"> Fixed Mac one-file launcher (.zip)</a></div><div class="muted tiny" style="margin-top:7px">The fixed Mac ZIP includes execute permission; unzip and open <code>Nebula ISO2GOD.command</code>. For an older copy that shows “could not be executed because you do not have appropriate access privileges,” open Terminal, type <code>chmod u+x </code>, drag the command file into Terminal, and press Return. If macOS shows a separate unidentified-developer warning, Control-click → Open. Python 3 is required; keep Terminal open during FTP. FTP is unencrypted—use only on your trusted home network.</div></div>
+        <div class="muted small" style="margin:0 0 12px;line-height:1.6"><strong>Need the helper?</strong> FTP runs through a local helper on your Mac; it won’t work directly from the public page. Choose a download:<div class="btn-row" style="margin-top:9px"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip"> Fixed Mac one-file launcher (.zip)</a></div><div class="muted tiny" style="margin-top:7px">The fixed Mac ZIP includes execute permission; unzip and open <code>Nebula ISO2GOD.command</code>. For an older copy that shows “could not be executed because you do not have appropriate access privileges,” open Terminal, type <code>chmod u+x </code>, drag the command file into Terminal, and press Return. If macOS shows a separate unidentified-developer warning, Control-click → Open. Python 3 is required; keep Terminal open during FTP. Temporary FTP staging files are removed after success/cancel/helper shutdown; a failed file stays staged only while Retry is available. FTP is unencrypted—use only on your trusted home network.</div></div>
         <div class="grid2">
           <div><label class="f" for="ftpHost">Xbox IP address</label><input id="ftpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
           <div><label class="f" for="ftpPort">FTP port</label><input id="ftpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
@@ -421,7 +437,7 @@ footer a{color:#9edcff}
     <section class="card" id="rawContentUploadCard" data-workflow="raw" aria-labelledby="rawUploadHeading" hidden>
       <h2 id="rawUploadHeading">📦 Upload existing XBLA/XBLIG content</h2>
       <p class="muted small" style="line-height:1.6">Drop the game’s <strong>8-character Title ID folder</strong> (for example <code>58410B1D</code>) or its parent game folder below. The uploader finds the Title ID and copies files from its <code>000D0000</code> folder unchanged—no manual ID entry, conversion, or renaming. Destination: <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000/</code>. Same-named files may be overwritten.</p>
-      <div class="setup" style="margin-top:12px"><strong>Need the local FTP helper?</strong><div class="muted small" style="margin-top:4px">Download and start the helper before testing the Xbox connection. On Mac, use the fixed one-file launcher; its ZIP includes execute permission. For older copies that trigger an access-privileges alert, open Terminal, type <code>chmod u+x </code>, drag the .command file into Terminal, and press Return. Keep Terminal open during transfer.</div><div class="btn-row"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip"> Fixed Mac one-file launcher (.zip)</a></div></div>
+      <div class="setup" style="margin-top:12px"><strong>Need the local FTP helper?</strong><div class="muted small" style="margin-top:4px">Download and start the helper before testing the Xbox connection. On Mac, use the fixed one-file launcher; its ZIP includes execute permission. For older copies that trigger an access-privileges alert, open Terminal, type <code>chmod u+x </code>, drag the .command file into Terminal, and press Return. Keep Terminal open during transfer. Temporary FTP stages are removed after success, cancel, or helper shutdown; a failed file stays available only while Retry is offered.</div><div class="btn-row"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip"> Fixed Mac one-file launcher (.zip)</a></div></div>
       <div class="grid2">
         <div><label class="f" for="rawFtpHost">Xbox IP address</label><input id="rawFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
         <div><label class="f" for="rawFtpPort">FTP port</label><input id="rawFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
@@ -1703,6 +1719,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.downloadsBox.hidden = true;
     els.detailsCard.hidden = true;
     els.progressCard.hidden = false;
+    $('progressH').textContent = '✨ Conversion progress';
     els.phaseLabel.textContent = 'Analysing ISO…';
     els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%';
     els.overallPct.textContent = '';
@@ -1737,26 +1754,50 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     try { if (sessionStorage.getItem(ARCHIVE_SESSION_KEY) === name) sessionStorage.removeItem(ARCHIVE_SESSION_KEY); } catch (_) {}
   }
   async function removeArchiveOpfsDir(name) {
-    if (!name) return;
-    forgetArchiveSessionDir(name);
-    if (!navigator.storage || typeof navigator.storage.getDirectory !== 'function') return;
+    if (!name) return true;
+    if (!navigator.storage || typeof navigator.storage.getDirectory !== 'function') return false;
     try {
       const root = await navigator.storage.getDirectory();
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { await root.removeEntry(name, { recursive: true }); return; }
-        catch (err) { if (err && err.name === 'NotFoundError') return; await new Promise(resolve => setTimeout(resolve, 60)); }
+        try {
+          await root.removeEntry(name, { recursive: true });
+          forgetArchiveSessionDir(name);
+          return true;
+        } catch (err) {
+          if (err && err.name === 'NotFoundError') { forgetArchiveSessionDir(name); return true; }
+          await new Promise(resolve => setTimeout(resolve, 60));
+        }
       }
     } catch (err) { console.warn('Could not remove temporary 7z output:', err); }
+    return false;
   }
-  let archiveCleanupPromise = Promise.resolve();
+  let archiveCleanupPromise = Promise.resolve(true);
   function cleanupArchiveImports() {
     const names = state.archiveImportDirs.splice(0);
     archiveCleanupPromise = archiveCleanupPromise.then(async () => {
-      for (const name of names) await removeArchiveOpfsDir(name);
+      let allRemoved = true;
+      const retained = [];
+      for (const name of names) {
+        if (!(await removeArchiveOpfsDir(name))) { allRemoved = false; retained.push(name); }
+      }
+      if (retained.length) state.archiveImportDirs.unshift(...retained);
+      return allRemoved;
     });
     return archiveCleanupPromise;
   }
-  let archiveStartupCleanup = Promise.resolve();
+  async function cleanupArchiveImportsAfterSuccess() {
+    if (!state.archiveImportDirs.length) return;
+    const removed = await cleanupArchiveImports();
+    if (!els.archiveStatus.hidden) {
+      els.archiveStatus.textContent = removed
+        ? 'Temporary images extracted from .7z were cleared from browser storage after successful conversion.'
+        : 'Conversion succeeded, but Safari could not remove temporary .7z data. Close this page and reopen it; if storage remains, clear this site’s data in Safari Settings.';
+    }
+    log(removed
+      ? 'Temporary .7z extraction cleared from browser storage after successful conversion.'
+      : 'Conversion succeeded, but Safari could not clear temporary .7z browser storage.');
+  }
+  let archiveStartupCleanup = Promise.resolve(true);
   try {
     const previousDir = sessionStorage.getItem(ARCHIVE_SESSION_KEY);
     if (previousDir && /^nebula-7z-[a-z0-9-]+$/.test(previousDir)) archiveStartupCleanup = removeArchiveOpfsDir(previousDir);
@@ -1769,6 +1810,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (active) {
       els.archiveProgressWrap.hidden = false;
       els.archiveProgressBar.style.width = '0%';
+      els.archiveProgressBar.classList.add('indeterminate');
+    } else {
+      els.archiveProgressBar.classList.remove('indeterminate');
+      els.archiveProgressBar.style.transform = '';
     }
     updateConvertEnabled();
   }
@@ -1792,11 +1837,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.archiveTempDir = '';
     state.archiveImportDirs.push(tempDir);
     setArchiveBusy(false);
+    $('progressH').textContent = '✨ Conversion progress';
     els.archiveProgressWrap.hidden = false;
     els.archiveProgressBar.style.width = '100%';
     els.archiveStatus.hidden = false;
     els.archiveStatus.textContent = 'Unpacked ' + files.length + ' supported image' + (files.length === 1 ? '' : 's') +
-      ' from the archive. Other entries were skipped; the extracted images stay in browser storage until you choose another import or reset.';
+      '. Temporary images stay in browser storage during conversion and any FTP retry, then clear automatically after success. Start over or leave the page to clear them sooner. Other archive entries were skipped; the original .7z was not changed.';
     log('Imported ' + files.length + ' supported image' + (files.length === 1 ? '' : 's') + ' from .7z; non-image archive entries were not extracted.');
     selectIsoFiles(files);
   }
@@ -1804,12 +1850,24 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (id !== state.archiveRequestId) return;
     if (state.archiveWorker) { state.archiveWorker.terminate(); state.archiveWorker = null; }
     state.archiveTempDir = '';
-    await removeArchiveOpfsDir(tempDir);
     setArchiveBusy(false);
     els.archiveProgressWrap.hidden = true;
+    $('progressH').textContent = cancelled ? '📦 Archive import canceled' : '📦 Archive import failed';
+    els.phaseLabel.textContent = cancelled ? 'Archive import canceled' : 'Archive import failed';
+    els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '';
+    els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
     els.archiveStatus.hidden = false;
-    els.archiveStatus.textContent = cancelled ? 'Archive import canceled. Temporary extracted data was removed.' : 'Archive import failed: ' + message;
-    if (!cancelled) log('7z import failed: ' + message);
+    els.archiveStatus.textContent = cancelled ? 'Canceling archive import and removing temporary data…' : 'Archive import failed: ' + message + ' — removing partial temporary data…';
+    const removed = await removeArchiveOpfsDir(tempDir);
+    const rawMessage = String(message || 'Unknown 7z import error.');
+    const writeFailure = /failed to write to file|quotaexceeded|no space|enospc/i.test(rawMessage);
+    const displayMessage = writeFailure
+      ? 'The browser could not write the extracted image to site storage. This often means the browser site-storage quota or Mac free space is too low. Check that you have space roughly equal to the uncompressed ISO plus headroom; in Safari, use a regular window (not Private Browsing).'
+      : rawMessage;
+    els.archiveStatus.textContent = cancelled
+      ? (removed ? 'Archive import canceled. Temporary extracted data was removed.' : 'Archive import canceled; close the page and reopen it to retry temporary-data cleanup.')
+      : 'Archive import failed: ' + displayMessage + (removed ? ' Partial temporary data was removed.' : ' Safari could not confirm cleanup; close the page and reopen it.');
+    if (!cancelled) log('7z import failed: ' + rawMessage);
   }
   async function startArchiveImport(file) {
     if (state.archiveBusy || state.converting || state.batchRunning) return;
@@ -1822,15 +1880,27 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.doneCard.hidden = true;
     els.detailsCard.hidden = true;
     els.progressCard.hidden = false;
-    els.phaseLabel.textContent = 'Unpacking 7z archive…';
+    $('progressH').textContent = '📦 Importing .7z archive';
+    els.phaseLabel.textContent = 'Preparing local archive import…';
+    els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '';
+    els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
     state.file = null; state.reader = null; state.analysis = null;
     state.batchFiles = []; state.batchSkipped = 0; state.batchIndex = 0;
     state.batchCompleted = 0; state.batchRunning = false; state.batchFinished = false;
     state.result = null; state.collectedFiles = []; state.zipBlob = null;
     updateBatchHint(); updateConvertEnabled();
-    await archiveStartupCleanup;
-    await cleanupArchiveImports();
+    const startupCleanupOk = await archiveStartupCleanup;
     if (id !== state.archiveRequestId || !state.archiveBusy) return;
+    if (startupCleanupOk === false) {
+      await failArchiveImport(id, '', 'Safari could not clear temporary data from an earlier archive import. Close this page, reopen it, and retry.');
+      return;
+    }
+    const previousImportsCleared = await cleanupArchiveImports();
+    if (id !== state.archiveRequestId || !state.archiveBusy) return;
+    if (!previousImportsCleared) {
+      await failArchiveImport(id, '', 'Could not remove the prior temporary .7z image from browser storage. Close this page, reopen it, and retry.');
+      return;
+    }
     if (!navigator.storage || typeof navigator.storage.getDirectory !== 'function') {
       await failArchiveImport(id, '', 'This browser does not expose the Origin Private File System (OPFS) required for local extraction. Use recent Safari, Chrome, or Edge on HTTPS or localhost; do not open the HTML file directly.');
       return;
@@ -1853,14 +1923,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       if (msg.type === 'progress') {
         els.archiveStatus.hidden = false;
         if (msg.phase === 'listing') {
-          els.archiveStatus.textContent = 'Reading the archive index locally… Nothing is uploaded.';
+          $('progressH').textContent = '📦 Importing .7z archive';
+          els.phaseLabel.textContent = 'Reading archive index locally…';
+          els.archiveProgressWrap.hidden = false;
+          els.archiveProgressBar.classList.add('indeterminate');
+          els.archiveStatus.textContent = 'Reading the archive index locally… large archives may take a little while. Nothing is uploaded.';
         } else if (msg.phase === 'extracting') {
           const total = Math.max(1, Number(msg.totalBytes) || 1);
           const done = Math.max(0, Number(msg.processedBytes) || 0);
           const pct = Math.max(0, Math.min(100, Math.floor(done * 100 / total)));
+          const currentFile = String(msg.currentFile || '').split('/').pop();
+          $('progressH').textContent = '📦 Importing .7z archive';
+          els.phaseLabel.textContent = 'Extracting image to browser storage…';
           els.archiveProgressWrap.hidden = false;
+          els.archiveProgressBar.classList.remove('indeterminate');
           els.archiveProgressBar.style.width = pct + '%';
-          els.archiveStatus.textContent = 'Extracting supported image files only — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). This is local browser work.';
+          els.archiveStatus.textContent = 'Extracting ' + (currentFile || 'supported image files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no image data is uploaded.';
         }
       } else if (msg.type === 'done') {
         worker.terminate();
@@ -2581,6 +2659,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.progressCard.classList.add('is-complete');
       els.overallBar.style.width = '100%'; els.phaseBar.style.width = '100%'; els.overallPct.textContent = '100%';
       renderDone(options, result, mins);
+      if (!state.batchRunning) await cleanupArchiveImportsAfterSuccess();
     } catch (err) {
       console.error(err);
       if (err && err.name === 'AbortError') {
@@ -2661,6 +2740,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       await releaseWakeLock();
     }
     if (state.batchCompleted === files.length) {
+      await cleanupArchiveImportsAfterSuccess();
       els.doneCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
       log('Batch complete: all ' + files.length + ' ISO packages were converted and uploaded sequentially.');
     } else if (state.cancelRequested) {

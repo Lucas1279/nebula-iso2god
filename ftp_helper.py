@@ -308,8 +308,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
         return send_json(self, 405, {"error": "Cross-origin requests are not supported."})
 
 
+def cleanup_stale_staging_files():
+    """Remove abandoned Nebula FTP temp files after this helper claims its port."""
+    removed = 0
+    try:
+        for path in Path(tempfile.gettempdir()).glob("nebula-ftp-*.part"):
+            try:
+                if path.is_file():
+                    path.unlink()
+                    removed += 1
+            except OSError:
+                pass
+    except OSError:
+        pass
+    if removed:
+        print(f"Removed {removed} stale temporary FTP staging file(s).")
+
+
 def main():
+    # Binding succeeds only when another helper is not already using this port,
+    # so any matching staging files here belong to an earlier stopped/crashed run.
     httpd = http.server.ThreadingHTTPServer((HOST, PORT), Handler)
+    cleanup_stale_staging_files()
     print(f"Nebula ISO2GOD FTP helper is running at http://{HOST}:{PORT}/")
     print("Loopback-only: this service is not exposed to your network or the internet.")
     print("Keep this window open. Press Ctrl+C to stop it.")
