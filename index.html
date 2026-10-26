@@ -47,6 +47,10 @@ h1{font-size:clamp(2.3rem,6vw,4.2rem); line-height:1.02; margin:18px 0 10px; let
 .badge{font-size:.8rem; padding:6px 11px; border-radius:999px; border:1px solid var(--line); background:rgba(12,18,44,.66)}
 .badge.ok{color:#9ff3d2}.badge.warn{color:#ffd98a}
 .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:26px 0 4px}
+.raw-steps{display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:100%;margin:20px auto 4px;padding:8px 12px;border:1px solid var(--line);border-radius:16px;background:rgba(10,14,34,.72);backdrop-filter:blur(14px)}
+.raw-step{display:inline-flex;align-items:center;gap:7px;padding:0 5px;color:var(--text);font-size:.9rem;font-weight:700;white-space:nowrap}
+.raw-step .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06101f;font-size:.82rem;font-weight:800}
+.raw-step-sep{color:var(--muted);opacity:.65;font-size:1.05rem}
 .step{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:15px 16px; backdrop-filter:blur(14px)}
 .step b{display:flex; align-items:center; gap:9px; font-size:.98rem}
 .step .n{display:inline-grid; place-items:center; width:27px;height:27px;border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#06101f; font-weight:800}
@@ -130,6 +134,7 @@ footer a{color:#9edcff}
   dl.details{grid-template-columns:1fr; gap:2px} dl.details dd{margin-bottom:8px}
   .card{padding:19px}
 }
+@media (max-width:520px){.raw-steps{gap:3px;padding:7px 8px}.raw-step{gap:5px;padding:0 2px;font-size:.78rem}.raw-step .n{width:21px;height:21px;font-size:.75rem}.raw-step-sep{font-size:.9rem}}
 @media (prefers-reduced-motion:reduce){.nebula{animation:none} html{scroll-behavior:auto}}
 </style>
 </head>
@@ -165,6 +170,11 @@ footer a{color:#9edcff}
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
       <div class="step"><b><span class="n">2</span> Convert</b><span>The game partition is hashed and packed into a LIVE/SVOD header plus <span class="kbd">Data0000…</span> parts, exactly like Iso2God.</span></div>
       <div class="step"><b><span class="n">3</span> Play</b><span>Copy <span class="kbd">Content\0000000000000000\&lt;TitleID&gt;\00007000\</span> to your console drive and rescan in Aurora/FSD.</span></div>
+    </div>
+    <div class="raw-steps workflow-mode-hidden" id="rawSteps" aria-label="XBLA/XBLIG upload steps">
+      <span class="raw-step"><span class="n">1</span> Connect</span><span class="raw-step-sep" aria-hidden="true">›</span>
+      <span class="raw-step"><span class="n">2</span> Choose folder</span><span class="raw-step-sep" aria-hidden="true">›</span>
+      <span class="raw-step"><span class="n">3</span> Upload unchanged</span>
     </div>
   </header>
 
@@ -1292,7 +1302,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     ftpConnectBtn: $('ftpConnectBtn'), ftpStatus: $('ftpStatus'), rememberFtpIso: $('rememberFtpIso'), rememberFtpRaw: $('rememberFtpRaw'),
     rawFtpHost: $('rawFtpHost'), rawFtpPort: $('rawFtpPort'), rawFtpUser: $('rawFtpUser'), rawFtpPassword: $('rawFtpPassword'), rawFtpPath: $('rawFtpPath'),
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
-    taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), heroIsoIntro: $('heroIsoIntro'), isoSteps: $('isoSteps'), supportBadges: $('supportBadges'),
+    taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), heroIsoIntro: $('heroIsoIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), supportBadges: $('supportBadges'),
     rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
     chooseFolderBtn: $('chooseFolderBtn'), folderName: $('folderName'),
     chooseZipBtn: $('chooseZipBtn'), zipName: $('zipName'), zipSetupNote: $('zipSetupNote'),
@@ -1429,6 +1439,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.rawContentUploadCard.hidden = !raw;
     els.heroIsoIntro.classList.toggle('workflow-mode-hidden', raw);
     els.isoSteps.classList.toggle('workflow-mode-hidden', raw);
+    els.rawSteps.classList.toggle('workflow-mode-hidden', !raw);
     els.supportBadges.classList.toggle('workflow-mode-hidden', raw);
     els.taskIsoMode.classList.toggle('active', !raw);
     els.taskRawMode.classList.toggle('active', raw);
