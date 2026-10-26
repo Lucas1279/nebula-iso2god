@@ -12,15 +12,17 @@ This build includes a local Python helper for FTP because a browser on GitHub Pa
 
 ## Convert and send an ISO
 
-Choose **Upload to Xbox via FTP** in the ISO converter, test the connection, then convert. Each generated GOD package file is staged on the computer and sent to the console. Rescan the Content path in Aurora/FSD after the website reports a complete upload.
+Choose **Convert an ISO**, then choose **Upload to Xbox via FTP** in the output options, test the connection, and convert. Each generated GOD package file is staged on the computer and sent to the console. Rescan the Content path in Aurora/FSD after the website reports a complete upload.
 
-## Send an existing XBLA/XBLIG content file unchanged
+## Send existing XBLA/XBLIG content unchanged
 
-Use the separate **Upload an existing XBLA/XBLIG content file** panel. Test its FTP connection, enter the 8-character hexadecimal Title ID, and select one or more existing files. The uploader preserves each filename and file's bytes; it does not convert or rename them. It creates and targets:
+Choose the separate **Upload existing XBLA/XBLIG file(s)** task at the top of the page. Test the FTP connection, then drop the game's **8-character Title ID folder** (such as `58410B1D`) or its parent game folder into the drop zone. The uploader finds files under `000D0000` and derives the Title ID from the folder path—no manual Title ID entry is needed. The equivalent folder picker is also available.
+
+Each selected file is sent without conversion, renaming, or repacking to:
 
 `<FTP base>/Content/0000000000000000/<TitleID>/000D0000/<original filename>`
 
-The helper creates missing folders. A file with the same name in that destination may be overwritten. Do not start another upload while one is active; after a failed upload, treat the destination file as incomplete until a successful retry completes.
+The helper creates missing folders. A file with the same name in that destination may be overwritten. Do not drop the outer `.7z` archive; extract it first. Drop the Title ID/game folder containing `000D0000`, or choose that folder in the folder picker. After the upload reports complete, rescan Aurora.
 
 ## Important safety and limitations
 

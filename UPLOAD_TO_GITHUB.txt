@@ -1,10 +1,10 @@
-Website FTP upload update
+Website update: ISO converter + XBLA/XBLIG folder uploader
 
-This folder contains the updated converter page and download assets. Upload/replace these files in the root of the GitHub repository used by GitHub Pages, commit the changes to the published branch, then wait for Pages to redeploy:
+Upload/replace these files in the root of the GitHub repository used by GitHub Pages, commit to the published branch, then wait for Pages to redeploy:
 - index.html
 - ftp_helper.py
 - README_FTP.md
 - nebula-iso2god-timeout-fix.zip
 - Nebula-ISO2GOD-One-File.zip
 
-The page now offers both timeout-fixed downloads and a separate direct XBLA/XBLIG content-file FTP uploader. That uploader preserves filenames and bytes and writes to Content/0000000000000000/<TitleID>/000D0000/.
+The page has two top-level task choices: Convert an ISO and Upload existing XBLA/XBLIG content. The raw-upload panel appears only when selected. It accepts a dropped 8-character Title ID folder (for example 58410B1D) or its parent game folder, derives the ID automatically, and uploads files found directly in 000D0000 unchanged. The raw drop box is styled to match the ISO drop box.

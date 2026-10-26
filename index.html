@@ -85,11 +85,19 @@ input[type=text]:focus{outline:2px solid rgba(110,231,255,.6); outline-offset:1p
 .check{display:flex; gap:10px; align-items:flex-start; margin-top:14px; line-height:1.5; cursor:pointer}
 .check input{margin-top:3px; width:18px;height:18px; accent-color:#67e8f9}
 .mode-row{display:flex; flex-wrap:wrap; gap:9px; margin-top:9px}
-.mode-btn{flex:1 1 190px; text-align:left; border-radius:15px; border:1px solid var(--line); background:rgba(8,12,34,.62); color:var(--text); padding:13px 14px; cursor:pointer; line-height:1.45}
+.mode-btn{flex:1 1 190px; text-align:left; border-radius:15px; border:1px solid var(--line); background:rgba(8,12,34,.62); color:var(--text); padding:13px 14px; cursor:pointer; line-height:1.45;transition:border-color .2s,box-shadow .24s,transform .2s,background .24s}
 .mode-btn b{display:block; font-size:.99rem}.mode-btn span{color:var(--muted); font-size:.85rem}
 .mode-btn.active{border-color:var(--accent); box-shadow:0 0 0 1px rgba(110,231,255,.45), 0 12px 28px rgba(0,0,0,.28); background:linear-gradient(180deg, rgba(28,48,105,.75), rgba(13,20,55,.85))}
 .mode-btn:disabled{opacity:.45; cursor:not-allowed}
 .setup{margin-top:12px; padding:14px; border:1px solid var(--line); border-radius:14px; background:rgba(5,9,26,.62); line-height:1.55}
+.raw-drop-zone{min-height:210px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.raw-drop-zone.drag-active{border-color:var(--accent);background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
+.raw-drop-zone:focus-visible{outline:2px solid rgba(110,231,255,.7);outline-offset:3px}
+.workflow-mode-hidden{display:none!important}
+.workflow-switch{margin:0 0 18px}
+.workflow-switch .mode-btn:hover:not(:disabled){transform:translateY(-2px)}
+#rawContentUploadCard:not([hidden]){animation:panel-in .24s ease-out}
+@keyframes panel-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .estimates{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:12px}
 .est{border:1px solid var(--line); border-radius:13px; padding:11px; background:rgba(6,10,30,.6)}
 .est .k{color:var(--muted); font-size:.76rem; text-transform:uppercase; letter-spacing:.08em}
@@ -148,12 +156,12 @@ footer a{color:#9edcff}
   <header class="hero">
     <div class="orbit-badge"><span class="dot"></span> Local conversion · Optional Xbox FTP · No cloud upload</div>
     <h1>🪐 Nebula ISO2GOD</h1>
-    <p>Convert an <strong>Xbox 360 ISO</strong> into a <strong>Games on Demand (GOD)</strong> package for a
+    <p id="heroIsoIntro">Convert an <strong>Xbox 360 ISO</strong> into a <strong>Games on Demand (GOD)</strong> package for a
        <strong>modded JTAG/RGH Xbox 360</strong> — the same SVOD format Iso2God creates on Windows,
        converted in your browser. Import an ISO, choose a folder, ZIP, downloads, or optional FTP
        transfer to your console over your home network.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="steps" aria-label="How it works">
+    <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
       <div class="step"><b><span class="n">2</span> Convert</b><span>The game partition is hashed and packed into a LIVE/SVOD header plus <span class="kbd">Data0000…</span> parts, exactly like Iso2God.</span></div>
       <div class="step"><b><span class="n">3</span> Play</b><span>Copy <span class="kbd">Content\0000000000000000\&lt;TitleID&gt;\00007000\</span> to your console drive and rescan in Aurora/FSD.</span></div>
@@ -161,7 +169,11 @@ footer a{color:#9edcff}
   </header>
 
   <main>
-    <section class="card" aria-labelledby="importH">
+    <div class="mode-row workflow-switch" role="group" aria-label="Choose task">
+      <button class="mode-btn active" id="taskIsoMode" type="button" aria-pressed="true"><b>🎮 Convert an ISO</b><span>Create a GOD package from an Xbox 360 disc image.</span></button>
+      <button class="mode-btn" id="taskRawMode" type="button" aria-pressed="false"><b>📦 Upload existing XBLA/XBLIG file(s)</b><span>Send ready-made content files to the Xbox without converting them.</span></button>
+    </div>
+    <section class="card" data-workflow="iso" aria-labelledby="importH">
       <h2 id="importH">🚀 1 · Import your Xbox 360 ISO</h2>
       <p class="muted" style="margin:0;line-height:1.6">Your file never leaves this computer. It is read in small pieces directly from disk, so even an 8.5&nbsp;GB XGD3 image is not loaded into memory all at once.</p>
       <div class="drop" id="dropZone" role="button" tabindex="0" aria-label="Choose or drop an Xbox 360 ISO file">
@@ -177,7 +189,7 @@ footer a{color:#9edcff}
       <div class="warn-note small"><strong>Only convert backups of games you own.</strong> Like Iso2God, the finished package has a blank LIVE signature, so it boots on <strong>JTAG/RGH</strong> consoles — not on retail hardware.</div>
     </section>
 
-    <section class="card" id="progressCard" aria-labelledby="progressH" hidden>
+    <section class="card" data-workflow="iso" id="progressCard" aria-labelledby="progressH" hidden>
       <div class="progress-head">
         <h2 id="progressH" style="margin:0">✨ Conversion progress</h2>
         <div><strong id="overallPct"></strong> <span class="muted" id="etaEl"></span></div>
@@ -196,7 +208,7 @@ footer a{color:#9edcff}
       <div id="logEl" aria-live="polite"></div>
     </section>
 
-    <section class="card" id="detailsCard" aria-labelledby="detailsH" hidden>
+    <section class="card" data-workflow="iso" id="detailsCard" aria-labelledby="detailsH" hidden>
       <h2 id="detailsH">🎮 2 · Check the game &amp; choose output</h2>
       <div class="grid2">
         <dl class="details">
@@ -292,7 +304,7 @@ footer a{color:#9edcff}
       <p class="muted small" style="line-height:1.6;margin-bottom:0">Make sure the destination has at least the “GOD size” above free, keep this tab in the foreground, and don’t move/eject the ISO or destination drive mid-conversion.</p>
     </section>
 
-    <section class="card" id="doneCard" aria-labelledby="doneH" hidden>
+    <section class="card" data-workflow="iso" id="doneCard" aria-labelledby="doneH" hidden>
       <h2 id="doneH">🌟 Finished — ready for your Xbox 360</h2>
       <p class="done-banner" id="doneSummary"></p>
       <div class="btn-row">
@@ -313,9 +325,9 @@ footer a{color:#9edcff}
       </ol>
     </section>
 
-    <section class="card" id="rawContentUploadCard" aria-labelledby="rawUploadHeading">
-      <h2 id="rawUploadHeading">📦 Upload an existing XBLA/XBLIG content file</h2>
-      <p class="muted small" style="line-height:1.6">For files you already have (including extensionless/hash-named files): this sends the file unchanged—no ISO conversion, renaming, or repacking. It targets <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000/&lt;original filename&gt;</code>. A same-named file already there may be overwritten. Use only files you have the right to use.</p>
+    <section class="card" id="rawContentUploadCard" data-workflow="raw" aria-labelledby="rawUploadHeading" hidden>
+      <h2 id="rawUploadHeading">📦 Upload existing XBLA/XBLIG content</h2>
+      <p class="muted small" style="line-height:1.6">Drop the game’s <strong>8-character Title ID folder</strong> (for example <code>58410B1D</code>) or its parent game folder below. The uploader finds the Title ID and copies files from its <code>000D0000</code> folder unchanged—no manual ID entry, conversion, or renaming. Destination: <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000/</code>. Same-named files may be overwritten.</p>
       <div class="grid2">
         <div><label class="f" for="rawFtpHost">Xbox IP address</label><input id="rawFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
         <div><label class="f" for="rawFtpPort">FTP port</label><input id="rawFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
@@ -324,12 +336,16 @@ footer a{color:#9edcff}
         <div style="grid-column:1/-1"><label class="f" for="rawFtpPath">Xbox FTP base path</label><input id="rawFtpPath" type="text" value="Usb1" autocomplete="off"><div class="muted tiny">Example: Usb1. Do not add the Content path here; the uploader adds it.</div></div>
       </div>
       <div class="btn-row"><button class="btn" id="rawFtpConnectBtn" type="button" disabled>Test connection</button><span class="muted" id="rawFtpStatus">Start the local helper and open its local page to enable FTP.</span></div>
-      <div class="grid2" style="margin-top:14px">
-        <div><label class="f" for="rawTitleId">8-character Title ID</label><input id="rawTitleId" type="text" maxlength="8" placeholder="e.g. 58410B1D" autocomplete="off" spellcheck="false"></div>
-        <div><label class="f" for="rawContentFiles">Existing content file(s)</label><input id="rawContentFiles" type="file" multiple></div>
+      <div id="rawDropZone" class="drop raw-drop-zone" role="button" tabindex="0" aria-label="Drop or choose a Title ID or game folder">
+        <div class="big" aria-hidden="true">📦</div>
+        <div class="t">Drop the Title ID folder here</div>
+        <div class="s">For example, drop <code>58410B1D</code> or its parent game folder. We’ll find the <code>000D0000</code> files automatically.<br>Drop the extracted folder, not the outer <code>.7z</code> archive.</div>
+        <input id="rawContentFiles" type="file" webkitdirectory directory multiple hidden>
+        <div class="btn-row" style="justify-content:center"><button class="btn primary" id="rawChooseFolderBtn" type="button">Choose Title ID / game folder…</button></div>
+        <div class="muted tiny" id="rawSelectedFiles" aria-live="polite" style="margin-top:8px">No valid content files selected.</div>
       </div>
-      <p class="muted tiny">Original filenames are preserved. The uploader creates the standard <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000</code> folders if needed.</p>
-      <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult">Connect first, then select a Title ID and file(s).</span></div>
+      <p class="muted tiny">Original filenames and file bytes are preserved. Missing destination folders are created automatically.</p>
+      <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult">Connect first, then drop/select a Title ID folder.</span></div>
       <div id="rawFtpLive" hidden style="margin-top:12px"><div class="muted small" id="rawFtpLiveText" aria-live="polite"></div><div class="bar-wrap thin"><div class="bar thin" id="rawFtpLiveBar" style="width:0%"></div></div></div>
     </section>
 
@@ -1272,8 +1288,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     ftpHost: $('ftpHost'), ftpPort: $('ftpPort'), ftpUser: $('ftpUser'), ftpPassword: $('ftpPassword'), ftpPath: $('ftpPath'),
     ftpConnectBtn: $('ftpConnectBtn'), ftpStatus: $('ftpStatus'),
     rawFtpHost: $('rawFtpHost'), rawFtpPort: $('rawFtpPort'), rawFtpUser: $('rawFtpUser'), rawFtpPassword: $('rawFtpPassword'), rawFtpPath: $('rawFtpPath'),
-    rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawTitleId: $('rawTitleId'), rawContentFiles: $('rawContentFiles'),
-    rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'),
+    rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
+    taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), heroIsoIntro: $('heroIsoIntro'), isoSteps: $('isoSteps'), supportBadges: $('supportBadges'),
+    rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
     chooseFolderBtn: $('chooseFolderBtn'), folderName: $('folderName'),
     chooseZipBtn: $('chooseZipBtn'), zipName: $('zipName'), zipSetupNote: $('zipSetupNote'),
     convertBtn: $('convertBtn'), cancelBtn: $('cancelBtn'), resetBtn: $('resetBtn'),
@@ -1284,7 +1301,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     doneCard: $('doneCard'), doneSummary: $('doneSummary'), outputTree: $('outputTree'),
     downloadsBox: $('downloadsBox'), downloadList: $('downloadList'),
     zipDownloadBtn: $('zipDownloadBtn'), convertAnotherBtn: $('convertAnotherBtn'),
-    supportBadges: $('supportBadges'), outputModeNote: $('outputModeNote'),
+    outputModeNote: $('outputModeNote'),
   };
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
@@ -1294,7 +1311,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     file: null, reader: null, analysis: null,
     outputMode: hasDirPicker ? 'folder' : 'zip',
     dirHandle: null, zipHandle: null, zipSuggestedName: '',
-    ftpToken: null, ftpConnected: false, rawFtpConnected: false, rawUploading: false,
+    ftpToken: null, ftpConnected: false, rawFtpConnected: false, rawUploading: false, rawFiles: [], taskMode: 'iso',
     converting: false, cancelRequested: false,
     result: null, collectedFiles: [], zipBlob: null, zipBlobName: '',
     wakeLock: null,
@@ -1352,6 +1369,24 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       .trim();
   }
 
+  /* ---------------- top-level workflow tabs ---------------- */
+  function setTaskMode(mode) {
+    if ((state.converting || state.rawUploading) && mode !== state.taskMode) return;
+    state.taskMode = mode === 'raw' ? 'raw' : 'iso';
+    const raw = state.taskMode === 'raw';
+    document.querySelectorAll('[data-workflow="iso"]').forEach(el => el.classList.toggle('workflow-mode-hidden', raw));
+    els.rawContentUploadCard.hidden = !raw;
+    els.heroIsoIntro.classList.toggle('workflow-mode-hidden', raw);
+    els.isoSteps.classList.toggle('workflow-mode-hidden', raw);
+    els.supportBadges.classList.toggle('workflow-mode-hidden', raw);
+    els.taskIsoMode.classList.toggle('active', !raw);
+    els.taskRawMode.classList.toggle('active', raw);
+    els.taskIsoMode.setAttribute('aria-pressed', raw ? 'false' : 'true');
+    els.taskRawMode.setAttribute('aria-pressed', raw ? 'true' : 'false');
+  }
+  els.taskIsoMode.addEventListener('click', () => setTaskMode('iso'));
+  els.taskRawMode.addEventListener('click', () => setTaskMode('raw'));
+
   /* ---------------- support badges / mode UI ---------------- */
   function renderSupport() {
     const badge = (ok, text) => '<span class="badge ' + (ok ? 'ok' : 'warn') + '">' + (ok ? '✓ ' : '△ ') + esc(text) + '</span>';
@@ -1389,9 +1424,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.modeFtp.addEventListener('click', () => setMode('ftp'));
 
   function updateRawUploadEnabled() {
-    const titleOk = /^[0-9a-fA-F]{8}$/.test(els.rawTitleId.value.trim());
-    const filesOk = !!(els.rawContentFiles.files && els.rawContentFiles.files.length);
-    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && titleOk && filesOk && !state.rawUploading && !state.converting);
+    const filesOk = !!state.rawFiles.length;
+    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && filesOk && !state.rawUploading && !state.converting);
   }
   function updateConvertEnabled() {
     let ok = !!state.analysis && !state.converting && !state.rawUploading;
@@ -1632,8 +1666,82 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       updateRawUploadEnabled();
     });
   }
-  els.rawTitleId.addEventListener('input', updateRawUploadEnabled);
-  els.rawContentFiles.addEventListener('change', updateRawUploadEnabled);
+  function extractTitleIdItems(filesWithPaths) {
+    const result = [];
+    for (const item of filesWithPaths) {
+      const parts = String(item.path || '').split(/[\\/]/).filter(Boolean);
+      for (let i = 0; i + 2 < parts.length; i++) {
+        if (/^[0-9A-Fa-f]{8}$/.test(parts[i]) && parts[i + 1].toUpperCase() === '000D0000' && i + 3 === parts.length) {
+          if (item.file.name !== '.DS_Store' && !item.file.name.startsWith('._')) result.push({ file: item.file, titleId: parts[i].toUpperCase() });
+          break;
+        }
+      }
+    }
+    return result;
+  }
+  function setRawFiles(filesWithPaths) {
+    state.rawFiles = extractTitleIdItems(filesWithPaths || []);
+    if (state.rawFiles.length) {
+      const ids = [...new Set(state.rawFiles.map(x => x.titleId))];
+      els.rawSelectedFiles.textContent = 'Found ' + state.rawFiles.length + ' file(s) for Title ID ' + ids.join(', ') + ': ' + state.rawFiles.map(x => x.file.name).join(' · ');
+      els.rawFtpUploadResult.textContent = 'Ready to copy unchanged to each Title ID’s 000D0000 folder.';
+    } else {
+      els.rawSelectedFiles.textContent = 'No matching files found. Drop the Title ID folder (8 hex characters) containing 000D0000 and its file(s).';
+    }
+    updateRawUploadEnabled();
+  }
+  function onFolderInputChange() {
+    setRawFiles(Array.from(els.rawContentFiles.files || []).map(file => ({ file, path: file.webkitRelativePath || file.name })));
+  }
+  els.rawChooseFolderBtn.addEventListener('click', ev => { ev.stopPropagation(); els.rawContentFiles.click(); });
+  els.rawDropZone.addEventListener('click', ev => {
+    if (ev.target.closest('button')) return;
+    els.rawContentFiles.click();
+  });
+  els.rawDropZone.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); els.rawContentFiles.click(); }
+  });
+  els.rawContentFiles.addEventListener('change', onFolderInputChange);
+  function readDirectoryEntry(entry, prefix) {
+    if (entry.isFile) return new Promise((resolve, reject) => entry.file(file => resolve([{ file, path: prefix + entry.name }]), reject));
+    if (!entry.isDirectory) return Promise.resolve([]);
+    const reader = entry.createReader();
+    const children = [];
+    const readBatch = () => new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+    return (async () => {
+      while (true) {
+        const batch = await readBatch();
+        if (!batch.length) break;
+        children.push(...batch);
+      }
+      const nextPrefix = prefix + entry.name + '/';
+      const nested = await Promise.all(children.map(child => readDirectoryEntry(child, nextPrefix)));
+      return nested.flat();
+    })();
+  }
+  for (const type of ['dragenter', 'dragover']) {
+    els.rawDropZone.addEventListener(type, ev => { ev.preventDefault(); els.rawDropZone.classList.add('drag-active'); });
+  }
+  for (const type of ['dragleave', 'dragend']) {
+    els.rawDropZone.addEventListener(type, () => els.rawDropZone.classList.remove('drag-active'));
+  }
+  els.rawDropZone.addEventListener('drop', async ev => {
+    ev.preventDefault();
+    els.rawDropZone.classList.remove('drag-active');
+    try {
+      const items = Array.from((ev.dataTransfer && ev.dataTransfer.items) || []);
+      const entries = items.map(item => item.webkitGetAsEntry ? item.webkitGetAsEntry() : null).filter(Boolean);
+      if (entries.length) {
+        const nested = await Promise.all(entries.map(entry => readDirectoryEntry(entry, '')));
+        setRawFiles(nested.flat());
+      } else {
+        const files = Array.from((ev.dataTransfer && ev.dataTransfer.files) || []);
+        setRawFiles(files.map(file => ({ file, path: file.webkitRelativePath || file.name })));
+      }
+    } catch (err) {
+      els.rawSelectedFiles.textContent = 'Could not read that folder. Use “Choose Title ID / game folder…” instead.';
+    }
+  });
 
   els.chooseZipBtn.addEventListener('click', async () => {
     try {
@@ -1770,16 +1878,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
 
   async function uploadRawContentFiles() {
-    const titleId = els.rawTitleId.value.trim().toUpperCase();
-    const files = Array.from(els.rawContentFiles.files || []);
+    const items = state.rawFiles.slice();
     if (!state.ftpToken || !state.rawFtpConnected) throw new Error('Test the raw-file FTP connection first.');
-    if (!/^[0-9A-F]{8}$/.test(titleId)) throw new Error('Enter an 8-character hexadecimal Title ID.');
-    if (!files.length) throw new Error('Choose at least one content file.');
-    const names = files.map(f => f.name);
-    if (new Set(names).size !== names.length) throw new Error('The selection contains duplicate filenames; choose unique names to avoid overwriting one with another.');
-    for (const file of files) {
+    if (!items.length) throw new Error('Drop a Title ID folder containing a 000D0000 folder and its content file(s).');
+    const targets = items.map(x => x.titleId + '/' + x.file.name);
+    if (new Set(targets).size !== targets.length) throw new Error('The selection contains duplicate filenames for the same Title ID; choose unique files to avoid overwriting one with another.');
+    for (const item of items) {
+      const file = item.file;
       const unsafeName = !file.name || file.name === '.' || file.name === '..' || file.name.includes('/') || file.name.includes('\\') || Array.from(file.name).some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127);
-      if (unsafeName) throw new Error('A selected filename contains unsupported characters. Rename it locally and try again.');
+      if (!/^[0-9A-F]{8}$/.test(item.titleId) || unsafeName) throw new Error('A dropped path or filename is invalid. Drop the Title ID folder and its 000D0000 content files.');
       if (file.size > 20 * 1024 * 1024 * 1024) throw new Error(file.name + ' exceeds the 20 GiB per-file limit.');
     }
     state.rawUploading = true;
@@ -1787,10 +1894,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.rawFtpUploadResult.textContent = 'Starting upload…';
     updateConvertEnabled();
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      for (let i = 0; i < items.length; i++) {
+        const { file, titleId } = items[i];
         const segments = ['Content', '0000000000000000', titleId, '000D0000', file.name];
-        els.rawFtpUploadResult.textContent = 'Uploading ' + (i + 1) + ' of ' + files.length + ': ' + file.name;
+        els.rawFtpUploadResult.textContent = 'Uploading ' + (i + 1) + ' of ' + items.length + ': ' + titleId + '/' + file.name;
         const writer = new FTPWriter(state.ftpToken);
         try {
           await writer.beginFile(segments, file.size);
@@ -1801,9 +1908,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           throw new Error('Stopped on ' + file.name + ': ' + err.message);
         }
       }
+      const ids = [...new Set(items.map(x => x.titleId))];
       setFtpLive('All selected content files were uploaded unchanged to 000D0000.', 1);
-      els.rawFtpUploadResult.textContent = 'Complete: ' + files.length + ' file(s) copied to Content/0000000000000000/' + titleId + '/000D0000/. Rescan Aurora.';
-      log('Raw content upload complete (' + files.length + ' file(s)) to Title ID ' + titleId + '/000D0000.');
+      els.rawFtpUploadResult.textContent = 'Complete: ' + items.length + ' file(s) copied for Title ID(s) ' + ids.join(', ') + '. Rescan Aurora.';
+      state.rawFiles = [];
+      els.rawContentFiles.value = '';
+      els.rawSelectedFiles.textContent = 'Upload complete. Drop or choose another Title ID folder if needed.';
+      log('Raw content upload complete (' + items.length + ' file(s)) for Title ID(s) ' + ids.join(', ') + '.');
     } catch (err) {
       els.rawFtpUploadResult.textContent = 'Upload failed: ' + err.message;
       setFtpLive('Upload failed. Do not launch a partial package; correct the issue and retry.', 0);
@@ -2157,6 +2268,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
 
   renderSupport();
+  setTaskMode('iso');
   setMode(state.outputMode);
   if (!hasSavePicker) {
     els.chooseZipBtn.hidden = true;
