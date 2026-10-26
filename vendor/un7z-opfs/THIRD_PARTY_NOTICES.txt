@@ -1,0 +1,8 @@
+Browser 7z extraction components
+
+This folder contains the 7-Zip WebAssembly runtime distributed with un7z-opfs 1.0.2:
+https://github.com/caiiiycuk/un7z-opfs
+
+The `dist/7zz.js` and `dist/7zz.wasm` files are 7-Zip components by Igor Pavlov, licensed under GNU LGPL with the unRAR restriction. The full included license and restriction are in `License.txt`. The application-specific worker in `worker/opfs-extractor.js` is adapted for Nebula ISO2GOD: it reads the selected archive through a seekable File-slice filesystem and extracts only supported disc-image entries to OPFS.
+
+Runtime files are bundled locally and loaded from this folder; no CDN or network service is used for archive extraction.

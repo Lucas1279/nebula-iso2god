@@ -189,21 +189,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 ident = str(data.get("id", ""))
                 with LOCK:
                     item = ACTIVE.get(ident)
-                if not item:
-                    raise ValueError("No active file upload.")
-                if item["written"] != item["expected"]:
-                    try: os.unlink(item["tmp"])
-                    except OSError: pass
-                    with LOCK:
+                    if not item:
+                        raise ValueError("No active file upload.")
+                    # A repeated finish is safe if the prior FTP result succeeded but
+                    # its HTTP response did not reach the browser.
+                    if item.get("state") == "done":
+                        return send_json(self, 200, {"ok": True, "bytes": item["written"]})
+                    if item.get("state") not in ("staging", "error"):
+                        raise ValueError("This file is already being transferred.")
+                    if item["written"] != item["expected"]:
+                        try: os.unlink(item["tmp"])
+                        except OSError: pass
                         item["state"] = "error"
                         item["error"] = f"File was incomplete ({item['written']} of {item['expected']} bytes)."
-                    raise ValueError(item["error"])
-                cfg = CONFIG
-                if not cfg:
-                    raise ValueError("FTP connection was closed.")
-                with LOCK:
+                        raise ValueError(item["error"])
+                    cfg = CONFIG
+                    if not cfg:
+                        item["state"] = "error"
+                        item["error"] = "FTP connection was closed."
+                        raise ValueError(item["error"])
                     item["state"] = "connecting"
                     item["sent"] = 0
+                    item["error"] = ""
                 ftp = None
                 try:
                     ftp = ftp_login(cfg)
@@ -242,8 +249,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     if ftp is not None:
                         try: ftp.quit()
                         except Exception: pass
-                    try: os.unlink(item["tmp"])
-                    except OSError: pass
                 return send_json(self, 200, {"ok": True, "bytes": item["written"]})
 
             if parsed.path == "/api/file/ack":
@@ -251,8 +256,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 ident = str(data.get("id", ""))
                 with LOCK:
                     item = ACTIVE.get(ident)
-                    if item and item.get("state") == "done":
+                    if item and item.get("state") != "done":
+                        raise ValueError("The FTP file has not completed successfully; retry it or cancel.")
+                    if item:
                         ACTIVE.pop(ident, None)
+                if item:
+                    try: os.unlink(item["tmp"])
+                    except OSError: pass
                 return send_json(self, 200, {"ok": True})
 
             if parsed.path == "/api/file/abort":

@@ -1,10 +1,15 @@
 Website update package
 
-Upload/replace these files in the root of the GitHub repository used by GitHub Pages, commit to the published branch, then wait for Pages to redeploy:
+Upload/replace these items in the root of the GitHub repository used by GitHub Pages, commit to the published branch, then wait for Pages to redeploy:
 - index.html
 - ftp_helper.py
 - README_FTP.md
+- the complete vendor/ directory (keep its subfolders and files)
 - nebula-iso2god-timeout-fix.zip
 - Nebula-ISO2GOD-One-File.zip
 
-Includes separate ISO and XBLA/XBLIG workflows, saved IP/username options (password never saved), FTP download buttons in both workflows, and completion meteor/confetti animations for successful conversion and raw upload. Animations respect the system reduced-motion setting.
+The website's ISO task can import one .7z archive locally in a recent Chrome or Edge browser. The worker reads the selected archive in File slices and extracts only supported image entries to browser storage; other contents are skipped and no archive data is uploaded. The original archive is unchanged. Keep vendor/un7z-opfs/ next to index.html for this feature.
+
+FTP transfer pauses on a failed package-file transfer and offers “Retry file & continue.” The helper retains the complete staged file on this computer until retry succeeds or the transfer is cancelled. A retry resends only that current file from byte zero using FTP STOR (not byte-offset resume), overwrites any partial console copy, and continues the current ISO/job; completed files stay in place. Keep the page and helper running while paused.
+
+Includes separate ISO and XBLA/XBLIG workflows, saved IP/username options (password never saved), sequential-only FTP uploads, and completion meteor/confetti animations for successful conversion and raw upload. Animations respect the system reduced-motion setting.
