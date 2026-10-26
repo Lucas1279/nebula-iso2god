@@ -189,12 +189,13 @@ footer a{color:#9edcff}
       <div class="drop" id="dropZone" role="button" tabindex="0" aria-label="Choose or drop an Xbox 360 ISO file">
         <div class="big" aria-hidden="true">💿</div>
         <div class="t">Drag &amp; drop an .iso here</div>
-        <div class="s">XGD2 · XGD3 · XGD1 · trimmed XISO/XSF images are detected automatically<br>(original Xbox <span class="kbd">default.xbe</span> images are converted as Xbox Original GODs too)</div>
+        <div class="s">XGD2 · XGD3 · XGD1 · trimmed XISO/XSF images are detected automatically<br>(original Xbox <span class="kbd">default.xbe</span> images are converted as Xbox Original GODs too)<br>Select multiple ISOs to queue sequential FTP uploads at normal per-game speed.</div>
         <div class="btn-row" style="justify-content:center">
-          <button class="btn primary" id="browseBtn" type="button">Browse for ISO…</button>
+          <button class="btn primary" id="browseBtn" type="button">Browse for ISO(s)…</button>
         </div>
       </div>
-      <input id="fileInput" type="file" accept=".iso,.xiso,.img,.bin,application/octet-stream" hidden>
+      <input id="fileInput" type="file" accept=".iso,.xiso,.img,.bin,application/octet-stream" multiple hidden>
+      <div class="setup" id="batchHint" hidden aria-live="polite"></div>
       <div id="errorBox" role="alert" hidden></div>
       <div class="warn-note small"><strong>Only convert backups of games you own.</strong> Like Iso2God, the finished package has a blank LIVE signature, so it boots on <strong>JTAG/RGH</strong> consoles — not on retail hardware.</div>
     </section>
@@ -357,7 +358,7 @@ footer a{color:#9edcff}
         <div class="btn-row" style="justify-content:center"><button class="btn primary" id="rawChooseFolderBtn" type="button">Choose Title ID / game folder…</button></div>
         <div class="muted tiny" id="rawSelectedFiles" aria-live="polite" style="margin-top:8px">No valid content files selected.</div>
       </div>
-      <p class="muted tiny">Original filenames and file bytes are preserved. Missing destination folders are created automatically.</p>
+      <p class="muted tiny">Original filenames and file bytes are preserved. Missing destination folders are created automatically. Multiple selected files are uploaded one after another, not in parallel.</p>
       <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult">Connect first, then drop/select a Title ID folder.</span></div>
       <div id="rawFtpLive" hidden style="margin-top:12px"><div class="muted small" id="rawFtpLiveText" aria-live="polite"></div><div class="bar-wrap thin"><div class="bar thin" id="rawFtpLiveBar" style="width:0%"></div></div></div>
     </section>
@@ -396,9 +397,10 @@ footer a{color:#9edcff}
   </main>
 
   <footer>
-    Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
+    <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
+    <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
-    Not affiliated with Microsoft or Xbox. Use only with backups of games you own.
+    Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
   </footer>
 </div>
 <noscript><div style="position:relative;z-index:5;max-width:800px;margin:20px auto;padding:18px;background:#451422;color:#ffd7de;border-radius:14px">This converter needs JavaScript — the ISO is processed locally in your browser, so the conversion engine is JavaScript.</div></noscript>
@@ -1292,7 +1294,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   const $ = (id) => document.getElementById(id);
 
   const els = {
-    drop: $('dropZone'), fileInput: $('fileInput'), browseBtn: $('browseBtn'),
+    drop: $('dropZone'), fileInput: $('fileInput'), browseBtn: $('browseBtn'), batchHint: $('batchHint'),
     detailsCard: $('detailsCard'), errorBox: $('errorBox'),
     titleInput: $('gameTitle'), titleSource: $('titleSource'),
     trimEnd: $('trimEnd'), trimNone: $('trimNone'), contentPrefix: $('contentPrefix'),
@@ -1326,6 +1328,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     dirHandle: null, zipHandle: null, zipSuggestedName: '',
     ftpToken: null, ftpConnected: false, rawFtpConnected: false, rawUploading: false, rawFiles: [], taskMode: 'iso',
     converting: false, cancelRequested: false,
+    batchFiles: [], batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false,
     result: null, collectedFiles: [], zipBlob: null, zipBlobName: '',
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
@@ -1432,7 +1435,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   /* ---------------- top-level workflow tabs ---------------- */
   function setTaskMode(mode) {
-    if ((state.converting || state.rawUploading) && mode !== state.taskMode) return;
+    if ((state.converting || state.batchRunning || state.rawUploading) && mode !== state.taskMode) return;
     state.taskMode = mode === 'raw' ? 'raw' : 'iso';
     const raw = state.taskMode === 'raw';
     document.querySelectorAll('[data-workflow="iso"]').forEach(el => el.classList.toggle('workflow-mode-hidden', raw));
@@ -1478,6 +1481,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           : 'The whole Content folder becomes one ZIP download. On this browser the ZIP is assembled as a browser download, which can be heavy for multi-GB games — the individual-files option below is gentler here.')
       : mode === 'files' ? 'Each output file (header, Data0000, Data0001, …) gets its own download button when conversion finishes. Create the folders shown and place the files into them.'
       : 'The helper writes each package file to your Xbox HDD over FTP. FTP is unencrypted; use this only on your trusted home LAN. The ISO itself is never sent.';
+    updateBatchHint();
     updateConvertEnabled();
   }
   els.modeFolder.addEventListener('click', () => setMode('folder'));
@@ -1487,16 +1491,41 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   function updateRawUploadEnabled() {
     const filesOk = !!state.rawFiles.length;
-    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && filesOk && !state.rawUploading && !state.converting);
+    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && filesOk && !state.rawUploading && !state.converting && !state.batchRunning);
+  }
+  function updateBatchHint() {
+    const count = state.batchFiles.length;
+    if (count < 2) { els.batchHint.hidden = true; els.batchHint.textContent = ''; return; }
+    els.batchHint.hidden = false;
+    if (state.batchRunning) {
+      const activeIndex = Math.min(state.batchCompleted, count - 1);
+      const active = state.batchFiles[activeIndex];
+      els.batchHint.textContent = 'FTP batch ' + (activeIndex + 1) + ' of ' + count + ' · ' + state.batchCompleted + ' completed · Now: ' + (active ? active.name : 'preparing') + '. Files run sequentially to preserve normal per-ISO conversion speed.';
+    } else if (state.batchFinished) {
+      els.batchHint.textContent = state.batchCompleted === count
+        ? 'Batch complete: all ' + count + ' ISO packages were converted and uploaded to the Xbox one after another.'
+        : state.cancelRequested
+          ? 'Batch cancelled after ' + state.batchCompleted + ' completed ISO(s). Completed packages remain on the Xbox; delete any partial package from the interrupted ISO before retrying.'
+          : 'Batch stopped after ' + state.batchCompleted + ' of ' + count + ' ISO(s). Completed packages remain on the Xbox; delete any partial package from the failed ISO, then select only the remaining ISO(s) to retry.';
+    } else {
+      const ftpReady = state.outputMode === 'ftp' && state.ftpConnected;
+      els.batchHint.textContent = count + ' ISOs queued. They will be converted and uploaded one at a time, keeping normal per-ISO speed. Current trim/path settings apply to all; each game name is detected separately. ' +
+        (ftpReady ? 'Ready — choose Convert & upload batch.' : 'Select Xbox FTP output and test the connection to enable the batch.');
+    }
   }
   function updateConvertEnabled() {
-    let ok = !!state.analysis && !state.converting && !state.rawUploading;
+    const batchCount = state.batchFiles.length;
+    let ok = !!state.analysis && !state.converting && !state.batchRunning && !state.batchFinished && !state.rawUploading;
     let hint = '';
+    if (ok && batchCount > 1 && state.outputMode !== 'ftp') { ok = false; hint = 'Choose FTP for a multi-ISO batch.'; }
     if (ok && state.outputMode === 'folder' && !state.dirHandle) { ok = false; hint = 'Choose an output folder first.'; }
     if (ok && state.outputMode === 'zip' && hasSavePicker && !state.zipHandle) { ok = false; hint = 'Choose where to save the ZIP first.'; }
     if (ok && state.outputMode === 'ftp' && !state.ftpConnected) { ok = false; hint = 'Test the Xbox FTP connection first.'; }
     els.convertBtn.disabled = !ok;
-    els.convertBtn.textContent = state.converting ? 'Converting…' : (hint || 'Convert ISO → GOD');
+    const batchLabel = batchCount > 1 ? 'Convert & upload ' + batchCount + ' ISOs' : 'Convert ISO → GOD';
+    els.convertBtn.textContent = state.batchRunning ? 'Batch ' + (state.batchIndex + 1) + '/' + batchCount + ' running…'
+      : state.converting ? 'Converting…' : state.batchFinished ? 'Batch finished' : (hint || batchLabel);
+    updateBatchHint();
     updateRawUploadEnabled();
   }
 
@@ -1566,7 +1595,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
 
   /* ---------------- import ---------------- */
-  async function acceptFile(file) {
+  async function acceptFile(file, preserveLog = false) {
     clearError();
     if (!file) return;
     state.file = file;
@@ -1581,7 +1610,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.phaseLabel.textContent = 'Analysing ISO…';
     els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%';
     els.overallPct.textContent = '';
-    els.logEl.innerHTML = '';
+    if (!preserveLog) els.logEl.innerHTML = '';
     log('Imported "' + file.name + '" (' + fmtBytes(file.size) + '). Reading the XDVDFS filesystem locally; the source ISO is not uploaded.');
     try {
       state.reader = E.makeBlobReader(file);
@@ -1608,12 +1637,27 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
 
   els.browseBtn.addEventListener('click', (e) => { e.stopPropagation(); els.fileInput.click(); });
-  els.drop.addEventListener('click', () => { if (!state.converting) els.fileInput.click(); });
+  els.drop.addEventListener('click', () => { if (!state.converting && !state.batchRunning) els.fileInput.click(); });
   els.drop.addEventListener('keydown', (e) => {
-    if ((e.key === 'Enter' || e.key === ' ') && !state.converting) { e.preventDefault(); els.fileInput.click(); }
+    if ((e.key === 'Enter' || e.key === ' ') && !state.converting && !state.batchRunning) { e.preventDefault(); els.fileInput.click(); }
   });
+  function selectIsoFiles(fileList) {
+    if (state.converting || state.batchRunning) return;
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    state.batchFiles = files;
+    state.batchIndex = 0;
+    state.batchCompleted = 0;
+    state.batchRunning = false;
+    state.batchFinished = false;
+    state.analysis = null;
+    updateBatchHint();
+    updateConvertEnabled();
+    if (files.length > 1) log('Queued ' + files.length + ' ISO files. Multi-ISO batches use sequential FTP uploads.');
+    acceptFile(files[0]);
+  }
   els.fileInput.addEventListener('change', () => {
-    if (els.fileInput.files && els.fileInput.files[0]) acceptFile(els.fileInput.files[0]);
+    if (els.fileInput.files && els.fileInput.files.length) selectIsoFiles(els.fileInput.files);
     els.fileInput.value = '';
   });
   ['dragenter', 'dragover'].forEach(ev => els.drop.addEventListener(ev, (e) => {
@@ -1624,10 +1668,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }));
   els.drop.addEventListener('drop', (e) => {
     const files = e.dataTransfer && e.dataTransfer.files;
-    if (files && files.length) {
-      if (files.length > 1) log('You dropped ' + files.length + ' files — converting one ISO at a time, so I imported the first one. Convert it, then drop the next.');
-      acceptFile(files[0]);
-    }
+    if (files && files.length) selectIsoFiles(files);
   });
   window.addEventListener('dragover', (e) => e.preventDefault());
   window.addEventListener('drop', (e) => e.preventDefault());
@@ -2010,7 +2051,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.wakeLock = null;
   }
   window.addEventListener('beforeunload', (e) => {
-    if (state.converting) { e.preventDefault(); e.returnValue = ''; }
+    if (state.converting || state.batchRunning) { e.preventDefault(); e.returnValue = ''; }
   });
 
   function onProgress(p) {
@@ -2034,10 +2075,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const totalElapsed = now - state.startTime;
     const eta = p.overall > 0.01 ? totalElapsed * (1 - p.overall) / p.overall : NaN;
     els.etaEl.textContent = ' elapsed ' + fmtDuration(totalElapsed) + (isFinite(eta) ? ' · ~' + fmtDuration(eta) + ' left' : '');
-    els.phaseLabel.textContent = p.phaseLabel + (p.partIndex !== undefined && p.phase === 'write' ? ' — Data' + String(p.partIndex).padStart(4, '0') : '');
+    els.phaseLabel.textContent = (state.batchRunning ? 'Batch ' + (state.batchIndex + 1) + '/' + state.batchFiles.length + ' · ' : '') + p.phaseLabel + (p.partIndex !== undefined && p.phase === 'write' ? ' — Data' + String(p.partIndex).padStart(4, '0') : '');
   }
 
-  async function startConversion() {
+  async function startSingleConversion() {
     clearError();
     if (!state.analysis || state.converting) return;
     const { plan, layout, options } = refreshPlanAndTree();
@@ -2113,7 +2154,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.progressCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     log('Converting "' + state.file.name + '" → ' + options.gameTitle + ' [' + layout.titleHex + ']');
     log('Output: ' + layout.headerSegments.join('/') + ' + ' + plan.partCount + ' data part(s). Keep this tab open and in the foreground until it finishes.');
-    await requestWakeLock();
+    if (!state.batchRunning) await requestWakeLock();
 
     try {
       const result = await E.convert(state.reader, state.analysis, options, writer, {
@@ -2147,16 +2188,86 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } finally {
       state.converting = false;
       if (state.elapsedTimer) { clearInterval(state.elapsedTimer); state.elapsedTimer = null; }
+      els.cancelBtn.disabled = !state.batchRunning;
+      if (!state.batchRunning) els.cancelBtn.textContent = 'Cancel conversion';
+      setInputsEnabled(!state.batchRunning);
+      updateConvertEnabled();
+      if (!state.batchRunning) await releaseWakeLock();
+    }
+  }
+  async function startBatchConversion() {
+    const files = state.batchFiles.slice();
+    if (files.length < 2 || state.batchRunning || state.converting) return;
+    if (state.outputMode !== 'ftp') {
+      showError('Multi-ISO batches currently require Xbox FTP output. Select FTP, test the connection, then start the batch.');
+      return;
+    }
+    if (!state.ftpConnected || !state.ftpToken) {
+      showError('Test the Xbox FTP connection first, then start the batch.');
+      return;
+    }
+    clearError();
+    state.batchRunning = true;
+    state.batchFinished = false;
+    state.batchIndex = 0;
+    state.batchCompleted = 0;
+    state.cancelRequested = false;
+    const destinations = new Set();
+    setInputsEnabled(false);
+    els.cancelBtn.disabled = false;
+    els.cancelBtn.textContent = 'Cancel batch';
+    updateBatchHint();
+    updateConvertEnabled();
+    await requestWakeLock();
+    try {
+      for (let i = 0; i < files.length; i++) {
+        if (state.cancelRequested) break;
+        state.batchIndex = i;
+        updateBatchHint();
+        if (i > 0) await acceptFile(files[i], true);
+        if (state.cancelRequested || !state.analysis) break;
+        const planInfo = refreshPlanAndTree();
+        const destination = planInfo.layout.headerSegments.join('/');
+        if (destinations.has(destination)) {
+          showError('Two selected ISOs produce the same GOD destination (' + destination + '). Remove the duplicate ISO and start again; completed packages remain on the Xbox.');
+          log('BATCH STOPPED: duplicate output destination ' + destination + '.');
+          break;
+        }
+        destinations.add(destination);
+        log('=== Batch item ' + (i + 1) + ' of ' + files.length + ': ' + files[i].name + ' ===');
+        await startSingleConversion();
+        if (!state.result) break;
+        state.batchCompleted = i + 1;
+        updateBatchHint();
+      }
+    } finally {
+      state.batchRunning = false;
+      state.batchFinished = true;
       els.cancelBtn.disabled = true;
+      els.cancelBtn.textContent = 'Cancel conversion';
       setInputsEnabled(true);
+      updateBatchHint();
       updateConvertEnabled();
       await releaseWakeLock();
     }
+    if (state.batchCompleted === files.length) {
+      log('Batch complete: all ' + files.length + ' ISO packages were converted and uploaded sequentially.');
+    } else if (state.cancelRequested) {
+      log('Batch cancelled after ' + state.batchCompleted + ' completed ISO(s).');
+    } else {
+      log('Batch stopped after ' + state.batchCompleted + ' completed ISO(s). Resolve the error, then select only the remaining ISO(s) to continue.');
+    }
   }
+
+  async function startConversion() {
+    if (state.batchFiles.length > 1) return startBatchConversion();
+    return startSingleConversion();
+  }
+
   function setInputsEnabled(enabled) {
     for (const el of [els.titleInput, els.trimEnd, els.trimNone, els.contentPrefix,
       els.modeFolder, els.modeZip, els.modeFiles, els.modeFtp, els.chooseFolderBtn, els.chooseZipBtn,
-      els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath, els.ftpConnectBtn, els.browseBtn]) {
+      els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath, els.ftpConnectBtn, els.rememberFtpIso, els.rememberFtpRaw, els.browseBtn, els.fileInput, els.resetBtn]) {
       if (el) el.disabled = !enabled || (el === els.modeFolder && !hasDirPicker);
     }
   }
@@ -2233,13 +2344,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   els.convertBtn.addEventListener('click', startConversion);
   els.cancelBtn.addEventListener('click', () => {
-    if (state.converting) { state.cancelRequested = true; els.cancelBtn.disabled = true; log('Cancelling…'); }
+    if (state.converting || state.batchRunning) { state.cancelRequested = true; els.cancelBtn.disabled = true; log(state.batchRunning ? 'Cancelling the batch…' : 'Cancelling…'); }
   });
   els.zipDownloadBtn.addEventListener('click', () => {
     if (state.zipBlob) triggerDownload(state.zipBlob, state.zipBlobName);
   });
   function resetAll() {
     state.file = null; state.reader = null; state.analysis = null;
+    state.batchFiles = []; state.batchIndex = 0; state.batchCompleted = 0; state.batchRunning = false; state.batchFinished = false;
+    els.fileInput.value = ''; updateBatchHint();
     state.result = null; state.collectedFiles = []; state.zipBlob = null;
     state.zipHandle = null;
     els.zipName.textContent = '';

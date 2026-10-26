@@ -14,6 +14,12 @@ This build includes a local Python helper for FTP because a browser on GitHub Pa
 
 Choose **Convert an ISO**, then choose **Upload to Xbox via FTP** in the output options, test the connection, and convert. Each generated GOD package file is staged on the computer and sent to the console. Rescan the Content path in Aurora/FSD after the website reports a complete upload.
 
+## Batch-convert multiple ISOs over FTP
+
+In **Convert an ISO**, select or drop several ISO files. Select **Upload to Xbox via FTP**, test the connection, then start the batch. Each ISO is analyzed, converted, and uploaded as its own GOD package before the next ISO starts. Jobs are sequential—not parallel—so each conversion keeps the usual per-game speed and the Xbox/helper handle only one package at a time. Batch output currently requires FTP. If an item fails, the batch stops; completed packages stay on the Xbox, and any partial package from the failed ISO must be removed before retrying it.
+
+The separate XBLA/XBLIG workflow also accepts multiple content files from the selected Title ID/game folder and uploads them one after another, unchanged.
+
 ## Send existing XBLA/XBLIG content unchanged
 
 Choose the separate **Upload existing XBLA/XBLIG file(s)** task at the top of the page. Test the FTP connection, then drop the game's **8-character Title ID folder** (such as `58410B1D`) or its parent game folder into the drop zone. The uploader finds files under `000D0000` and derives the Title ID from the folder path—no manual Title ID entry is needed. The equivalent folder picker is also available.
