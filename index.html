@@ -155,6 +155,7 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 .ufo-progress-lane>.bar-wrap{width:100%;margin-top:0}
 .bar{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9); box-shadow:0 0 22px rgba(120,160,255,.65); transition:width .18s}
 .bar.thin{height:100%; background:linear-gradient(90deg,#34d399,#38bdf8)}
+.bar.ftp-transfer-bar{background:linear-gradient(90deg,#2563eb,#38bdf8,#818cf8);box-shadow:0 0 22px rgba(56,189,248,.48)}
 #archiveProgressBar{transition:width .22s cubic-bezier(.22,.61,.36,1);will-change:width,transform}
 #archiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.35s ease-in-out infinite alternate}
 @keyframes archive-progress-sweep{from{transform:translateX(-108%);opacity:.58}to{transform:translateX(300%);opacity:1}}
@@ -307,7 +308,7 @@ footer a{color:#9edcff}
       <div class="stats-row"><span id="bytesEl">—</span><span>Speed: <span id="speedEl">—</span></span><span>Big discs take a few minutes — hashing about 2 million blocks is normal.</span></div>
       <div id="ftpLive" hidden style="margin-top:12px">
         <div class="muted small" id="ftpLiveText" aria-live="polite">Waiting for FTP transfer…</div>
-        <div class="bar-wrap thin"><div class="bar thin" id="ftpLiveBar" style="width:0%"></div></div>
+        <div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="ftpLiveBar" style="width:0%"></div></div></div>
         <button class="btn small primary ftp-retry-btn" id="ftpRetryBtn" type="button" hidden>Retry file &amp; continue</button>
       </div>
       <div class="btn-row">
@@ -457,7 +458,7 @@ footer a{color:#9edcff}
       </div>
       <p class="muted tiny">Original filenames and file bytes are preserved. Missing destination folders are created automatically. Multiple selected files are uploaded one after another, not in parallel.</p>
       <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult" role="status" aria-live="polite">Connect first, then drop/select a Title ID folder.</span></div>
-      <div id="rawFtpLive" hidden style="margin-top:12px"><div class="muted small" id="rawFtpLiveText" aria-live="polite"></div><div class="ufo-progress-lane"><div class="bar-wrap thin"><div class="bar thin" id="rawFtpLiveBar" style="width:0%"></div></div></div><div class="btn-row ftp-retry-actions" id="rawFtpRetryActions" hidden><button class="btn small primary ftp-retry-btn" id="rawFtpRetryBtn" type="button">Retry file &amp; continue</button><button class="btn small danger" id="rawFtpCancelBtn" type="button">Cancel this upload</button></div></div>
+      <div id="rawFtpLive" hidden style="margin-top:12px"><div class="muted small" id="rawFtpLiveText" aria-live="polite"></div><div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="rawFtpLiveBar" style="width:0%"></div></div></div><div class="btn-row ftp-retry-actions" id="rawFtpRetryActions" hidden><button class="btn small primary ftp-retry-btn" id="rawFtpRetryBtn" type="button">Retry file &amp; continue</button><button class="btn small danger" id="rawFtpCancelBtn" type="button">Cancel this upload</button></div></div>
     </section>
 
     <details class="faq">
@@ -2092,6 +2093,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.rawFtpLive.classList.toggle('is-complete', completed);
       els.rawFtpLiveBar.style.width = pct.toFixed(1) + '%';
       positionCompletionUfo('rawFtpLiveBar', pct / 100);
+    } else if (state.converting && state.outputMode === 'ftp') {
+      positionCompletionUfo('ftpLiveBar', pct / 100);
     }
   }
   function setFtpStatus(el, message) {

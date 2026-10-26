@@ -9,7 +9,7 @@ To publish this update, upload/replace these files in the root of the GitHub rep
 - Nebula-ISO2GOD-One-File.zip
 - Nebula-ISO2GOD-One-File-Fixed.zip
 
-This version adds the fixed Mac download, local worker/WASM asset serving, visible .7z listing/extraction progress, clearer storage failure help, automatic temporary-data cleanup, and the rotating disc/staggered cyan-blue-lavender-pink UFO lights. The one-file launcher replaces files in a shared Application Support folder and cleans stale embedded launcher payloads. FTP staging is removed after success/cancel/shutdown and orphaned stages are swept at helper startup. Browser-extracted .7z images are removed after successful conversion/batches; data needed for a pending retry is retained.
+This version restores a separate blue Xbox FTP transfer bar beneath the UFO while keeping the overall conversion bar. During ISO-to-GOD FTP output it tracks the current Data#### file, bytes, and transfer speed; the raw XBLA/XBLIG uploader uses the same blue transfer treatment and shows its filename. It also includes the rotating UFO disc, staggered cyan/blue/lavender/pink lights, clearer .7z indexing/extraction progress, storage failure guidance, and automatic cleanup. Data needed for a pending FTP retry is retained.
 
 The ISO workflow can import .7z archives locally in recent Safari, Chrome, or Edge over HTTPS or the updated local helper at http://127.0.0.1:8765/ (not file://). Only supported images are extracted; other entries are skipped and the original archive is unchanged. Temporary images are stored in browser site storage (not Finder files); allow free storage roughly equal to the extracted image.
 
