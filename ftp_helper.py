@@ -61,6 +61,9 @@ def clean_segments(segments):
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
+    # Reuse the loopback HTTP connection for successive staging chunks. Every
+    # response includes Content-Length, so HTTP/1.1 keep-alive is safe here.
+    protocol_version = "HTTP/1.1"
     server_version = "NebulaLocalBridge/1.0"
 
     def log_message(self, fmt, *args):

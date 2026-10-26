@@ -6,7 +6,7 @@
  * (so the archive is read in slices, not copied wholesale into WASM memory),
  * and extracts only ISO/XISO/XSF/IMG/BIN entries into OPFS.
  */
-import SevenZipFactory from '../dist/7zz.js';
+import SevenZipFactory from '../runtime/7zz.js';
 
 const MOUNT = '/opfs-out';
 const INPUT_MOUNT = '/input';
@@ -20,6 +20,9 @@ export function makeBlobInputFs(FS, blob) {
   const DIR_MODE = S_IFDIR | 0o555;
   const FILE_MODE = S_IFREG | 0o444;
   const reader = (typeof FileReaderSync === 'function') ? new FileReaderSync() : null;
+  // 7-Zip often issues many small sequential reads. Read each 1 MiB File slice
+  // once, then serve smaller Emscripten reads from this bounded per-stream cache.
+  const READ_AHEAD_BYTES = 1024 * 1024;
   let rootNode = null;
 
   const nodeOps = {
@@ -54,17 +57,34 @@ export function makeBlobInputFs(FS, blob) {
     open(stream) {
       if (!stream.node.blobFile) throw new FS.ErrnoError(5);
       stream.blobFile = stream.node.blobFile;
+      stream.readCacheStart = -1;
+      stream.readCache = null;
     },
-    close() { },
+    close(stream) {
+      stream.readCache = null;
+      stream.blobFile = null;
+    },
     read(stream, buffer, offset, length, position) {
       if (!reader) throw new Error('This browser cannot read 7z archives in a worker. Use a recent Chrome or Edge browser.');
       const file = stream.blobFile;
-      const start = Math.max(0, Number(position) || 0);
-      if (start >= file.size || length <= 0) return 0;
-      const end = Math.min(file.size, start + length);
-      const bytes = new Uint8Array(reader.readAsArrayBuffer(file.slice(start, end)));
-      buffer.set(bytes, offset);
-      return bytes.length;
+      let cursor = Math.max(0, Number(position) || 0);
+      if (cursor >= file.size || length <= 0) return 0;
+      let copied = 0;
+      while (copied < length && cursor < file.size) {
+        const cacheEnd = stream.readCacheStart + (stream.readCache?.length || 0);
+        if (!stream.readCache || cursor < stream.readCacheStart || cursor >= cacheEnd) {
+          stream.readCacheStart = Math.floor(cursor / READ_AHEAD_BYTES) * READ_AHEAD_BYTES;
+          const end = Math.min(file.size, stream.readCacheStart + READ_AHEAD_BYTES);
+          stream.readCache = new Uint8Array(reader.readAsArrayBuffer(file.slice(stream.readCacheStart, end)));
+        }
+        const cacheOffset = cursor - stream.readCacheStart;
+        const count = Math.min(length - copied, stream.readCache.length - cacheOffset);
+        if (count <= 0) break;
+        buffer.set(stream.readCache.subarray(cacheOffset, cacheOffset + count), offset + copied);
+        copied += count;
+        cursor += count;
+      }
+      return copied;
     },
     llseek(stream, offset, whence) {
       let position = offset;

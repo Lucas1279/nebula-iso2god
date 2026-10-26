@@ -2283,7 +2283,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     async write(chunk) {
       const blob = chunk instanceof Blob ? chunk : new Blob([chunk]);
-      const unit = 4 * 1024 * 1024;
+      const unit = 8 * 1024 * 1024;
       for (let off = 0; off < blob.size; off += unit) {
         const part = blob.slice(off, Math.min(blob.size, off + unit));
         await bridgeRequest('/api/file/chunk?id=' + encodeURIComponent(this.id), part, true);
@@ -2317,8 +2317,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
                 lastSent = sent; lastSampleAt = now;
               }
               const rateLabel = liveRate ? ' · ' + fmtBytes(liveRate) + '/s' : '';
-              const etaLabel = liveRate && total > sent ? ' · ~' + fmtDuration((total - sent) * 1000 / liveRate) + ' for this part' : '';
-              setFtpLive('Uploading ' + shortName + ' to Xbox: ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + rateLabel + etaLabel, frac);
+              setFtpLive('Uploading ' + shortName + ' to Xbox: ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + rateLabel, frac);
             } else if (status.state === 'done') {
               lastSent = total;
               setFtpLive('Xbox received ' + shortName + '; waiting for FTP confirmation…', 1);
