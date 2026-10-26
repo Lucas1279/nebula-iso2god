@@ -1,0 +1,10 @@
+Website download update
+
+This folder contains the updated site and both downloadable assets. Upload/replace these files in the root of the GitHub repository used by GitHub Pages, commit the changes to the published branch, and allow Pages a minute or two to redeploy:
+- index.html
+- ftp_helper.py
+- README_FTP.md
+- nebula-iso2god-timeout-fix.zip
+- Nebula-ISO2GOD-One-File.zip
+
+The page links to the two ZIP files by their filenames at the published site root. The Mac one-file launcher opens Terminal and requires Python 3; leave Terminal open while FTP is in progress.
