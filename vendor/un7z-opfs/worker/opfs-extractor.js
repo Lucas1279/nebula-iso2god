@@ -4,7 +4,7 @@
  * Copyright (C) 1999-2015 Igor Pavlov; see ../License.txt.
  * This worker mounts the selected File as a read-only, seekable virtual file
  * (so the archive is read in slices, not copied wholesale into WASM memory),
- * and extracts only ISO/XISO/XSF/IMG/BIN entries into OPFS.
+ * and extracts only supported disc images or 8-hex Title ID/000D0000 content entries into OPFS.
  */
 import SevenZipFactory from '../runtime/7zz.js';
 
@@ -105,7 +105,21 @@ export function makeBlobInputFs(FS, blob) {
   };
 }
 
-export function parseArchiveEntries(lines) {
+function matchingTitleIdFile(path) {
+  const parts = String(path || '').split('/').filter(Boolean);
+  for (let i = 0; i + 2 < parts.length; i++) {
+    if (/^[0-9A-Fa-f]{8}$/.test(parts[i]) && parts[i + 1].toUpperCase() === '000D0000' && i + 3 === parts.length) {
+      const name = parts[i + 2];
+      if (name !== '.' && name !== '..' && name !== '.DS_Store' && !name.startsWith('._')) {
+        return parts[i].toUpperCase();
+      }
+      return '';
+    }
+  }
+  return '';
+}
+
+export function parseArchiveEntries(lines, kind = 'iso') {
   const entries = [];
   let current = {};
   function flush() {
@@ -115,10 +129,13 @@ export function parseArchiveEntries(lines) {
       const isDir = current.Folder === '+' || attrs.startsWith('D');
       const size = Number.parseInt(current.Size, 10);
       const normalized = String(path).replace(/\\/g, '/');
+      const parts = normalized.split('/');
       const safe = normalized && !normalized.startsWith('/') && !/^[A-Za-z]:\//.test(normalized) &&
-        !normalized.split('/').some(part => part === '..');
-      if (!isDir && safe && Number.isFinite(size) && IMAGE_EXTENSIONS.test(normalized)) {
-        entries.push({ path: normalized, size });
+        !parts.some(part => part === '..' || part === '.' || part === '');
+      const titleId = kind === 'raw' ? matchingTitleIdFile(normalized) : '';
+      const wanted = kind === 'raw' ? !!titleId : IMAGE_EXTENSIONS.test(normalized);
+      if (!isDir && safe && Number.isFinite(size) && wanted) {
+        entries.push({ path: normalized, size, ...(titleId ? { titleId } : {}) });
       }
     }
     current = {};
@@ -132,8 +149,8 @@ export function parseArchiveEntries(lines) {
   return entries;
 }
 
-/** Extracts only recognized disc-image entries to the browser's OPFS. */
-export async function extractIsoEntriesToOpfs({ archive, destPath, onProgress }) {
+/** Extracts only selected ISO images or XBLA/XBLIG 000D0000 files to OPFS. */
+export async function extractArchiveEntriesToOpfs({ archive, destPath, onProgress, kind = 'iso' }) {
   if (!archive || typeof archive.slice !== 'function' || !Number.isFinite(archive.size)) {
     throw new Error('Choose a .7z archive file.');
   }
@@ -141,6 +158,7 @@ export async function extractIsoEntriesToOpfs({ archive, destPath, onProgress })
       destPath.split('/').some(part => part === '..')) {
     throw new Error('Invalid temporary extraction folder.');
   }
+  if (kind !== 'iso' && kind !== 'raw') throw new Error('Unknown .7z import type.');
   const lines = [];
   let phase = 'list';
   let currentFile = null;
@@ -165,14 +183,18 @@ export async function extractIsoEntriesToOpfs({ archive, destPath, onProgress })
   onProgress?.({ phase: 'listing', processedBytes: 0, totalBytes: 0, currentFile: null });
   const listExit = await sevenZip.callMain(['l', '-slt', ARCHIVE_PATH]);
   if (listExit !== 0) throw new Error('7z archive listing failed. The archive may be damaged or password-protected.');
-  const imageEntries = parseArchiveEntries(lines);
-  if (!imageEntries.length) throw new Error('No ISO/XISO/XSF/IMG/BIN image was found in this .7z archive.');
-  const totalBytes = imageEntries.reduce((sum, entry) => sum + entry.size, 0);
+  const entries = parseArchiveEntries(lines, kind);
+  if (!entries.length) {
+    throw new Error(kind === 'raw'
+      ? 'No XBLA/XBLIG files were found under an 8-character Title ID/000D0000 folder in this .7z archive.'
+      : 'No ISO/XISO/XSF/IMG/BIN image was found in this .7z archive.');
+  }
+  const totalBytes = entries.reduce((sum, entry) => sum + entry.size, 0);
   try {
     const storage = typeof navigator !== 'undefined' ? await navigator.storage?.estimate?.() : null;
     if (storage && Number.isFinite(storage.quota) && Number.isFinite(storage.usage) &&
         storage.quota - storage.usage < totalBytes) {
-      throw new Error('Not enough browser site storage for the selected image files. Free space or use another browser profile/device, then retry.');
+      throw new Error('Not enough browser site storage for the selected archive files. Free space or use another browser profile/device, then retry.');
     }
   } catch (err) {
     if (err && err.message && err.message.startsWith('Not enough browser site storage')) throw err;
@@ -183,7 +205,7 @@ export async function extractIsoEntriesToOpfs({ archive, destPath, onProgress })
 
   sevenZip.OPFS.onWrite = (_path, bytesWritten) => {
     // The write callback can include filesystem bookkeeping; cap the display
-    // at the selected image total so progress never exceeds 100 percent.
+    // at the selected-entry total so progress never exceeds 100 percent.
     processedBytes = Math.min(totalBytes, processedBytes + Math.max(0, Number(bytesWritten) || 0));
     const now = performance.now();
     if (now - lastProgressAt >= 100 || processedBytes >= totalBytes) {
@@ -194,11 +216,19 @@ export async function extractIsoEntriesToOpfs({ archive, destPath, onProgress })
 
   phase = 'extract';
   const destFsPath = `${MOUNT}/${destPath}`;
-  const args = ['x', ARCHIVE_PATH, `-o${destFsPath}`, '-y', '-bb1', '-bso1', '-spd', '--', ...imageEntries.map(entry => entry.path)];
+  const args = ['x', ARCHIVE_PATH, `-o${destFsPath}`, '-y', '-bb1', '-bso1', '-spd', '--', ...entries.map(entry => entry.path)];
   const extractExit = await sevenZip.callMain(args);
   if (extractExit !== 0) throw new Error('7z extraction failed. Check the archive, password protection, and available browser storage.');
   onProgress?.({ phase: 'done', processedBytes: totalBytes, totalBytes, currentFile: null });
-  return { entries: imageEntries, totalBytes };
+  return { entries, totalBytes };
+}
+
+export async function extractIsoEntriesToOpfs(options) {
+  return extractArchiveEntriesToOpfs({ ...options, kind: 'iso' });
+}
+
+export async function extractRawContentEntriesToOpfs(options) {
+  return extractArchiveEntriesToOpfs({ ...options, kind: 'raw' });
 }
 
 const isDedicatedWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
@@ -207,9 +237,10 @@ if (isDedicatedWorker) {
     const msg = event.data;
     if (!msg || msg.type !== 'extract') return;
     const { id, archive, destPath } = msg;
+    const kind = msg.kind === 'raw' ? 'raw' : 'iso';
     try {
-      const result = await extractIsoEntriesToOpfs({
-        archive, destPath,
+      const result = await extractArchiveEntriesToOpfs({
+        archive, destPath, kind,
         onProgress: info => self.postMessage({ type: 'progress', id, ...info }),
       });
       self.postMessage({ type: 'done', id, entries: result.entries, totalBytes: result.totalBytes });

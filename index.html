@@ -128,11 +128,12 @@ input[type=text]:focus{outline:2px solid rgba(110,231,255,.6); outline-offset:1p
 .mode-btn:disabled{opacity:1;cursor:not-allowed;background:rgba(17,24,43,.92);border-color:rgba(160,175,205,.35);color:#e0e7f5}
 .mode-btn:disabled span{color:#b5c1dc}
 .setup{margin-top:12px; padding:14px; border:1px solid var(--line); border-radius:14px; background:rgba(5,9,26,.62); line-height:1.55}
-    #archiveStatus[hidden],#archiveProgressWrap[hidden],#archiveCancelBtn[hidden]{display:none !important}
+#archiveStatus[hidden],#archiveProgressWrap[hidden],#archiveCancelBtn[hidden],#rawArchiveStatus[hidden],#rawArchiveProgressWrap[hidden],#rawArchiveCancelBtn[hidden]{display:none !important}
 .raw-drop-zone{min-height:210px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.raw-drop-zone[aria-disabled="true"]{opacity:.7;cursor:not-allowed}
 .raw-drop-zone.drag-active{border-color:transparent;background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
 .raw-drop-zone:focus-visible{outline:2px solid rgba(110,231,255,.7);outline-offset:3px}
-#ftpStatus,#rawFtpStatus,#rawFtpUploadResult,#ftpLiveText,#rawFtpLiveText{min-width:0;overflow-wrap:anywhere}
+#ftpStatus,#rawFtpStatus,#rawFtpUploadResult,#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText{min-width:0;overflow-wrap:anywhere}
 #rawSelectedFiles{max-width:100%;overflow-wrap:anywhere}
 #ftpLive.is-retry-needed,#rawFtpLive.is-retry-needed{padding:12px;border:1px solid rgba(251,191,36,.65);border-radius:12px;background:rgba(120,80,0,.15)}
 .ftp-retry-btn{margin-top:10px;min-height:40px}
@@ -156,8 +157,10 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 .bar{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9); box-shadow:0 0 22px rgba(120,160,255,.65); transition:width .18s}
 .bar.thin{height:100%; background:linear-gradient(90deg,#34d399,#38bdf8)}
 .bar.ftp-transfer-bar{background:linear-gradient(90deg,#2563eb,#38bdf8,#818cf8);box-shadow:0 0 22px rgba(56,189,248,.48)}
-#archiveProgressBar{transition:width .22s cubic-bezier(.22,.61,.36,1);will-change:width,transform}
-#archiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.35s ease-in-out infinite alternate}
+.raw-overall-wrap{margin-top:5px}
+.bar.raw-overall-bar{background:linear-gradient(90deg,#34d399,#818cf8,#e879f9);box-shadow:0 0 18px rgba(129,140,248,.42)}
+#archiveProgressBar,#rawArchiveProgressBar{transition:width .22s cubic-bezier(.22,.61,.36,1);will-change:width,transform}
+#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.35s ease-in-out infinite alternate}
 @keyframes archive-progress-sweep{from{transform:translateX(-108%);opacity:.58}to{transform:translateX(300%);opacity:1}}
 .bar-wrap.thin{height:8px; margin-top:9px}
 .is-complete .bar{background:linear-gradient(90deg,#34d399,#38bdf8);box-shadow:0 0 18px rgba(56,189,248,.52),0 0 25px rgba(52,211,153,.28)}
@@ -193,7 +196,7 @@ footer a{color:#9edcff}
   .card{padding:19px}
 }
 @media (max-width:520px){.raw-steps{gap:3px;padding:7px 8px}.raw-step{gap:5px;padding:0 2px;font-size:.78rem}.raw-step .n{width:21px;height:21px;font-size:.75rem}.raw-step-sep{font-size:.9rem}}
-@media (prefers-reduced-motion:reduce){.nebula,h1,.credit-gradient,.drop::before,#archiveProgressBar.indeterminate{animation:none!important}#archiveProgressBar.indeterminate{transform:none} html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){.nebula,h1,.credit-gradient,.drop::before,#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{animation:none!important}#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{transform:none} html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -437,7 +440,7 @@ footer a{color:#9edcff}
 
     <section class="card" id="rawContentUploadCard" data-workflow="raw" aria-labelledby="rawUploadHeading" hidden>
       <h2 id="rawUploadHeading">📦 Upload existing XBLA/XBLIG content</h2>
-      <p class="muted small" style="line-height:1.6">Drop the game’s <strong>8-character Title ID folder</strong> (for example <code>58410B1D</code>) or its parent game folder below. The uploader finds the Title ID and copies files from its <code>000D0000</code> folder unchanged—no manual ID entry, conversion, or renaming. Destination: <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000/</code>. Same-named files may be overwritten.</p>
+      <p class="muted small" style="line-height:1.6">On your Mac, unzip the XBLA archive first. Then drop/select the game’s extracted <strong>8-character Title ID folder</strong> (for example <code>584111FF</code>) or its parent game folder below. The uploader finds files in its <code>000D0000</code> folder and copies them unchanged—no manual ID entry, conversion, or renaming. Destination: <code>Content/0000000000000000/&lt;TitleID&gt;/000D0000/</code>. Same-named files may be overwritten.</p>
       <div class="setup" style="margin-top:12px"><strong>Need the local FTP helper?</strong><div class="muted small" style="margin-top:4px">Download and start the helper before testing the Xbox connection. On Mac, use the fixed one-file launcher; its ZIP includes execute permission. For older copies that trigger an access-privileges alert, open Terminal, type <code>chmod u+x </code>, drag the .command file into Terminal, and press Return. Keep Terminal open during transfer. Temporary FTP stages are removed after success, cancel, or helper shutdown; a failed file stays available only while Retry is offered.</div><div class="btn-row"><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip">⬇ Updated helper bundle (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip"> Fixed Mac one-file launcher (.zip)</a></div></div>
       <div class="grid2">
         <div><label class="f" for="rawFtpHost">Xbox IP address</label><input id="rawFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
@@ -448,17 +451,30 @@ footer a{color:#9edcff}
       </div>
       <label class="check small"><input id="rememberFtpRaw" type="checkbox"><span>Remember Xbox IP and username on this Mac/browser. The FTP password is never saved.</span></label>
       <div class="btn-row"><button class="btn" id="rawFtpConnectBtn" type="button" disabled>Test connection</button><span class="muted" id="rawFtpStatus">Start the local helper and open its local page to enable FTP.</span></div>
-      <div id="rawDropZone" class="drop raw-drop-zone" role="button" tabindex="0" aria-label="Drop or choose a Title ID or game folder">
+      <div id="rawDropZone" class="drop raw-drop-zone" role="button" tabindex="0" aria-label="Drop or choose an extracted Title ID or game folder">
         <div class="big" aria-hidden="true">📦</div>
-        <div class="t">Drop the Title ID folder here</div>
-        <div class="s">For example, drop <code>58410B1D</code> or its parent game folder. We’ll find the <code>000D0000</code> files automatically.<br>Drop the extracted folder, not the outer <code>.7z</code> archive.</div>
+        <div class="t">Drop an extracted Title ID / game folder here</div>
+        <div class="s">Unzip the XBLA archive on your Mac first. Then drop/select <code>584111FF</code> or its parent game folder; we’ll find files in <code>&lt;Title ID&gt;/000D0000/</code> automatically. Select the folder—not the outer archive, <code>000D0000</code> folder, or an individual file.</div>
         <input id="rawContentFiles" type="file" webkitdirectory directory multiple hidden>
-        <div class="btn-row" style="justify-content:center"><button class="btn primary" id="rawChooseFolderBtn" type="button">Choose Title ID / game folder…</button></div>
+        <input id="rawArchiveInput" type="file" accept=".7z,application/x-7z-compressed" hidden>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn primary" id="rawChooseFolderBtn" type="button">Choose extracted Title ID / game folder…</button>
+          <button class="btn" id="rawArchiveBrowseBtn" type="button" hidden aria-hidden="true" tabindex="-1">Choose .7z archive…</button>
+        </div>
+        <div class="muted small" id="rawArchiveStatus" role="status" aria-live="polite" hidden style="margin-top:9px"></div>
+        <div class="bar-wrap thin" id="rawArchiveProgressWrap" hidden style="margin-top:8px"><div class="bar thin" id="rawArchiveProgressBar" style="width:0%"></div></div>
+        <div class="btn-row" style="margin-top:8px"><button class="btn small danger" id="rawArchiveCancelBtn" type="button" hidden>Cancel .7z extraction</button></div>
         <div class="muted tiny" id="rawSelectedFiles" aria-live="polite" style="margin-top:8px">No valid content files selected.</div>
       </div>
-      <p class="muted tiny">Original filenames and file bytes are preserved. Missing destination folders are created automatically. Multiple selected files are uploaded one after another, not in parallel.</p>
-      <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult" role="status" aria-live="polite">Connect first, then drop/select a Title ID folder.</span></div>
-      <div id="rawFtpLive" hidden style="margin-top:12px"><div class="muted small" id="rawFtpLiveText" aria-live="polite"></div><div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="rawFtpLiveBar" style="width:0%"></div></div></div><div class="btn-row ftp-retry-actions" id="rawFtpRetryActions" hidden><button class="btn small primary ftp-retry-btn" id="rawFtpRetryBtn" type="button">Retry file &amp; continue</button><button class="btn small danger" id="rawFtpCancelBtn" type="button">Cancel this upload</button></div></div>
+      <p class="muted tiny">Original filenames and file bytes are preserved. Missing destination folders are created automatically. Multiple selected files are uploaded one after another, not in parallel. During upload, the overall bar tracks the full selected set; the blue bar tracks the current file and its speed. Keep the extracted source files available until any FTP retry has finished.</p>
+      <div class="btn-row"><button class="btn primary" id="rawFtpUploadBtn" type="button" disabled>Upload file(s) unchanged</button><span class="muted" id="rawFtpUploadResult" role="status" aria-live="polite">Connect first, then select an extracted Title ID folder.</span></div>
+      <div id="rawFtpLive" hidden style="margin-top:12px">
+        <div class="muted small" id="rawOverallLiveText" aria-live="polite"></div>
+        <div class="bar-wrap thin raw-overall-wrap"><div class="bar thin raw-overall-bar" id="rawOverallLiveBar" style="width:0%"></div></div>
+        <div class="muted small" id="rawFtpLiveText" aria-live="polite" style="margin-top:9px"></div>
+        <div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="rawFtpLiveBar" style="width:0%"></div></div></div>
+        <div class="btn-row ftp-retry-actions" id="rawFtpRetryActions" hidden><button class="btn small primary ftp-retry-btn" id="rawFtpRetryBtn" type="button">Retry file &amp; continue</button><button class="btn small danger" id="rawFtpCancelBtn" type="button">Cancel this upload</button></div>
+      </div>
     </section>
 
     <details class="faq">
@@ -1403,8 +1419,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     ftpConnectBtn: $('ftpConnectBtn'), ftpStatus: $('ftpStatus'), rememberFtpIso: $('rememberFtpIso'), rememberFtpRaw: $('rememberFtpRaw'),
     rawFtpHost: $('rawFtpHost'), rawFtpPort: $('rawFtpPort'), rawFtpUser: $('rawFtpUser'), rawFtpPassword: $('rawFtpPassword'), rawFtpPath: $('rawFtpPath'),
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
+    rawArchiveInput: $('rawArchiveInput'), rawArchiveBrowseBtn: $('rawArchiveBrowseBtn'), rawArchiveStatus: $('rawArchiveStatus'), rawArchiveProgressWrap: $('rawArchiveProgressWrap'), rawArchiveProgressBar: $('rawArchiveProgressBar'), rawArchiveCancelBtn: $('rawArchiveCancelBtn'),
     taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), heroIsoIntro: $('heroIsoIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), supportBadges: $('supportBadges'),
-    rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
+    rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawOverallLiveText: $('rawOverallLiveText'), rawOverallLiveBar: $('rawOverallLiveBar'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
     chooseFolderBtn: $('chooseFolderBtn'), folderName: $('folderName'),
     chooseZipBtn: $('chooseZipBtn'), zipName: $('zipName'), zipSetupNote: $('zipSetupNote'),
     convertBtn: $('convertBtn'), cancelBtn: $('cancelBtn'), resetBtn: $('resetBtn'),
@@ -1425,14 +1442,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     file: null, reader: null, analysis: null,
     outputMode: hasDirPicker ? 'folder' : 'zip',
     dirHandle: null, zipHandle: null, zipSuggestedName: '',
-    ftpToken: null, ftpConnected: false, rawFtpConnected: false, rawUploading: false, rawFiles: [], taskMode: 'iso',
+    ftpToken: null, ftpConnected: false, rawFtpConnected: false, rawUploading: false, rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
     converting: false, cancelRequested: false,
     batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0,
     result: null, collectedFiles: [], zipBlob: null, zipBlobName: '',
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
     lastOverall: 0, elapsedTimer: null, ftpActivity: '', ftpRetryPending: false, ftpRetryResolver: null,
-    archiveWorker: null, archiveBusy: false, archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [],
+    archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], rawArchiveImportDirs: [],
   };
 
   const FTP_IDENTITY_KEY = 'nebula-iso2god-ftp-identity-v1';
@@ -1539,7 +1556,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   /* ---------------- top-level workflow tabs ---------------- */
   function setTaskMode(mode) {
-    if ((state.converting || state.batchRunning || state.rawUploading) && mode !== state.taskMode) return;
+    if ((state.converting || state.batchRunning || state.rawUploading || state.archiveBusy) && mode !== state.taskMode) return;
     state.taskMode = mode === 'raw' ? 'raw' : 'iso';
     const raw = state.taskMode === 'raw';
     document.querySelectorAll('[data-workflow="iso"]').forEach(el => el.classList.toggle('workflow-mode-hidden', raw));
@@ -1593,9 +1610,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.modeFiles.addEventListener('click', () => setMode('files'));
   els.modeFtp.addEventListener('click', () => setMode('ftp'));
 
+  function updateRawSelectionEnabled() {
+    const disabled = state.archiveBusy || state.rawUploading;
+    for (const el of [els.rawContentFiles, els.rawChooseFolderBtn, els.rawArchiveInput, els.rawArchiveBrowseBtn]) el.disabled = disabled;
+    els.rawDropZone.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+  }
   function updateRawUploadEnabled() {
     const filesOk = !!state.rawFiles.length;
-    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && filesOk && !state.rawUploading && !state.converting && !state.batchRunning);
+    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && filesOk && !state.rawUploading && !state.archiveBusy && !state.converting && !state.batchRunning);
+    updateRawSelectionEnabled();
   }
   function updateBatchHint() {
     const count = state.batchFiles.length;
@@ -1786,6 +1809,20 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     });
     return archiveCleanupPromise;
   }
+  async function cleanupRawArchiveDirs(names = state.rawArchiveImportDirs) {
+    const removing = [...new Set(names || [])].filter(Boolean);
+    if (!removing.length) return true;
+    const failed = [];
+    for (const name of removing) if (!(await removeArchiveOpfsDir(name))) failed.push(name);
+    state.rawArchiveImportDirs = state.rawArchiveImportDirs.filter(name => !removing.includes(name));
+    for (const name of failed) if (!state.rawArchiveImportDirs.includes(name)) state.rawArchiveImportDirs.push(name);
+    return failed.length === 0;
+  }
+  function archiveUi(kind = state.archiveKind) {
+    return kind === 'raw'
+      ? { status: els.rawArchiveStatus, progressWrap: els.rawArchiveProgressWrap, progressBar: els.rawArchiveProgressBar, cancelBtn: els.rawArchiveCancelBtn }
+      : { status: els.archiveStatus, progressWrap: els.archiveProgressWrap, progressBar: els.archiveProgressBar, cancelBtn: els.archiveCancelBtn };
+  }
   async function cleanupArchiveImportsAfterSuccess() {
     if (!state.archiveImportDirs.length) return;
     const removed = await cleanupArchiveImports();
@@ -1804,17 +1841,20 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (previousDir && /^nebula-7z-[a-z0-9-]+$/.test(previousDir)) archiveStartupCleanup = removeArchiveOpfsDir(previousDir);
     else if (previousDir) sessionStorage.removeItem(ARCHIVE_SESSION_KEY);
   } catch (_) {}
-  function setArchiveBusy(active) {
+  function setArchiveBusy(active, kind = state.archiveKind) {
     state.archiveBusy = active;
-    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn]) el.disabled = active;
-    els.archiveCancelBtn.hidden = !active;
+    state.archiveKind = kind;
+    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode]) el.disabled = active;
+    const ui = archiveUi(kind);
+    ui.cancelBtn.hidden = !active;
     if (active) {
-      els.archiveProgressWrap.hidden = false;
-      els.archiveProgressBar.style.width = '0%';
-      els.archiveProgressBar.classList.add('indeterminate');
+      ui.status.hidden = false;
+      ui.progressWrap.hidden = false;
+      ui.progressBar.style.width = '0%';
+      ui.progressBar.classList.add('indeterminate');
     } else {
-      els.archiveProgressBar.classList.remove('indeterminate');
-      els.archiveProgressBar.style.transform = '';
+      ui.progressBar.classList.remove('indeterminate');
+      ui.progressBar.style.transform = '';
     }
     updateConvertEnabled();
   }
@@ -1831,79 +1871,129 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     return found;
   }
-  async function finishArchiveImport(id, tempDir, files) {
+  async function collectExtractedRawFiles(dirHandle, path = '') {
+    const found = [];
+    for await (const [name, handle] of dirHandle.entries()) {
+      const rel = path ? path + '/' + name : name;
+      if (handle.kind === 'directory') found.push(...await collectExtractedRawFiles(handle, rel));
+      else if (handle.kind === 'file' && name !== '.DS_Store' && !name.startsWith('._')) {
+        const file = await handle.getFile();
+        found.push({ file, path: rel });
+      }
+    }
+    return found;
+  }
+  async function finishArchiveImport(id, tempDir, files, kind = 'iso') {
     if (id !== state.archiveRequestId) return;
-    if (!files.length) throw new Error('The archive did not yield any supported ISO images.');
+    const ui = archiveUi(kind);
     state.archiveWorker = null;
     state.archiveTempDir = '';
+    if (kind === 'raw') {
+      const matching = extractTitleIdItems(files || []);
+      if (!matching.length) throw new Error('No content file was found directly inside an 8-character Title ID/000D0000 folder.');
+      setRawFiles(files, tempDir);
+      setArchiveBusy(false, kind);
+      ui.progressWrap.hidden = false;
+      ui.progressBar.classList.remove('indeterminate');
+      ui.progressBar.style.width = '100%';
+      const ids = [...new Set(state.rawFiles.map(x => x.titleId))];
+      ui.status.hidden = false;
+      ui.status.textContent = 'Unpacked ' + state.rawFiles.length + ' XBLA/XBLIG file' + (state.rawFiles.length === 1 ? '' : 's') + ' for Title ID ' + ids.join(', ') + '. Only matching 8-character Title ID/000D0000 files were extracted. Nothing was uploaded; the original .7z is unchanged. Extracted files stay available for FTP retry and are cleared after successful upload or when you replace the selection.';
+      log('Imported ' + state.rawFiles.length + ' XBLA/XBLIG content file(s) from .7z for Title ID(s) ' + ids.join(', ') + '.');
+      return;
+    }
+    if (!files.length) throw new Error('The archive did not yield any supported ISO images.');
     state.archiveImportDirs.push(tempDir);
-    setArchiveBusy(false);
+    setArchiveBusy(false, kind);
     $('progressH').textContent = '✨ Conversion progress';
-    els.archiveProgressWrap.hidden = false;
-    els.archiveProgressBar.style.width = '100%';
-    els.archiveStatus.hidden = false;
-    els.archiveStatus.textContent = 'Unpacked ' + files.length + ' supported image' + (files.length === 1 ? '' : 's') +
+    ui.progressWrap.hidden = false;
+    ui.progressBar.classList.remove('indeterminate');
+    ui.progressBar.style.width = '100%';
+    ui.status.hidden = false;
+    ui.status.textContent = 'Unpacked ' + files.length + ' supported image' + (files.length === 1 ? '' : 's') +
       '. Temporary images stay in browser storage during conversion and any FTP retry, then clear automatically after success. Start over or leave the page to clear them sooner. Other archive entries were skipped; the original .7z was not changed.';
     log('Imported ' + files.length + ' supported image' + (files.length === 1 ? '' : 's') + ' from .7z; non-image archive entries were not extracted.');
     selectIsoFiles(files);
   }
-  async function failArchiveImport(id, tempDir, message, cancelled = false) {
+  async function failArchiveImport(id, tempDir, message, cancelled = false, kind = state.archiveKind) {
     if (id !== state.archiveRequestId) return;
     if (state.archiveWorker) { state.archiveWorker.terminate(); state.archiveWorker = null; }
     state.archiveTempDir = '';
-    setArchiveBusy(false);
-    els.archiveProgressWrap.hidden = true;
-    $('progressH').textContent = cancelled ? '📦 Archive import canceled' : '📦 Archive import failed';
-    els.phaseLabel.textContent = cancelled ? 'Archive import canceled' : 'Archive import failed';
-    els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '';
-    els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
-    els.archiveStatus.hidden = false;
-    els.archiveStatus.textContent = cancelled ? 'Canceling archive import and removing temporary data…' : 'Archive import failed: ' + message + ' — removing partial temporary data…';
+    const ui = archiveUi(kind);
+    ui.progressWrap.hidden = true;
+    ui.status.hidden = false;
+    ui.status.textContent = cancelled ? 'Canceling .7z extraction and removing temporary data…' : 'Cleaning up incomplete .7z extraction…';
+    if (kind === 'iso') {
+      $('progressH').textContent = cancelled ? '📦 Archive import canceled' : '📦 Archive import failed';
+      els.phaseLabel.textContent = cancelled ? 'Archive import canceled' : 'Archive import failed';
+      els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '';
+      els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
+    }
     const removed = await removeArchiveOpfsDir(tempDir);
+    setArchiveBusy(false, kind);
     const rawMessage = String(message || 'Unknown 7z import error.');
     const writeFailure = /failed to write to file|quotaexceeded|no space|enospc/i.test(rawMessage);
     const displayMessage = writeFailure
-      ? 'The browser could not write the extracted image to site storage. This often means the browser site-storage quota or Mac free space is too low. Check that you have space roughly equal to the uncompressed ISO plus headroom; in Safari, use a regular window (not Private Browsing).'
+      ? kind === 'raw'
+        ? 'The browser could not save the extracted XBLA/XBLIG files to site storage. Check browser storage and Mac free space; in Safari, use a regular window rather than Private Browsing.'
+        : 'The browser could not write the extracted image to site storage. This often means the browser site-storage quota or Mac free space is too low. Check that you have space roughly equal to the uncompressed ISO plus headroom; in Safari, use a regular window (not Private Browsing).'
       : rawMessage;
-    els.archiveStatus.textContent = cancelled
-      ? (removed ? 'Archive import canceled. Temporary extracted data was removed.' : 'Archive import canceled; close the page and reopen it to retry temporary-data cleanup.')
-      : 'Archive import failed: ' + displayMessage + (removed ? ' Partial temporary data was removed.' : ' Safari could not confirm cleanup; close the page and reopen it.');
+    ui.status.hidden = false;
+    ui.status.textContent = cancelled
+      ? (removed ? '7z extraction canceled. Temporary extracted data was removed.' : '7z extraction canceled; close and reopen the page to retry temporary-data cleanup.')
+      : '7z extraction failed: ' + displayMessage + (removed ? ' Partial temporary data was removed.' : ' The browser could not confirm cleanup; close and reopen the page.');
     if (!cancelled) log('7z import failed: ' + rawMessage);
   }
-  async function startArchiveImport(file) {
-    if (state.archiveBusy || state.converting || state.batchRunning) return;
+  async function startArchiveImport(file, kind = 'iso') {
+    if (!file || state.archiveBusy || state.converting || state.batchRunning || state.rawUploading) return;
+    if (kind === 'raw' && state.taskMode !== 'raw') return;
     clearError();
+    state.archiveKind = kind;
+    const ui = archiveUi(kind);
     const id = (state.archiveRequestId || 0) + 1;
     state.archiveRequestId = id;
-    setArchiveBusy(true);
-    els.archiveStatus.hidden = false;
-    els.archiveStatus.textContent = 'Preparing local archive import…';
-    els.doneCard.hidden = true;
-    els.detailsCard.hidden = true;
-    els.progressCard.hidden = false;
-    $('progressH').textContent = '📦 Importing .7z archive';
-    els.phaseLabel.textContent = 'Preparing local archive import…';
-    els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '';
-    els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
-    state.file = null; state.reader = null; state.analysis = null;
-    state.batchFiles = []; state.batchSkipped = 0; state.batchIndex = 0;
-    state.batchCompleted = 0; state.batchRunning = false; state.batchFinished = false;
-    state.result = null; state.collectedFiles = []; state.zipBlob = null;
-    updateBatchHint(); updateConvertEnabled();
+    setArchiveBusy(true, kind);
+    ui.status.hidden = false;
+    ui.status.textContent = kind === 'raw'
+      ? 'Preparing local XBLA/XBLIG archive import… nothing is uploaded during extraction.'
+      : 'Preparing local ISO archive import…';
+    ui.progressWrap.hidden = false;
+    ui.progressBar.style.width = '0%';
+    ui.progressBar.classList.add('indeterminate');
+    if (kind === 'iso') {
+      els.doneCard.hidden = true;
+      els.detailsCard.hidden = true;
+      els.progressCard.hidden = false;
+      $('progressH').textContent = '📦 Importing .7z archive';
+      els.phaseLabel.textContent = 'Preparing local archive import…';
+      els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '';
+      els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
+      state.file = null; state.reader = null; state.analysis = null;
+      state.batchFiles = []; state.batchSkipped = 0; state.batchIndex = 0;
+      state.batchCompleted = 0; state.batchRunning = false; state.batchFinished = false;
+      state.result = null; state.collectedFiles = []; state.zipBlob = null;
+      updateBatchHint(); updateConvertEnabled();
+    } else {
+      els.rawSelectedFiles.textContent = state.rawFiles.length
+        ? 'Reading the new archive; the previous valid selection remains available until a new one is extracted.'
+        : 'Reading .7z archive index locally…';
+    }
     const startupCleanupOk = await archiveStartupCleanup;
     if (id !== state.archiveRequestId || !state.archiveBusy) return;
     if (startupCleanupOk === false) {
-      await failArchiveImport(id, '', 'Safari could not clear temporary data from an earlier archive import. Close this page, reopen it, and retry.');
+      await failArchiveImport(id, '', 'The browser could not clear temporary data from an earlier .7z import. Close this page, reopen it, and retry.', false, kind);
       return;
     }
-    const previousImportsCleared = await cleanupArchiveImports();
-    if (id !== state.archiveRequestId || !state.archiveBusy) return;
-    if (!previousImportsCleared) {
-      await failArchiveImport(id, '', 'Could not remove the prior temporary .7z image from browser storage. Close this page, reopen it, and retry.');
-      return;
+    if (kind === 'iso') {
+      const previousImportsCleared = await cleanupArchiveImports();
+      if (id !== state.archiveRequestId || !state.archiveBusy) return;
+      if (!previousImportsCleared) {
+        await failArchiveImport(id, '', 'Could not remove the prior temporary .7z image from browser storage. Close this page, reopen it, and retry.', false, kind);
+        return;
+      }
     }
     if (!navigator.storage || typeof navigator.storage.getDirectory !== 'function') {
-      await failArchiveImport(id, '', 'This browser does not expose the Origin Private File System (OPFS) required for local extraction. Use recent Safari, Chrome, or Edge on HTTPS or localhost; do not open the HTML file directly.');
+      await failArchiveImport(id, '', 'This browser does not expose the Origin Private File System (OPFS) required for local extraction. Use recent Safari, Chrome, or Edge over HTTPS or localhost; do not open the HTML file directly.', false, kind);
       return;
     }
     const tempDir = 'nebula-7z-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
@@ -1914,32 +2004,42 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       worker = new Worker(new URL('vendor/un7z-opfs/worker/opfs-extractor.js', document.baseURI), { type: 'module' });
       state.archiveWorker = worker;
     } catch (err) {
-      await failArchiveImport(id, tempDir, 'Could not start the local 7z worker: ' + (err.message || String(err)));
+      await failArchiveImport(id, tempDir, 'Could not start the local 7z worker: ' + (err.message || String(err)), false, kind);
       return;
     }
-    els.archiveStatus.textContent = 'Reading the archive index locally… Nothing is uploaded.';
+    ui.status.textContent = kind === 'raw'
+      ? 'Reading the 7z archive index locally… nothing is uploaded.'
+      : 'Reading the 7z archive index locally… nothing is uploaded.';
     worker.onmessage = async event => {
       const msg = event.data || {};
       if (msg.id !== id || id !== state.archiveRequestId) return;
       if (msg.type === 'progress') {
-        els.archiveStatus.hidden = false;
+        ui.status.hidden = false;
         if (msg.phase === 'listing') {
-          $('progressH').textContent = '📦 Importing .7z archive';
-          els.phaseLabel.textContent = 'Reading archive index locally…';
-          els.archiveProgressWrap.hidden = false;
-          els.archiveProgressBar.classList.add('indeterminate');
-          els.archiveStatus.textContent = 'Reading the archive index locally… large archives may take a little while. Nothing is uploaded.';
+          if (kind === 'iso') {
+            $('progressH').textContent = '📦 Importing .7z archive';
+            els.phaseLabel.textContent = 'Reading archive index locally…';
+          }
+          ui.progressWrap.hidden = false;
+          ui.progressBar.classList.add('indeterminate');
+          ui.status.textContent = kind === 'raw'
+            ? 'Reading the archive index locally… only 8-character Title ID/000D0000 files will be unpacked; nothing is uploaded.'
+            : 'Reading the archive index locally… large archives may take a little while. Nothing is uploaded.';
         } else if (msg.phase === 'extracting') {
           const total = Math.max(1, Number(msg.totalBytes) || 1);
           const done = Math.max(0, Number(msg.processedBytes) || 0);
           const pct = Math.max(0, Math.min(100, Math.floor(done * 100 / total)));
           const currentFile = String(msg.currentFile || '').split('/').pop();
-          $('progressH').textContent = '📦 Importing .7z archive';
-          els.phaseLabel.textContent = 'Extracting image to browser storage…';
-          els.archiveProgressWrap.hidden = false;
-          els.archiveProgressBar.classList.remove('indeterminate');
-          els.archiveProgressBar.style.width = pct + '%';
-          els.archiveStatus.textContent = 'Extracting ' + (currentFile || 'supported image files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no image data is uploaded.';
+          if (kind === 'iso') {
+            $('progressH').textContent = '📦 Importing .7z archive';
+            els.phaseLabel.textContent = 'Extracting image to browser storage…';
+          }
+          ui.progressWrap.hidden = false;
+          ui.progressBar.classList.remove('indeterminate');
+          ui.progressBar.style.width = pct + '%';
+          ui.status.textContent = kind === 'raw'
+            ? 'Unpacking ' + (currentFile || 'matching XBLA/XBLIG content') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no files are uploaded.'
+            : 'Extracting ' + (currentFile || 'supported image files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no image data is uploaded.';
         }
       } else if (msg.type === 'done') {
         worker.terminate();
@@ -1947,16 +2047,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         try {
           const root = await navigator.storage.getDirectory();
           const dir = await root.getDirectoryHandle(tempDir, { create: false });
-          const images = await collectExtractedImages(dir);
-          images.sort((a, b) => (a.nebulaArchivePath || a.name).localeCompare(b.nebulaArchivePath || b.name));
-          await finishArchiveImport(id, tempDir, images);
+          if (kind === 'raw') {
+            const files = await collectExtractedRawFiles(dir);
+            files.sort((a, b) => a.path.localeCompare(b.path));
+            await finishArchiveImport(id, tempDir, files, kind);
+          } else {
+            const images = await collectExtractedImages(dir);
+            images.sort((a, b) => (a.nebulaArchivePath || a.name).localeCompare(b.nebulaArchivePath || b.name));
+            await finishArchiveImport(id, tempDir, images, kind);
+          }
         } catch (err) {
-          await failArchiveImport(id, tempDir, err.message || String(err));
+          await failArchiveImport(id, tempDir, err.message || String(err), false, kind);
         }
       } else if (msg.type === 'error') {
         worker.terminate();
         if (state.archiveWorker === worker) state.archiveWorker = null;
-        await failArchiveImport(id, tempDir, msg.message || 'Unknown 7z extraction error.');
+        await failArchiveImport(id, tempDir, msg.message || 'Unknown 7z extraction error.', false, kind);
       }
     };
     worker.onerror = async event => {
@@ -1965,11 +2071,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const detail = event.error?.message || event.message || '';
       const source = event.filename ? ' (' + event.filename + (event.lineno ? ':' + event.lineno : '') + ')' : '';
       const diagnostic = detail ? ': ' + detail : '';
-      await failArchiveImport(id, tempDir, 'The 7z worker failed to load' + diagnostic + source + '. Use HTTPS or the updated local helper at 127.0.0.1, not file://. If using the Mac helper, update/restart it so its /vendor/un7z-opfs worker and WASM files are available.');
-    }; 
-    log('Starting local .7z import for "' + file.name + '" (' + fmtBytes(file.size) + ').');
-    try { worker.postMessage({ type: 'extract', id, archive: file, destPath: tempDir }); }
-    catch (err) { void failArchiveImport(id, tempDir, 'Could not pass the selected archive to the local worker: ' + (err.message || String(err))); }
+      await failArchiveImport(id, tempDir, 'The 7z worker failed to load' + diagnostic + source + '. Use HTTPS or the updated local helper at 127.0.0.1, not file://. If using the Mac helper, update/restart it so its /vendor/un7z-opfs worker and WASM files are available.', false, kind);
+    };
+    log('Starting local ' + (kind === 'raw' ? 'XBLA/XBLIG ' : '') + '.7z import for "' + file.name + '" (' + fmtBytes(file.size) + ').');
+    try { worker.postMessage({ type: 'extract', id, archive: file, destPath: tempDir, kind }); }
+    catch (err) { void failArchiveImport(id, tempDir, 'Could not pass the selected archive to the local worker: ' + (err.message || String(err)), false, kind); }
   }
   async function handleIsoImportSelection(fileList) {
     if (state.archiveBusy || state.converting || state.batchRunning) return;
@@ -1994,13 +2100,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (file) startArchiveImport(file);
     els.archiveInput.value = '';
   });
-  els.archiveCancelBtn.addEventListener('click', () => {
+  function cancelArchiveImport() {
     if (!state.archiveBusy) return;
     const id = state.archiveRequestId;
     const temp = state.archiveTempDir;
+    const kind = state.archiveKind;
     if (state.archiveWorker) { state.archiveWorker.terminate(); state.archiveWorker = null; }
-    void failArchiveImport(id, temp, '', true);
-  });
+    void failArchiveImport(id, temp, '', true, kind);
+  }
+  els.archiveCancelBtn.addEventListener('click', cancelArchiveImport);
+  els.rawArchiveCancelBtn.addEventListener('click', cancelArchiveImport);
   els.drop.addEventListener('click', () => { if (!state.converting && !state.batchRunning && !state.archiveBusy) els.fileInput.click(); });
   els.drop.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && !state.converting && !state.batchRunning && !state.archiveBusy) { e.preventDefault(); els.fileInput.click(); }
@@ -2080,6 +2189,25 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!response.ok) throw new Error(result.error || ('Local helper returned HTTP ' + response.status));
     return result;
   }
+  function updateRawOverallProgress(phase = 'starting') {
+    const total = Math.max(0, Number(state.rawUploadTotalBytes) || 0);
+    const completedBytes = Math.max(0, Number(state.rawUploadCompletedBytes) || 0);
+    const currentBytes = Math.max(0, Number(state.rawUploadCurrentBytes) || 0);
+    const done = total ? Math.min(total, completedBytes + currentBytes) : 0;
+    const fraction = total ? Math.max(0, Math.min(1, done / total)) : 0;
+    const percent = Math.floor(fraction * 100);
+    const count = Math.max(0, Number(state.rawUploadItemCount) || 0);
+    const fileLabel = count ? ' · file ' + Math.min(count, state.rawUploadCurrentIndex + 1) + ' of ' + count : '';
+    const phaseLabel = {
+      starting: 'preparing', staging: 'staging locally · not sent to Xbox yet', connecting: 'connecting to Xbox',
+      transferring: 'Xbox transfer', confirming: 'confirming current file', retrying: 'retrying current file',
+      paused: 'paused for retry', failed: 'stopped · selection retained for retry', complete: 'complete',
+    }[phase] || phase;
+    els.rawOverallLiveText.textContent = total
+      ? 'Overall job: ' + fmtBytes(done) + ' / ' + fmtBytes(total) + ' (' + percent + '%)' + fileLabel + ' · ' + phaseLabel
+      : 'Overall job: preparing upload…';
+    els.rawOverallLiveBar.style.width = (fraction * 100).toFixed(1) + '%';
+  }
   function setFtpLive(message, fraction) {
     els.ftpLive.hidden = false;
     els.ftpLiveText.textContent = message;
@@ -2092,6 +2220,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.rawFtpLiveText.textContent = message;
       els.rawFtpLive.classList.toggle('is-complete', completed);
       els.rawFtpLiveBar.style.width = pct.toFixed(1) + '%';
+      if (message.startsWith('Retrying ')) {
+        state.rawUploadCurrentBytes = 0;
+        updateRawOverallProgress('retrying');
+      } else if (message.startsWith('Staging ')) updateRawOverallProgress('staging');
+      else if (message.startsWith('Connecting to Xbox')) updateRawOverallProgress('connecting');
+      else if (message.startsWith('FTP connection failed')) updateRawOverallProgress('paused');
+      else if (message.startsWith('Upload failed')) updateRawOverallProgress('failed');
+      else if (completed) updateRawOverallProgress('complete');
       positionCompletionUfo('rawFtpLiveBar', pct / 100);
     } else if (state.converting && state.outputMode === 'ftp') {
       positionCompletionUfo('ftpLiveBar', pct / 100);
@@ -2206,7 +2342,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     return result;
   }
-  function setRawFiles(filesWithPaths) {
+  function setRawFiles(filesWithPaths, archiveDir = '') {
+    if (state.rawUploading || (state.archiveBusy && !archiveDir)) return;
+    const previousDirs = state.rawArchiveImportDirs.filter(name => name !== archiveDir);
+    state.rawArchiveImportDirs = archiveDir ? [archiveDir] : [];
     els.rawFtpUploadResult.classList.remove('is-complete');
     state.rawFiles = extractTitleIdItems(filesWithPaths || []);
     if (state.rawFiles.length) {
@@ -2214,20 +2353,26 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.rawSelectedFiles.textContent = 'Found ' + state.rawFiles.length + ' file(s) for Title ID ' + ids.join(', ') + ': ' + state.rawFiles.map(x => x.file.name).join(' · ');
       els.rawFtpUploadResult.textContent = 'Ready to copy unchanged to each Title ID’s 000D0000 folder.';
     } else {
-      els.rawSelectedFiles.textContent = 'No matching files found. Drop the Title ID folder (8 hex characters) containing 000D0000 and its file(s).';
+      els.rawSelectedFiles.textContent = 'No matching files found. Unzip the XBLA archive on your Mac, then choose or drop the extracted 8-character Title ID folder (or parent game folder) containing 000D0000.';
+    }
+    if (!archiveDir) {
+      els.rawArchiveStatus.hidden = true;
+      els.rawArchiveProgressWrap.hidden = true;
     }
     updateRawUploadEnabled();
+    if (previousDirs.length) void cleanupRawArchiveDirs(previousDirs);
   }
   function onFolderInputChange() {
+    if (state.archiveBusy || state.rawUploading) return;
     setRawFiles(Array.from(els.rawContentFiles.files || []).map(file => ({ file, path: file.webkitRelativePath || file.name })));
   }
-  els.rawChooseFolderBtn.addEventListener('click', ev => { ev.stopPropagation(); els.rawContentFiles.click(); });
+  els.rawChooseFolderBtn.addEventListener('click', ev => { ev.stopPropagation(); if (!state.archiveBusy && !state.rawUploading) els.rawContentFiles.click(); });
   els.rawDropZone.addEventListener('click', ev => {
-    if (ev.target.closest('button')) return;
+    if (ev.target.closest('button') || state.archiveBusy || state.rawUploading) return;
     els.rawContentFiles.click();
   });
   els.rawDropZone.addEventListener('keydown', ev => {
-    if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); els.rawContentFiles.click(); }
+    if ((ev.key === 'Enter' || ev.key === ' ') && !state.archiveBusy && !state.rawUploading) { ev.preventDefault(); els.rawContentFiles.click(); }
   });
   els.rawContentFiles.addEventListener('change', onFolderInputChange);
   function readDirectoryEntry(entry, prefix) {
@@ -2248,7 +2393,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     })();
   }
   for (const type of ['dragenter', 'dragover']) {
-    els.rawDropZone.addEventListener(type, ev => { ev.preventDefault(); els.rawDropZone.classList.add('drag-active'); });
+    els.rawDropZone.addEventListener(type, ev => { ev.preventDefault(); if (!state.archiveBusy && !state.rawUploading) els.rawDropZone.classList.add('drag-active'); });
   }
   for (const type of ['dragleave', 'dragend']) {
     els.rawDropZone.addEventListener(type, () => els.rawDropZone.classList.remove('drag-active'));
@@ -2256,15 +2401,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.rawDropZone.addEventListener('drop', async ev => {
     ev.preventDefault();
     els.rawDropZone.classList.remove('drag-active');
+    if (state.archiveBusy || state.rawUploading) return;
     try {
       const items = Array.from((ev.dataTransfer && ev.dataTransfer.items) || []);
+      const files = Array.from((ev.dataTransfer && ev.dataTransfer.files) || []);
+      const candidates = files.length ? files : items.map(item => item.getAsFile ? item.getAsFile() : null).filter(Boolean);
       const entries = items.map(item => item.webkitGetAsEntry ? item.webkitGetAsEntry() : null).filter(Boolean);
+      const archives = candidates.filter(file => /\.7z$/i.test(file.name));
+      if (archives.length || entries.some(entry => entry.isFile && /\.7z$/i.test(entry.name))) {
+        els.rawSelectedFiles.textContent = 'Please unzip the XBLA archive on your Mac first, then choose or drop the extracted Title ID folder (for example 584111FF) or its parent game folder.';
+        return;
+      }
       if (entries.length) {
         const nested = await Promise.all(entries.map(entry => readDirectoryEntry(entry, '')));
         setRawFiles(nested.flat());
       } else {
-        const files = Array.from((ev.dataTransfer && ev.dataTransfer.files) || []);
-        setRawFiles(files.map(file => ({ file, path: file.webkitRelativePath || file.name })));
+        setRawFiles(candidates.map(file => ({ file, path: file.webkitRelativePath || file.name })));
       }
     } catch (err) {
       els.rawSelectedFiles.textContent = 'Could not read that folder. Use “Choose Title ID / game folder…” instead.';
@@ -2391,6 +2543,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           try {
             const status = await bridgeGet('/api/file/status?id=' + encodeURIComponent(id));
             const sent = Number(status.sent || 0), total = Number(status.expected || this.expected);
+            if (state.rawUploading) {
+              if (status.state === 'uploading') {
+                state.rawUploadCurrentBytes = Math.max(0, Math.min(this.expected, sent));
+                updateRawOverallProgress('transferring');
+              } else if (status.state === 'done') {
+                state.rawUploadCurrentBytes = this.expected;
+                updateRawOverallProgress('confirming');
+              } else if (status.state === 'error') {
+                state.rawUploadCurrentBytes = Math.max(0, Math.min(this.expected, sent));
+                updateRawOverallProgress('paused');
+              } else if (status.state === 'connecting') {
+                state.rawUploadCurrentBytes = 0;
+                updateRawOverallProgress('connecting');
+              }
+            }
             if (status.state === 'connecting') {
               setFtpLive('Connecting to Xbox for ' + shortName + '…', 0);
             } else if (status.state === 'uploading') {
@@ -2460,12 +2627,19 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       if (!/^[0-9A-F]{8}$/.test(item.titleId) || unsafeName) throw new Error('A dropped path or filename is invalid. Drop the Title ID folder and its 000D0000 content files.');
       if (file.size > 20 * 1024 * 1024 * 1024) throw new Error(file.name + ' exceeds the 20 GiB per-file limit.');
     }
+    state.rawUploadTotalBytes = items.reduce((sum, item) => sum + Math.max(0, Number(item.file.size) || 0), 0);
+    state.rawUploadCompletedBytes = 0;
+    state.rawUploadCurrentBytes = 0;
+    state.rawUploadCurrentIndex = 0;
+    state.rawUploadItemCount = items.length;
     state.rawUploading = true;
     clearFtpRetryPrompt();
     els.rawFtpLive.hidden = false;
     els.rawFtpLive.classList.remove('is-complete');
     els.rawFtpLiveText.textContent = 'Starting upload…';
     els.rawFtpLiveBar.style.width = '0%';
+    els.rawOverallLiveBar.style.width = '0%';
+    updateRawOverallProgress('starting');
     positionCompletionUfo('rawFtpLiveBar', 0);
     els.rawFtpUploadResult.classList.remove('is-complete');
     els.rawFtpUploadResult.textContent = 'Starting upload…';
@@ -2473,6 +2647,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     try {
       for (let i = 0; i < items.length; i++) {
         const { file, titleId } = items[i];
+        state.rawUploadCurrentIndex = i;
+        state.rawUploadCurrentBytes = 0;
+        updateRawOverallProgress('staging');
         const segments = ['Content', '0000000000000000', titleId, '000D0000', file.name];
         els.rawFtpUploadResult.textContent = 'Uploading ' + (i + 1) + ' of ' + items.length + ': ' + titleId + '/' + file.name;
         const writer = new FTPWriter(state.ftpToken);
@@ -2484,6 +2661,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           await writer.abort();
           throw new Error('Stopped on ' + file.name + ': ' + err.message);
         }
+        state.rawUploadCompletedBytes = Math.min(state.rawUploadTotalBytes, state.rawUploadCompletedBytes + file.size);
+        state.rawUploadCurrentBytes = 0;
+        updateRawOverallProgress(i + 1 === items.length ? 'complete' : 'staging');
       }
       const ids = [...new Set(items.map(x => x.titleId))];
       setFtpLive('All selected content files were uploaded unchanged to 000D0000.', 1);
@@ -2491,7 +2671,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.rawFtpUploadResult.classList.add('is-complete');
       state.rawFiles = [];
       els.rawContentFiles.value = '';
-      els.rawSelectedFiles.textContent = 'Upload complete. Drop or choose another Title ID folder if needed.';
+      els.rawSelectedFiles.textContent = 'Upload complete. Drop or choose another extracted Title ID folder or parent game folder.';
+      if (state.rawArchiveImportDirs.length) {
+        const removed = await cleanupRawArchiveDirs(state.rawArchiveImportDirs.slice());
+        els.rawArchiveStatus.hidden = false;
+        els.rawArchiveStatus.textContent = removed
+          ? 'Upload succeeded. Temporary .7z-extracted files were cleared from browser storage.'
+          : 'Upload succeeded, but the browser could not confirm cleanup of temporary .7z data. Close and reopen the page to retry cleanup.';
+      }
       log('Raw content upload complete (' + items.length + ' file(s)) for Title ID(s) ' + ids.join(', ') + '.');
       celebrateCompletion();
     } catch (err) {
@@ -2521,7 +2708,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.wakeLock = null;
   }
   window.addEventListener('beforeunload', (e) => {
-    if (state.converting || state.batchRunning || state.archiveBusy) { e.preventDefault(); e.returnValue = ''; }
+    if (state.converting || state.batchRunning || state.archiveBusy || state.rawUploading) { e.preventDefault(); e.returnValue = ''; }
   });
   window.addEventListener('pagehide', (e) => {
     if (e.persisted) return;
@@ -2529,6 +2716,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const activeDir = state.archiveTempDir; state.archiveTempDir = '';
     if (activeDir) void removeArchiveOpfsDir(activeDir);
     void cleanupArchiveImports();
+    void cleanupRawArchiveDirs(state.rawArchiveImportDirs.slice());
   });
 
   function onProgress(p) {

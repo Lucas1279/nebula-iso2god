@@ -26,17 +26,17 @@ Choose **Convert an ISO**, then choose **Upload to Xbox via FTP** in the output 
 
 In **Convert an ISO**, select or drop several ISO files. Select **Upload to Xbox via FTP**, test the connection, then start the batch. Each ISO is analyzed, converted, and uploaded as its own GOD package before the next ISO starts. Jobs are sequential—not parallel—so each conversion keeps the usual per-game speed and the Xbox/helper handle only one package at a time. Batch output currently requires FTP. A failed FTP file pauses that ISO and offers the same retry action; successful retry continues the current ISO, then the next ISO runs sequentially. If you cancel or the local helper/staged file is no longer available, the batch stops; completed packages stay on the Xbox, and remove any unconfirmed partial file/package before starting over.
 
-The separate XBLA/XBLIG workflow also accepts multiple content files from the selected Title ID/game folder and uploads them one after another, unchanged. It uses the same retry action if the FTP connection fails during a file.
+The separate XBLA/XBLIG workflow accepts multiple content files from the selected Title ID/game folder and uploads them one after another, unchanged. During raw uploads, the overall bar tracks aggregate bytes across the entire selection while the separate blue bar and filename/bytes/speed line track the current Xbox file. It uses the same retry action if the FTP connection fails during a file.
 
 ## Send existing XBLA/XBLIG content unchanged
 
-Choose the separate **Upload existing XBLA/XBLIG file(s)** task at the top of the page. Test the FTP connection, then drop the game's **8-character Title ID folder** (such as `58410B1D`) or its parent game folder into the drop zone. The uploader finds files under `000D0000` and derives the Title ID from the folder path—no manual Title ID entry is needed. The equivalent folder picker is also available.
+Choose the separate **Upload existing XBLA/XBLIG file(s)** task at the top of the page. First unzip the XBLA archive on your Mac. Then drop/select the game's **8-character Title ID folder** (such as `584111FF`) or its parent game folder; do not select the outer archive, only the `000D0000` folder, or an individual content file. The uploader finds files directly inside the matching `<TitleID>/000D0000/` folder (for example `Quantum Conundrum (World) (XBLA)/584111FF/000D0000/<content file>`) and detects the Title ID automatically.
 
 Each selected file is sent without conversion, renaming, or repacking to:
 
 `<FTP base>/Content/0000000000000000/<TitleID>/000D0000/<original filename>`
 
-The helper creates missing folders. A file with the same name in that destination may be overwritten. For this raw XBLA/XBLIG uploader, archive files are not accepted; extract them yourself first. (The separate ISO conversion task has its own browser-only `.7z` importer.) Drop the Title ID/game folder containing `000D0000`, or choose that folder in the folder picker. After the upload reports complete, rescan Aurora.
+The helper creates missing folders. A file with the same name in that destination may be overwritten. Use the folder picker or drag the extracted Title ID/game folder; multiple files are queued and sent one at a time. During upload, the overall job bar tracks aggregate bytes across the selection, while the separate blue bar and filename/bytes/speed line track the current Xbox file. If FTP fails, keep this page, helper, and extracted source files available while you use **Retry file & continue**. After the upload reports complete, rescan Aurora.
 
 ## Important safety and limitations
 
