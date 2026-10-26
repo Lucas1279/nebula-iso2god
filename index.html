@@ -1972,6 +1972,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.rawContentFiles.value = '';
       els.rawSelectedFiles.textContent = 'Upload complete. Drop or choose another Title ID folder if needed.';
       log('Raw content upload complete (' + items.length + ' file(s)) for Title ID(s) ' + ids.join(', ') + '.');
+      celebrateCompletion();
     } catch (err) {
       els.rawFtpUploadResult.textContent = 'Upload failed: ' + err.message;
       setFtpLive('Upload failed. Do not launch a partial package; correct the issue and retry.', 0);
@@ -2171,6 +2172,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       '<br><span class="muted">Console path: Hdd1:\\Content\\0000000000000000\\' + layout.titleHex + '\\' + layout.typeFolder + '\\' + layout.headerName +
       ' &nbsp;·&nbsp; Requires a JTAG/RGH console (Iso2God-style unsigned LIVE header).</span>';
     els.doneCard.hidden = false;
+    celebrateCompletion();
 
     els.zipDownloadBtn.hidden = !(state.outputMode === 'zip' && state.zipBlob);
     if (state.outputMode === 'files') {
@@ -2240,12 +2242,44 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.resetBtn.addEventListener('click', resetAll);
   els.convertAnotherBtn.addEventListener('click', resetAll);
 
+  /* ---------------- completion celebration ---------------- */
+  let launchCompletionMeteors = () => {};
+  let confettiRaf = 0, confettiResize = null;
+  function fireConfetti() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (confettiRaf) cancelAnimationFrame(confettiRaf);
+    if (confettiResize) { window.removeEventListener('resize', confettiResize); confettiResize = null; }
+    const old = document.getElementById('nebulaConfetti');
+    if (old) old.remove();
+    const canvas = document.createElement('canvas');
+    canvas.id = 'nebulaConfetti';
+    Object.assign(canvas.style, { position:'fixed', inset:'0', width:'100vw', height:'100vh', pointerEvents:'none', zIndex:'10' });
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    const colors = ['#67e8f9','#a78bfa','#f0abfc','#34d399','#fbbf24','#fb7185','#ffffff'];
+    let w=0,h=0,dpr=1;
+    function resize(){dpr=Math.min(2,window.devicePixelRatio||1);w=innerWidth;h=innerHeight;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
+    resize();
+    const pieces=Array.from({length:150},()=>({x:Math.random()*w,y:-20-Math.random()*h*.35,vx:(Math.random()-.5)*170,vy:90+Math.random()*230,size:4+Math.random()*7,angle:Math.random()*Math.PI*2,spin:(Math.random()-.5)*8,color:colors[Math.floor(Math.random()*colors.length)],shape:Math.random()<.3?'circle':'rect'}));
+    const started=performance.now(), duration=4200;
+    function frame(now){
+      const elapsed=now-started,dt=Math.min(.04,Math.max(0,(now-(frame.last||now))/1000));frame.last=now;
+      ctx.clearRect(0,0,w,h);
+      for(const p of pieces){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=65*dt;p.angle+=p.spin*dt;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle);ctx.globalAlpha=Math.max(0,1-elapsed/duration);ctx.fillStyle=p.color;if(p.shape==='circle'){ctx.beginPath();ctx.arc(0,0,p.size*.45,0,Math.PI*2);ctx.fill()}else{ctx.fillRect(-p.size/2,-p.size/3,p.size,p.size*.66)}ctx.restore();}
+      if(elapsed<duration){confettiRaf=requestAnimationFrame(frame)}else{canvas.remove();confettiRaf=0;if(confettiResize)window.removeEventListener('resize',confettiResize);confettiResize=null;}
+    }
+    confettiResize=resize;
+    window.addEventListener('resize',confettiResize);
+    confettiRaf=requestAnimationFrame(frame);
+  }
+  function celebrateCompletion(){launchCompletionMeteors();fireConfetti();}
+
   /* ---------------- space background ---------------- */
   function initStarfield() {
     const canvas = $('stars');
     const ctx = canvas.getContext('2d');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let stars = [], shooting = [], w = 0, h = 0, raf = 0, last = 0;
+    let stars = [], shooting = [], w = 0, h = 0, raf = 0, last = 0, showerUntil = 0;
     let parX = 0, parY = 0, targetX = 0, targetY = 0;
     function resize() {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -2272,6 +2306,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         life: 0, ttl: 0.9 + Math.random() * 0.7,
       });
     }
+    launchCompletionMeteors = () => {
+      if (reduced) return;
+      showerUntil = performance.now() + 6500;
+      for (let i=0;i<5 && shooting.length<10;i++) spawnShooting();
+    };
     function draw(t) {
       ctx.clearRect(0, 0, w, h);
       parX += (targetX - parX) * 0.03; parY += (targetY - parY) * 0.03;
@@ -2306,7 +2345,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         sh.life += dt; sh.x += sh.vx * dt; sh.y += sh.vy * dt;
         if (sh.life > sh.ttl) shooting.splice(i, 1);
       }
-      if (Math.random() < dt * 0.12 && shooting.length < 2) spawnShooting();
+      const showering = t < showerUntil;
+      if (Math.random() < dt * (showering ? 1.8 : 0.12) && shooting.length < (showering ? 12 : 2)) spawnShooting();
       draw(t);
       raf = requestAnimationFrame(frame);
     }

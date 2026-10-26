@@ -7,4 +7,4 @@ Upload/replace these files in the root of the GitHub repository used by GitHub P
 - nebula-iso2god-timeout-fix.zip
 - Nebula-ISO2GOD-One-File.zip
 
-Includes ISO converter and separate XBLA/XBLIG folder uploader, shared remember-IP/username controls (password never saved), and updated helper download buttons in both FTP sections.
+Includes separate ISO and XBLA/XBLIG workflows, saved IP/username options (password never saved), FTP download buttons in both workflows, and completion meteor/confetti animations for successful conversion and raw upload. Animations respect the system reduced-motion setting.
