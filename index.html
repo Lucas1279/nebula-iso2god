@@ -34,27 +34,23 @@ body{
 @keyframes drift1{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(6vmax,3vmax,0) scale(1.12)}}
 @keyframes drift2{from{transform:translate3d(0,0,0) scale(1.08)}to{transform:translate3d(-5vmax,4vmax,0) scale(.96)}}
 .planet{position:fixed; right:-70px; bottom:-90px; width:min(430px,55vw); z-index:0; pointer-events:none; opacity:.8; filter:drop-shadow(0 0 60px rgba(90,140,255,.35))}
-.completion-ufo{position:fixed;left:50%;top:42vh;width:min(235px,35vw);height:auto;z-index:5;pointer-events:none;visibility:hidden;opacity:0;filter:drop-shadow(0 5px 13px rgba(56,189,248,.22))}
-.completion-ufo svg{display:block;width:100%;height:auto;overflow:visible}
-.completion-ufo.progressing{position:absolute;width:min(220px,35vw);visibility:visible;opacity:1;transform:translate(-50%,-94%);transition:left .12s linear;filter:drop-shadow(0 0 8px rgba(52,211,153,.85)) drop-shadow(0 0 20px rgba(56,189,248,.72))}
-.completion-ufo.approaching{position:absolute;width:min(220px,35vw);visibility:visible;opacity:1;animation:ufo-return 1s cubic-bezier(.18,.72,.3,1) both}
-.completion-ufo.takeoff{position:fixed;width:min(235px,35vw);visibility:visible;animation:ufo-takeoff 2.55s cubic-bezier(.2,.72,.25,1) both}
-.completion-ufo .ufo-disc{opacity:.55;transform-box:fill-box;transform-origin:center}
-.completion-ufo.progressing .ufo-disc{opacity:1}
-.completion-ufo.progressing .ufo-disc,.completion-ufo.approaching .ufo-disc,.completion-ufo.takeoff .ufo-disc{animation:ufo-disc-spin 8s linear infinite}
+.completion-ufo{position:fixed;left:50%;top:42vh;width:min(330px,67.5vw);height:auto;z-index:5;pointer-events:none;visibility:hidden;opacity:0;filter:drop-shadow(0 0 3px rgba(103,232,249,.72)) drop-shadow(0 0 6px rgba(52,211,153,.5)) drop-shadow(0 0 11px rgba(56,189,248,.28))}
+.completion-ufo svg{display:block;width:100%;height:auto;overflow:visible;position:relative;z-index:1}
+.completion-ufo.progressing::before,.completion-ufo.approaching::before,.completion-ufo.takeoff::before{content:"";position:absolute;left:9.5%;right:9.5%;top:20.5%;bottom:20.5%;z-index:0;border-radius:50%;background:radial-gradient(ellipse at 50% 49%,rgba(103,255,225,.34),rgba(52,211,196,.24) 38%,rgba(56,189,248,.14) 61%,transparent 79%);filter:blur(6px);pointer-events:none}
+.completion-ufo.progressing{position:absolute;width:min(330px,67.5vw);visibility:visible;opacity:1;transform:translate(-50%,-95%);transition:left .12s linear;filter:drop-shadow(0 0 3px rgba(103,232,249,.76)) drop-shadow(0 0 7px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3))}
+.completion-ufo.approaching{position:absolute;width:min(330px,67.5vw);visibility:visible;opacity:1;filter:drop-shadow(0 0 3px rgba(103,232,249,.76)) drop-shadow(0 0 7px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3));animation:ufo-return 1s cubic-bezier(.18,.72,.3,1) both}
+.completion-ufo.takeoff{position:fixed;width:min(330px,67.5vw);visibility:visible;filter:drop-shadow(0 0 3px rgba(103,232,249,.76)) drop-shadow(0 0 7px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3));animation:ufo-takeoff 2.55s cubic-bezier(.2,.72,.25,1) both}
 .completion-ufo .ufo-light{transform-box:fill-box;transform-origin:center}
 .completion-ufo.progressing .ufo-light,.completion-ufo.approaching .ufo-light,.completion-ufo.takeoff .ufo-light{animation-name:ufo-light-blink;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
-.completion-ufo .ufo-light-cyan{--light-on:#67e8f9;--light-off:#155e75;animation-duration:2.7s;animation-delay:0s}
-.completion-ufo .ufo-light-blue{--light-on:#60a5fa;--light-off:#1e3a8a;animation-duration:3.05s;animation-delay:.38s}
-.completion-ufo .ufo-light-lavender{--light-on:#c4b5fd;--light-off:#5b21b6;animation-duration:2.55s;animation-delay:.79s}
-.completion-ufo .ufo-light-pink{--light-on:#f0abfc;--light-off:#86198f;animation-duration:3.25s;animation-delay:1.13s}
-.completion-ufo.takeoff .ufo-disc-lift{transform-box:fill-box;transform-origin:center;animation:ufo-disc-lift .72s cubic-bezier(.2,.75,.25,1) both}
-@keyframes ufo-return{0%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0}100%{transform:translate3d(-50%,-94%,0) scale(1);opacity:1}}
-@keyframes ufo-takeoff{0%{transform:translate3d(-50%,-94%,0) scale(.72);opacity:.98;visibility:visible}16%{transform:translate3d(calc(-50% + 2vw),-130%,0) scale(.8);opacity:1}100%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0;visibility:hidden}}
-@keyframes ufo-disc-spin{to{transform:rotate(360deg)}}
-@keyframes ufo-light-blink{0%,100%{opacity:.48;fill:var(--light-off);transform:scale(.9);filter:drop-shadow(0 0 0 var(--light-on))}42%,58%{opacity:1;fill:var(--light-on);transform:scale(1.12);filter:drop-shadow(0 0 5px var(--light-on))}}
-@keyframes ufo-disc-lift{0%{transform:translateY(9px) scale(.72);opacity:.55}100%{transform:translateY(0) scale(1);opacity:1}}
-@media(prefers-reduced-motion:reduce){.completion-ufo.progressing,.completion-ufo.approaching,.completion-ufo.takeoff{animation:none!important;opacity:0!important;visibility:hidden!important}.completion-ufo .ufo-disc,.completion-ufo .ufo-light{animation:none!important}}
+.completion-ufo .ufo-light-cyan{--light-on:#67e8f9;--light-off:#155e75;animation-duration:.88s;animation-delay:0s}
+.completion-ufo .ufo-light-blue{--light-on:#60a5fa;--light-off:#1e3a8a;animation-duration:1.19s;animation-delay:.16s}
+.completion-ufo .ufo-light-lavender{--light-on:#c4b5fd;--light-off:#5b21b6;animation-duration:.76s;animation-delay:.31s}
+.completion-ufo .ufo-light-pink{--light-on:#f0abfc;--light-off:#86198f;animation-duration:1.34s;animation-delay:.47s}
+@keyframes ufo-return{0%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0}100%{transform:translate3d(-50%,-95%,0) scale(1);opacity:1}}
+@keyframes ufo-takeoff{0%{transform:translate3d(-50%,-95%,0) scale(.72);opacity:.98;visibility:visible}16%{transform:translate3d(calc(-50% + 2vw),-132%,0) scale(.8);opacity:1}100%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0;visibility:hidden}}
+@keyframes ufo-disc-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes ufo-light-blink{0%,100%{opacity:.24;fill:var(--light-off);transform:scale(.78);filter:drop-shadow(0 0 0 var(--light-on))}40%,62%{opacity:1;fill:var(--light-on);transform:scale(1.3);filter:drop-shadow(0 0 7px var(--light-on))}}
+@media(prefers-reduced-motion:reduce){.completion-ufo.progressing,.completion-ufo.approaching,.completion-ufo.takeoff{animation:none!important;opacity:0!important;visibility:hidden!important}.completion-ufo .ufo-light,.bar-disc-marker,.bar-disc-marker .disc-shell,.bar-disc-marker .disc-light{animation:none!important}}
 .wrap{position:relative; z-index:2; max-width:1080px; margin:0 auto; padding:34px 20px 80px}
 header.hero{text-align:center; padding:26px 10px 8px}
 .orbit-badge{display:inline-flex; gap:8px; align-items:center; padding:7px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(10,16,40,.6); color:var(--muted); font-size:.83rem; letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(8px)}
@@ -152,17 +148,28 @@ input[type=text]:focus{outline:2px solid rgba(110,231,255,.6); outline-offset:1p
 pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; background:rgba(2,5,18,.86); border:1px solid rgba(120,150,255,.2); color:#bfe9ff; font-size:.84rem; line-height:1.55}
 .progress-head{display:flex; justify-content:space-between; gap:14px; align-items:baseline; flex-wrap:wrap}
 .bar-wrap{height:15px; border-radius:999px; background:rgba(255,255,255,.09); overflow:hidden; margin-top:13px; border:1px solid rgba(150,175,255,.16)}
-.ufo-progress-lane{height:140px;position:relative;display:flex;align-items:flex-end;padding-bottom:13px;margin-top:2px}
-.ufo-progress-lane>.bar-wrap{width:100%;margin-top:0}
-.bar{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9); box-shadow:0 0 22px rgba(120,160,255,.65); transition:width .18s}
-.bar.thin{height:100%; background:linear-gradient(90deg,#34d399,#38bdf8)}
+.ufo-progress-lane{height:190px;position:relative;display:flex;align-items:flex-end;padding-bottom:7px;margin-top:2px}
+.ufo-progress-lane>.bar-wrap{width:100%;height:15px;margin-top:0;overflow:visible;border-radius:0;background:#111827;border-color:rgba(111,132,173,.56)}
+.bar{position:relative;height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);box-shadow:0 0 22px rgba(120,160,255,.65);transition:width .18s}
+.bar.thin{height:100%;background:linear-gradient(90deg,#34d399,#38bdf8)}
 .bar.ftp-transfer-bar{background:linear-gradient(90deg,#2563eb,#38bdf8,#818cf8);box-shadow:0 0 22px rgba(56,189,248,.48)}
+.ufo-progress-lane>.bar-wrap>.bar{border-radius:0;background:linear-gradient(90deg,#5c9df5,#6e89f1);box-shadow:0 0 8px rgba(78,153,255,.34)}
+.bar-disc-marker{position:absolute;z-index:4;left:100%;top:50%;display:block;width:clamp(42px,12vw,60px);height:auto;aspect-ratio:80/36;transform:translate(-50%,-50%);filter:drop-shadow(0 0 5px rgba(147,255,227,.96)) drop-shadow(0 0 14px rgba(52,211,153,.75)) drop-shadow(0 0 20px rgba(56,189,248,.4));pointer-events:none;animation:bar-disc-pulse 1.15s ease-in-out infinite}
+.bar-disc-marker svg{display:block;width:100%;height:100%;overflow:visible}
+.bar-disc-marker .disc-shell{transform-box:fill-box;transform-origin:center;animation:ufo-disc-spin 2.8s linear infinite}
+.bar-disc-marker .disc-light{transform-box:fill-box;transform-origin:center;animation-name:ufo-light-blink;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.bar-disc-marker .disc-light-cyan{--light-on:#a7fff0;--light-off:#176968;animation-duration:.88s;animation-delay:0s}
+.bar-disc-marker .disc-light-blue{--light-on:#7dd3fc;--light-off:#155e75;animation-duration:1.19s;animation-delay:.16s}
+.bar-disc-marker .disc-light-lavender{--light-on:#c4b5fd;--light-off:#5b21b6;animation-duration:.76s;animation-delay:.31s}
+.bar-disc-marker .disc-light-pink{--light-on:#f0abfc;--light-off:#86198f;animation-duration:1.34s;animation-delay:.47s}
+@keyframes bar-disc-pulse{0%,100%{opacity:.88;filter:drop-shadow(0 0 5px rgba(147,255,227,.8)) drop-shadow(0 0 11px rgba(52,211,153,.6))}50%{opacity:1;filter:drop-shadow(0 0 8px rgba(223,255,247,1)) drop-shadow(0 0 17px rgba(52,211,153,.92)) drop-shadow(0 0 23px rgba(56,189,248,.55))}}
 .raw-overall-wrap{margin-top:5px}
 .bar.raw-overall-bar{background:linear-gradient(90deg,#34d399,#818cf8,#e879f9);box-shadow:0 0 18px rgba(129,140,248,.42)}
 #archiveProgressBar,#rawArchiveProgressBar{transition:width .22s cubic-bezier(.22,.61,.36,1);will-change:width,transform}
 #archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.35s ease-in-out infinite alternate}
 @keyframes archive-progress-sweep{from{transform:translateX(-108%);opacity:.58}to{transform:translateX(300%);opacity:1}}
 .bar-wrap.thin{height:8px; margin-top:9px}
+.ufo-progress-lane>.bar-wrap.thin{height:15px;margin-top:0}
 .is-complete .bar{background:linear-gradient(90deg,#34d399,#38bdf8);box-shadow:0 0 18px rgba(56,189,248,.52),0 0 25px rgba(52,211,153,.28)}
 .is-complete .bar-wrap{border-color:rgba(52,211,153,.46)}
 #rawFtpLive.is-complete .bar-wrap.thin{height:10px}
@@ -220,31 +227,21 @@ footer a{color:#9edcff}
 <div class="completion-ufo" id="completionUfo" aria-hidden="true">
   <svg viewBox="0 0 220 120" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="ufoBeam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34d399" stop-opacity=".22"/><stop offset="1" stop-color="#38bdf8" stop-opacity=".06"/></linearGradient>
-      <linearGradient id="ufoHull" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1f8ff"/><stop offset=".38" stop-color="#91a7c4"/><stop offset=".72" stop-color="#d9e8f4"/><stop offset="1" stop-color="#58748e"/></linearGradient>
-      <linearGradient id="ufoDisc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#34d399"/><stop offset=".55" stop-color="#a7f3d0"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
-      <radialGradient id="ufoDome" cx="35%" cy="25%"><stop offset="0" stop-color="#e0f2fe" stop-opacity=".95"/><stop offset="1" stop-color="#38bdf8" stop-opacity=".48"/></radialGradient>
+      <linearGradient id="ufoBeam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43e8c6" stop-opacity=".15"/><stop offset="1" stop-color="#38bdf8" stop-opacity=".025"/></linearGradient>
+      <linearGradient id="ufoHull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7fbff"/><stop offset=".28" stop-color="#a8bacd"/><stop offset=".58" stop-color="#d8e5ef"/><stop offset=".82" stop-color="#aab9c8"/><stop offset="1" stop-color="#61778b"/></linearGradient>
+      <radialGradient id="ufoDome" cx="50%" cy="20%"><stop offset="0" stop-color="#d8fbff" stop-opacity=".98"/><stop offset=".52" stop-color="#81e4f1" stop-opacity=".86"/><stop offset="1" stop-color="#38bdf8" stop-opacity=".55"/></radialGradient>
     </defs>
-    <path d="M78 58 L142 58 L168 108 L52 108 Z" fill="url(#ufoBeam)"/>
-    <path d="M80 59 L58 104 M140 59 L162 104" fill="none" stroke="#34d399" stroke-opacity=".24" stroke-width="1.5"/>
-    <g transform="translate(110 112)">
-      <g class="ufo-disc">
-        <g class="ufo-disc-lift">
-          <ellipse rx="20" ry="7.5" fill="url(#ufoDisc)" stroke="#d1fae5" stroke-width="1.8"/>
-          <ellipse rx="5" ry="2.3" fill="#102234" stroke="#dbeafe" stroke-width="1.1"/>
-          <path d="M-14 0 Q0 5.5 14 0" fill="none" stroke="#ecfeff" stroke-opacity=".9" stroke-width="1.1"/>
-        </g>
-      </g>
-    </g>
-    <path d="M75 55 Q78 31 110 28 Q142 31 145 55 Z" fill="url(#ufoDome)" stroke="#dbeafe" stroke-opacity=".8" stroke-width="2"/>
-    <ellipse cx="110" cy="58" rx="55" ry="15" fill="url(#ufoHull)" stroke="#dbeafe" stroke-width="2"/>
-    <path d="M56 58 Q110 77 164 58" fill="none" stroke="#526b84" stroke-width="4" opacity=".8"/>
-    <ellipse cx="110" cy="56" rx="50" ry="8" fill="none" stroke="#38bdf8" stroke-width="2" opacity=".9"/>
-    <circle class="ufo-light ufo-light-cyan" cx="77" cy="59" r="3" fill="#67e8f9"/>
-    <circle class="ufo-light ufo-light-blue" cx="94" cy="63" r="3" fill="#60a5fa"/>
-    <circle class="ufo-light ufo-light-lavender" cx="126" cy="63" r="3" fill="#c4b5fd"/>
-    <circle class="ufo-light ufo-light-pink" cx="143" cy="59" r="3" fill="#f0abfc"/>
-    <ellipse cx="110" cy="54" rx="9" ry="3" fill="#f0f9ff" opacity=".85"/>
+    <path d="M72 58 L148 58 L168 108 L52 108 Z" fill="url(#ufoBeam)"/>
+    <path d="M72 59 L58 104 M148 59 L162 104" fill="none" stroke="#34d399" stroke-opacity=".28" stroke-width="1.5"/>
+    <ellipse cx="110" cy="62" rx="55" ry="12" fill="url(#ufoHull)" stroke="#e6f3ff" stroke-width="2"/>
+    <path d="M56 62 Q110 73.5 164 62" fill="none" stroke="#536b80" stroke-width="3.8" opacity=".82"/>
+    <path d="M75 55 Q78 31 110 28 Q142 31 145 55 Z" fill="url(#ufoDome)" stroke="#dbeafe" stroke-opacity=".9" stroke-width="2"/>
+    <ellipse cx="110" cy="57" rx="50" ry="8" fill="none" stroke="#38bdf8" stroke-width="2.2" opacity=".98"/>
+    <circle class="ufo-light ufo-light-cyan" cx="77" cy="59" r="4.5" fill="#67e8f9"/>
+    <circle class="ufo-light ufo-light-blue" cx="94" cy="63" r="4.5" fill="#60a5fa"/>
+    <circle class="ufo-light ufo-light-lavender" cx="126" cy="63" r="4.5" fill="#c4b5fd"/>
+    <circle class="ufo-light ufo-light-pink" cx="143" cy="59" r="4.5" fill="#f0abfc"/>
+    <ellipse cx="110" cy="54" rx="18" ry="3" fill="#f0f9ff" opacity=".9"/>
   </svg>
 </div>
 
@@ -306,12 +303,12 @@ footer a{color:#9edcff}
         <div><strong id="overallPct"></strong> <span class="muted" id="etaEl"></span></div>
       </div>
       <div class="muted" id="phaseLabel" style="margin-top:8px">Waiting…</div>
-      <div class="ufo-progress-lane"><div class="bar-wrap"><div class="bar" id="overallBar"></div></div></div>
+      <div class="ufo-progress-lane"><div class="bar-wrap"><div class="bar" id="overallBar"><span class="bar-disc-marker" aria-hidden="true"><svg viewBox="0 0 80 36" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="discHullOverall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#effff8"/><stop offset=".48" stop-color="#83f4de"/><stop offset="1" stop-color="#43cbd0"/></linearGradient></defs><g class="disc-shell"><ellipse cx="40" cy="18" rx="38" ry="15" fill="url(#discHullOverall)" stroke="#effffb" stroke-width="2.3"/><ellipse cx="40" cy="17.5" rx="34.5" ry="10.5" fill="none" stroke="#f4fffc" stroke-opacity=".82" stroke-width="1.2" stroke-dasharray="5 4"/><ellipse cx="40" cy="18" rx="9.5" ry="4.2" fill="#07131d" stroke="#eafffa" stroke-width="1.5"/><path d="M13 15 Q27 7 45 10 M50 26 Q64 23 68 15" fill="none" stroke="#f4fffd" stroke-opacity=".9" stroke-width="1.5" stroke-linecap="round"/><path d="M19 20 Q40 30 61 20" fill="none" stroke="#effffb" stroke-opacity=".82" stroke-width="1.1"/><circle class="disc-light disc-light-cyan" cx="21" cy="16" r="2.5" fill="#a7fff0"/><circle class="disc-light disc-light-blue" cx="31" cy="27" r="2" fill="#7dd3fc"/><circle class="disc-light disc-light-lavender" cx="49" cy="27" r="2" fill="#c4b5fd"/><circle class="disc-light disc-light-pink" cx="59" cy="16" r="2.5" fill="#f0abfc"/></g></svg></span></div></div></div>
       <div class="bar-wrap thin"><div class="bar thin" id="phaseBar"></div></div>
       <div class="stats-row"><span id="bytesEl">—</span><span>Speed: <span id="speedEl">—</span></span><span>Big discs take a few minutes — hashing about 2 million blocks is normal.</span></div>
       <div id="ftpLive" hidden style="margin-top:12px">
-        <div class="muted small" id="ftpLiveText" aria-live="polite">Waiting for FTP transfer…</div>
-        <div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="ftpLiveBar" style="width:0%"></div></div></div>
+        <div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="ftpLiveBar" style="width:0%"><span class="bar-disc-marker" aria-hidden="true"><svg viewBox="0 0 80 36" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="discHullFtp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#effff8"/><stop offset=".48" stop-color="#83f4de"/><stop offset="1" stop-color="#43cbd0"/></linearGradient></defs><g class="disc-shell"><ellipse cx="40" cy="18" rx="38" ry="15" fill="url(#discHullFtp)" stroke="#effffb" stroke-width="2.3"/><ellipse cx="40" cy="17.5" rx="34.5" ry="10.5" fill="none" stroke="#f4fffc" stroke-opacity=".82" stroke-width="1.2" stroke-dasharray="5 4"/><ellipse cx="40" cy="18" rx="9.5" ry="4.2" fill="#07131d" stroke="#eafffa" stroke-width="1.5"/><path d="M13 15 Q27 7 45 10 M50 26 Q64 23 68 15" fill="none" stroke="#f4fffd" stroke-opacity=".9" stroke-width="1.5" stroke-linecap="round"/><path d="M19 20 Q40 30 61 20" fill="none" stroke="#effffb" stroke-opacity=".82" stroke-width="1.1"/><circle class="disc-light disc-light-cyan" cx="21" cy="16" r="2.5" fill="#a7fff0"/><circle class="disc-light disc-light-blue" cx="31" cy="27" r="2" fill="#7dd3fc"/><circle class="disc-light disc-light-lavender" cx="49" cy="27" r="2" fill="#c4b5fd"/><circle class="disc-light disc-light-pink" cx="59" cy="16" r="2.5" fill="#f0abfc"/></g></svg></span></div></div></div>
+        <div class="muted small" id="ftpLiveText" aria-live="polite" style="margin-top:9px">Waiting for FTP transfer…</div>
         <button class="btn small primary ftp-retry-btn" id="ftpRetryBtn" type="button" hidden>Retry file &amp; continue</button>
       </div>
       <div class="btn-row">
@@ -471,8 +468,8 @@ footer a{color:#9edcff}
       <div id="rawFtpLive" hidden style="margin-top:12px">
         <div class="muted small" id="rawOverallLiveText" aria-live="polite"></div>
         <div class="bar-wrap thin raw-overall-wrap"><div class="bar thin raw-overall-bar" id="rawOverallLiveBar" style="width:0%"></div></div>
+        <div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="rawFtpLiveBar" style="width:0%"><span class="bar-disc-marker" aria-hidden="true"><svg viewBox="0 0 80 36" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="discHullRawFtp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#effff8"/><stop offset=".48" stop-color="#83f4de"/><stop offset="1" stop-color="#43cbd0"/></linearGradient></defs><g class="disc-shell"><ellipse cx="40" cy="18" rx="38" ry="15" fill="url(#discHullRawFtp)" stroke="#effffb" stroke-width="2.3"/><ellipse cx="40" cy="17.5" rx="34.5" ry="10.5" fill="none" stroke="#f4fffc" stroke-opacity=".82" stroke-width="1.2" stroke-dasharray="5 4"/><ellipse cx="40" cy="18" rx="9.5" ry="4.2" fill="#07131d" stroke="#eafffa" stroke-width="1.5"/><path d="M13 15 Q27 7 45 10 M50 26 Q64 23 68 15" fill="none" stroke="#f4fffd" stroke-opacity=".9" stroke-width="1.5" stroke-linecap="round"/><path d="M19 20 Q40 30 61 20" fill="none" stroke="#effffb" stroke-opacity=".82" stroke-width="1.1"/><circle class="disc-light disc-light-cyan" cx="21" cy="16" r="2.5" fill="#a7fff0"/><circle class="disc-light disc-light-blue" cx="31" cy="27" r="2" fill="#7dd3fc"/><circle class="disc-light disc-light-lavender" cx="49" cy="27" r="2" fill="#c4b5fd"/><circle class="disc-light disc-light-pink" cx="59" cy="16" r="2.5" fill="#f0abfc"/></g></svg></span></div></div></div>
         <div class="muted small" id="rawFtpLiveText" aria-live="polite" style="margin-top:9px"></div>
-        <div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="rawFtpLiveBar" style="width:0%"></div></div></div>
         <div class="btn-row ftp-retry-actions" id="rawFtpRetryActions" hidden><button class="btn small primary ftp-retry-btn" id="rawFtpRetryBtn" type="button">Retry file &amp; continue</button><button class="btn small danger" id="rawFtpCancelBtn" type="button">Cancel this upload</button></div>
       </div>
     </section>
@@ -2567,7 +2564,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
                 liveRate = (sent - lastSent) * 1000 / Math.max(1, now - lastSampleAt);
                 lastSent = sent; lastSampleAt = now;
               }
-              const rateLabel = liveRate ? ' · ' + fmtBytes(liveRate) + '/s' : '';
+              const rateLabel = liveRate ? ' • ' + fmtBytes(liveRate) + '/s' : '';
               setFtpLive('Uploading ' + shortName + ' to Xbox: ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + rateLabel, frac);
             } else if (status.state === 'done') {
               lastSent = total;
@@ -2732,7 +2729,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const phaseFrac = p.total ? p.done / p.total : 1;
     els.phaseBar.style.width = (phaseFrac * 100).toFixed(1) + '%';
     els.overallBar.style.width = (p.overall * 100).toFixed(1) + '%';
-    positionCompletionUfo('overallBar', p.overall);
+    // During FTP staging/upload, leave the craft on the current-file transfer bar.
+    // The overall bar still advances independently above it.
+    if (!(state.outputMode === 'ftp' && state.ftpActivity)) positionCompletionUfo('overallBar', p.overall);
     els.overallPct.textContent = Math.floor(p.overall * 100) + '%';
     els.bytesEl.textContent = fmtBytes(p.done) + ' / ' + fmtBytes(p.total);
     const phaseElapsed = (now - state.phaseStart) / 1000;
@@ -3113,11 +3112,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const pct = Math.max(0, Math.min(1, Number(fraction) || 0));
     if (completionUfoTakeoffTimer) { clearTimeout(completionUfoTakeoffTimer); completionUfoTakeoffTimer = 0; }
     const returning = completionUfoReturning;
-    if (!returning) craft.classList.remove('takeoff', 'approaching', 'progressing');
+    const sameBar = !returning && completionUfoBarId === barId && craft.parentElement === lane && craft.classList.contains('progressing');
+    if (!returning && !sameBar) craft.classList.remove('takeoff', 'approaching', 'progressing');
     if (craft.parentElement !== lane) lane.appendChild(craft);
     craft.style.position = '';
     completionUfoBarId = barId;
-    craft.style.left = (pct * 100) + '%';
+    const laneRect = lane.getBoundingClientRect();
+    const fillRect = fill.getBoundingClientRect();
+    craft.style.left = (fillRect.right - laneRect.left) + 'px';
     craft.style.top = (track.offsetTop + track.offsetHeight / 2) + 'px';
     if (completionUfoAway && pct === 0 && !returning) {
       completionUfoAway = false;
@@ -3131,7 +3133,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }, 1000);
     } else if (returning) {
       // Leave the approach animation running while the bar begins to advance.
-    } else {
+    } else if (!craft.classList.contains('progressing')) {
       craft.classList.add('progressing');
     }
   }

@@ -1,22 +1,17 @@
-Nebula ISO2GOD website update package
+Nebula ISO2GOD — Full GitHub Pages Website Build
 
-IMPORTANT: Publish this update to Lucas1279/nebula-iso2god (the ISO2GOD repository), not Lucas1279/Nebula-convert. These are separate websites.
+This archive is the complete site-root build for Lucas1279/nebula-iso2god. It includes the updated index.html, vendor files, FTP helper/readme, and the launcher/helper ZIP downloads linked by the page.
 
-To publish from GitHub's website (no GitHub Desktop required): open the Lucas1279/nebula-iso2god repository, make sure you are on the branch used by GitHub Pages, and upload/replace these files at the repository root:
-- index.html
-- ftp_helper.py
-- README_FTP.md
-- the complete vendor/ directory (keep its subfolders and files)
+Upload through GitHub's website (no GitHub Desktop required):
+1. Download and extract this archive on your computer.
+2. Open https://github.com/Lucas1279/nebula-iso2god and select the branch used by GitHub Pages.
+3. Choose Add file → Upload files.
+4. Upload the extracted files and folders into the repository root, replacing the matching files. Keep the complete vendor/ folder and the three linked ZIP download assets.
+5. Commit the changes to that branch. Do not upload this outer full-build ZIP as the only file.
+6. Wait for GitHub Pages to redeploy at https://lucas1279.github.io/nebula-iso2god/.
+
+The page links to these root-level assets, so keep them in the repository:
 - nebula-iso2god-timeout-fix.zip
-- Nebula-ISO2GOD-One-File.zip
 - Nebula-ISO2GOD-One-File-Fixed.zip
 
-Commit the replacement files to the published branch, then wait for GitHub Pages to redeploy at https://lucas1279.github.io/nebula-iso2god/.
-
-For raw XBLA/XBLIG uploads, use the extracted-folder workflow: unzip the game archive on your Mac, then select/drop the extracted 8-character Title ID folder (for example `584111FF`) or its parent game folder. The page finds files under `000D0000` and uploads them unchanged. Do not select the outer archive, only the `000D0000` folder, or an individual file. The ISO conversion workflow's existing local `.7z` image import remains supported.
-
-The page also keeps the separate blue Xbox-transfer bar beneath the overall conversion bar, with the current Data####/filename, bytes, and transfer speed. In the raw XBLA/XBLIG uploader, the overall job bar aggregates progress across all selected content files, while the blue bar and filename/bytes/speed line track the current file. It includes the rotating UFO disc and staggered theme-matched lights. Data required for an FTP retry is retained.
-
-The ISO .7z image importer runs locally in a recent Safari, Chrome, or Edge browser on HTTPS or through the updated local helper at http://127.0.0.1:8765/ (not file://). Only supported image entries are extracted. Browser site storage must have enough free space for the extracted images. Password-protected or damaged archives are not supported.
-
-The app does not delete your downloaded .command/.zip files or files already written to the Xbox. FTP is unencrypted; use it only on a trusted home LAN.
+The FTP helper is a local Mac program; GitHub Pages hosts the static website but does not run the Python helper. Follow README_FTP.md for local helper setup. FTP is unencrypted; use it only on a trusted LAN.
