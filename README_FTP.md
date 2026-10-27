@@ -38,10 +38,16 @@ Each selected file is sent without conversion, renaming, or repacking to:
 
 The helper creates missing folders. A file with the same name in that destination may be overwritten. Use the folder picker or drag the extracted Title ID/game folder; multiple files are queued and sent one at a time. During upload, the overall job bar tracks aggregate bytes across the selection, while the separate blue bar and filename/bytes/speed line track the current Xbox file. If FTP fails, keep this page, helper, and extracted source files available while you use **Retry file & continue**. After the upload reports complete, rescan Aurora.
 
+## Merge PS1 multi-BIN games for PCSXR360
+
+Choose **PS1 BIN merger for PCSXR360**, then select or drop an extracted PS1 game folder containing one `.cue` and every `.bin` track it references. To send the result directly to the console, choose **Upload to Xbox via FTP**, enter the dashboard FTP details, and test the connection. The base path is the HDD/USB root exposed by the dashboard. The separate Xbox folder field is optional: leave it blank to upload into that base path, or enter the folder PCSXR360 browses for games (for example, `Emulators/PCSXR360/games`). Missing folders are created automatically. Per-game subfolders are also optional.
+
+Each disc is merged locally first. The helper stages one finished file at a time on the computer, then sends the merged `.bin`, its same-named `.cue`, and an optional matching `.sbi` to the Xbox. Keep each `.bin` and `.cue` together with exactly matching names. In PCSXR360, select the `.bin`; the emulator finds the matching `.cue` automatically for track/CD-audio information. Multi-disc games remain separate pairs and should be swapped with the emulator's disc-eject flow. The source folder is never modified. Merging is lossless and does not compress the game; only raw 2352-byte-sector BIN/CUE images are accepted for PCSXR360.
+
 ## Important safety and limitations
 
 - Use FTP only on a trusted home LAN. Xbox FTP is normally unencrypted. Do not enable router port forwarding or expose the console's FTP port to the public internet.
-- The helper binds only to `127.0.0.1` (your own computer), not to your LAN. The optional “Remember Xbox IP and username” checkbox stores only those two values in the browser’s local storage on this Mac; the FTP password is never saved. The checkboxes on both task tabs share the same saved values.
+- The helper binds only to `127.0.0.1` (your own computer), not to your LAN. The optional “Remember Xbox IP and username” checkbox stores only those two values in the browser’s local storage on this Mac; the FTP password is never saved. The checkboxes on all three task tabs share the same saved values.
 - For ISO conversion, the ISO itself is never uploaded; only generated package files are sent to the Xbox.
 - The helper stages one file at a time. Ensure temporary disk space is available for the largest file being sent (raw files may be much larger than a single GOD data part). A failed FTP file remains staged while Retry is available; success, cancel, or normal helper shutdown removes it, and the next helper launch sweeps abandoned staging files from a prior crash.
 - The helper allows up to 180 seconds without FTP data before a transfer times out. Wired Ethernet and a stable USB/HDD connection can reduce stalls.
