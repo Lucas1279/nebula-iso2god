@@ -9,14 +9,14 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='30%25' r='80%25'%3E%3Cstop offset='0' stop-color='%23bcd7ff'/%3E%3Cstop offset='.55' stop-color='%236f8dff'/%3E%3Cstop offset='1' stop-color='%23252a7a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%23050a24'/%3E%3Ccircle cx='32' cy='32' r='16' fill='url(%23g)'/%3E%3Cellipse cx='32' cy='35' rx='26' ry='7' fill='none' stroke='%23c4b5fd' stroke-width='3' transform='rotate(-14 32 35)'/%3E%3Ccircle cx='13' cy='13' r='1.7' fill='%23fff'/%3E%3Ccircle cx='51' cy='16' r='1.3' fill='%237dd3fc'/%3E%3Ccircle cx='47' cy='50' r='1.5' fill='%23f0abfc'/%3E%3C/svg%3E">
 <style>
 :root{
-  --bg:#03040c; --panel:rgba(10,14,34,.72); --panel2:rgba(16,21,48,.82);
+  --bg:#03040c; --panel:rgba(10,14,34,.79); --panel2:rgba(16,21,48,.87);
   --line:rgba(130,155,255,.24); --text:#edf1ff; --muted:#a7b0d8;
   --accent:#6ee7ff; --accent2:#a78bfa; --accent3:#34d399; --warn:#fbbf24; --err:#ff7a90;
   --radius:18px; --shadow:0 24px 70px rgba(0,0,0,.55), 0 0 0 1px rgba(140,165,255,.08) inset;
   font-family:Inter, ui-sans-system, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scrollbar-gutter:stable}
 body{
   margin:0; color:var(--text); background:var(--bg); min-height:100vh; overflow-x:hidden;
   background-image:
@@ -27,33 +27,33 @@ body{
     linear-gradient(180deg,#05061a 0%,#03040c 48%,#02030a 100%);
 }
 #stars{position:fixed; inset:0; z-index:0; pointer-events:none}
-.nebula{position:fixed; border-radius:50%; filter:blur(70px); pointer-events:none; z-index:0; opacity:.5; mix-blend-mode:screen}
-.nebula.n1{width:55vmax;height:55vmax;left:-18vmax;top:-22vmax;background:radial-gradient(circle at 40% 40%, rgba(124,92,255,.55), rgba(40,20,110,0) 68%); animation:drift1 90s ease-in-out infinite alternate}
-.nebula.n2{width:48vmax;height:48vmax;right:-16vmax;top:8vmax;background:radial-gradient(circle at 60% 40%, rgba(0,190,255,.42), rgba(0,40,90,0) 68%); animation:drift2 110s ease-in-out infinite alternate}
-.nebula.n3{width:42vmax;height:42vmax;left:28vmax;bottom:-24vmax;background:radial-gradient(circle at 50% 50%, rgba(255,90,180,.30), rgba(80,0,60,0) 68%); animation:drift1 130s ease-in-out infinite alternate-reverse}
-@keyframes drift1{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(6vmax,3vmax,0) scale(1.12)}}
-@keyframes drift2{from{transform:translate3d(0,0,0) scale(1.08)}to{transform:translate3d(-5vmax,4vmax,0) scale(.96)}}
-.planet{position:fixed; right:-70px; bottom:-90px; width:min(430px,55vw); z-index:0; pointer-events:none; opacity:.8; filter:drop-shadow(0 0 60px rgba(90,140,255,.35))}
-.completion-ufo{position:fixed;left:50%;top:42vh;width:min(330px,67.5vw);height:auto;z-index:5;pointer-events:none;visibility:hidden;opacity:0;filter:drop-shadow(0 0 3px rgba(103,232,249,.72)) drop-shadow(0 0 6px rgba(52,211,153,.5)) drop-shadow(0 0 11px rgba(56,189,248,.28))}
+.nebula{position:fixed; border-radius:50%; pointer-events:none; z-index:0; opacity:.5}
+.nebula.n1{width:55vmax;height:55vmax;left:-18vmax;top:-22vmax;background:radial-gradient(circle at 40% 40%, rgba(124,92,255,.55), rgba(40,20,110,0) 48%);}
+.nebula.n2{width:48vmax;height:48vmax;right:-16vmax;top:8vmax;background:radial-gradient(circle at 60% 40%, rgba(0,190,255,.42), rgba(0,40,90,0) 48%);}
+.nebula.n3{width:42vmax;height:42vmax;left:28vmax;bottom:-24vmax;background:radial-gradient(circle at 50% 50%, rgba(255,90,180,.30), rgba(80,0,60,0) 68%);}
+/* Nebula glows are intentionally static: their gradients are already soft, and moving three viewport-sized layers was the page-wide frame-rate bottleneck. The starfield still drifts/twinkles. */
+
+.planet{position:fixed; right:-70px; bottom:-90px; width:min(430px,55vw); z-index:0; pointer-events:none; opacity:.8; filter:drop-shadow(0 0 24px rgba(90,140,255,.3))}
+.completion-ufo{--ufo-x:50vw;--ufo-y:42vh;position:fixed;left:0;top:0;width:min(330px,67.5vw);height:auto;z-index:5;pointer-events:none;visibility:hidden;opacity:0;transform:translate3d(-100vw,-100vh,0);transform-origin:center;will-change:transform,opacity;backface-visibility:hidden;filter:drop-shadow(0 0 6px rgba(52,211,153,.5)) drop-shadow(0 0 12px rgba(56,189,248,.28))}
 .completion-ufo svg{display:block;width:100%;height:auto;overflow:visible;position:relative;z-index:1}
-.completion-ufo.progressing::before,.completion-ufo.approaching::before,.completion-ufo.takeoff::before{content:"";position:absolute;left:9.5%;right:9.5%;top:20.5%;bottom:20.5%;z-index:0;border-radius:50%;background:radial-gradient(ellipse at 50% 49%,rgba(103,255,225,.34),rgba(52,211,196,.24) 38%,rgba(56,189,248,.14) 61%,transparent 79%);filter:blur(6px);pointer-events:none}
-.completion-ufo.progressing{position:absolute;width:min(330px,67.5vw);visibility:visible;opacity:1;transform:translate(-50%,-95%);transition:left .12s linear;filter:drop-shadow(0 0 3px rgba(103,232,249,.76)) drop-shadow(0 0 7px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3))}
-.completion-ufo.approaching{position:absolute;width:min(330px,67.5vw);visibility:visible;opacity:1;filter:drop-shadow(0 0 3px rgba(103,232,249,.76)) drop-shadow(0 0 7px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3));animation:ufo-return 1s cubic-bezier(.18,.72,.3,1) both}
-.completion-ufo.takeoff{position:fixed;width:min(330px,67.5vw);visibility:visible;filter:drop-shadow(0 0 3px rgba(103,232,249,.76)) drop-shadow(0 0 7px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3));animation:ufo-takeoff 2.55s cubic-bezier(.2,.72,.25,1) both}
+.completion-ufo.progressing::before,.completion-ufo.approaching::before,.completion-ufo.takeoff::before{content:"";position:absolute;left:9.5%;right:9.5%;top:20.5%;bottom:20.5%;z-index:0;border-radius:50%;background:radial-gradient(ellipse at 50% 49%,rgba(103,255,225,.34),rgba(52,211,196,.24) 38%,rgba(56,189,248,.14) 61%,transparent 79%);pointer-events:none}
+.completion-ufo.progressing{position:absolute;width:min(330px,67.5vw);visibility:visible;opacity:1;transition:none;filter:drop-shadow(0 0 6px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3))}
+.completion-ufo.approaching{position:absolute;width:min(330px,67.5vw);visibility:visible;opacity:1;transition:none;filter:drop-shadow(0 0 6px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3))}
+.completion-ufo.takeoff{position:fixed;width:min(330px,67.5vw);visibility:visible;filter:drop-shadow(0 0 6px rgba(52,211,153,.55)) drop-shadow(0 0 12px rgba(56,189,248,.3));animation:ufo-takeoff 2.55s cubic-bezier(.2,.72,.25,1) both}
 .completion-ufo .ufo-light{transform-box:fill-box;transform-origin:center}
 .completion-ufo.progressing .ufo-light,.completion-ufo.approaching .ufo-light,.completion-ufo.takeoff .ufo-light{animation-name:ufo-light-blink;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
 .completion-ufo .ufo-light-cyan{--light-on:#67e8f9;--light-off:#155e75;animation-duration:.88s;animation-delay:0s}
 .completion-ufo .ufo-light-blue{--light-on:#60a5fa;--light-off:#1e3a8a;animation-duration:1.19s;animation-delay:.16s}
 .completion-ufo .ufo-light-lavender{--light-on:#c4b5fd;--light-off:#5b21b6;animation-duration:.76s;animation-delay:.31s}
 .completion-ufo .ufo-light-pink{--light-on:#f0abfc;--light-off:#86198f;animation-duration:1.34s;animation-delay:.47s}
-@keyframes ufo-return{0%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0}100%{transform:translate3d(-50%,-95%,0) scale(1);opacity:1}}
-@keyframes ufo-takeoff{0%{transform:translate3d(-50%,-95%,0) scale(.72);opacity:.98;visibility:visible}16%{transform:translate3d(calc(-50% + 2vw),-132%,0) scale(.8);opacity:1}100%{transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08);opacity:0;visibility:hidden}}
+/* The return flight is integrated into the same rAF solver as forward progress, so it cannot fight the bar or jump between lanes. */
+@keyframes ufo-takeoff{0%{transform:translate3d(var(--ufo-x),var(--ufo-y),0) translate(-50%,-95%) scale(1);opacity:.98;visibility:visible}16%{transform:translate3d(calc(var(--ufo-x) + 2vw),calc(var(--ufo-y) - 7vh),0) translate(-50%,-95%) scale(.86);opacity:1}100%{transform:translate3d(calc(var(--ufo-x) + 5vw),calc(var(--ufo-y) - 58vh),0) translate(-50%,-95%) scale(.08);opacity:0;visibility:hidden}}
 @keyframes ufo-disc-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes ufo-light-blink{0%,100%{opacity:.24;fill:var(--light-off);transform:scale(.78);filter:drop-shadow(0 0 0 var(--light-on))}40%,62%{opacity:1;fill:var(--light-on);transform:scale(1.3);filter:drop-shadow(0 0 7px var(--light-on))}}
+@keyframes ufo-light-blink{0%,100%{opacity:.3;fill:var(--light-off);transform:scale(.82)}40%,62%{opacity:1;fill:var(--light-on);transform:scale(1.22)}}
 @media(prefers-reduced-motion:reduce){.completion-ufo.progressing,.completion-ufo.approaching,.completion-ufo.takeoff{animation:none!important;opacity:0!important;visibility:hidden!important}.completion-ufo .ufo-light,.bar-disc-marker,.bar-disc-marker .disc-shell,.bar-disc-marker .disc-light{animation:none!important}}
 .wrap{position:relative; z-index:2; max-width:1080px; margin:0 auto; padding:34px 20px 80px}
 header.hero{text-align:center; padding:26px 10px 8px}
-.orbit-badge{display:inline-flex; gap:8px; align-items:center; padding:7px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(10,16,40,.6); color:var(--muted); font-size:.83rem; letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(8px)}
+.orbit-badge{display:inline-flex; gap:8px; align-items:center; padding:7px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(10,16,40,.74); color:var(--muted); font-size:.83rem; letter-spacing:.12em; text-transform:uppercase}
 .orbit-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--accent3); box-shadow:0 0 12px var(--accent3)}
 @keyframes nebula-gradient-shift{from{background-position:0% 50%}to{background-position:100% 50%}}
 .credit-gradient{font-weight:800;text-decoration:none;background:linear-gradient(100deg,#b9e8ff 0%,#9dc5ff 35%,#b6adff 66%,#e5a7f3 100%);background-size:140% 100%;background-position:100% 50%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:nebula-gradient-shift 9s ease-in-out infinite alternate;animation-delay:-4.5s}
@@ -68,15 +68,15 @@ h1{font-size:clamp(2.3rem,6vw,4.2rem); line-height:1.02; margin:18px 0 10px; let
 .badge{font-size:.8rem; padding:6px 11px; border-radius:999px; border:1px solid var(--line); background:rgba(12,18,44,.66)}
 .badge.ok{color:#9ff3d2}.badge.warn{color:#ffd98a}
 .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:26px 0 4px}
-.raw-steps{display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:100%;margin:20px auto 4px;padding:8px 12px;border:1px solid var(--line);border-radius:16px;background:rgba(10,14,34,.72);backdrop-filter:blur(10px)}
+.raw-steps{display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:100%;margin:20px auto 4px;padding:8px 12px;border:1px solid var(--line);border-radius:16px;background:rgba(10,14,34,.8)}
 .raw-step{display:inline-flex;align-items:center;gap:7px;padding:0 5px;color:var(--text);font-size:.9rem;font-weight:700;white-space:nowrap}
 .raw-step .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06101f;font-size:.82rem;font-weight:800}
 .raw-step-sep{color:var(--muted);opacity:.65;font-size:1.05rem}
-.step{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:15px 16px; backdrop-filter:blur(10px)}
+.step{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:15px 16px}
 .step b{display:flex; align-items:center; gap:9px; font-size:.98rem}
 .step .n{display:inline-grid; place-items:center; width:27px;height:27px;border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#06101f; font-weight:800}
 .step span{display:block; color:var(--muted); font-size:.88rem; line-height:1.5; margin-top:7px}
-.card{background:var(--panel); border:1px solid var(--line); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); backdrop-filter:blur(10px); padding:24px; margin-top:22px}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); padding:24px; margin-top:22px}
 .card h2{margin:0 0 6px; font-size:1.35rem; letter-spacing:-.01em}
 .card h3{margin:22px 0 8px; font-size:1.02rem}
 .muted{color:var(--muted)} .small{font-size:.88rem} .tiny{font-size:.8rem}
@@ -150,11 +150,11 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 .bar-wrap{height:15px; border-radius:999px; background:rgba(255,255,255,.09); overflow:hidden; margin-top:13px; border:1px solid rgba(150,175,255,.16)}
 .ufo-progress-lane{height:190px;position:relative;display:flex;align-items:flex-end;padding-bottom:7px;margin-top:2px}
 .ufo-progress-lane>.bar-wrap{width:100%;height:15px;margin-top:0;overflow:visible;border-radius:0;background:#111827;border-color:rgba(111,132,173,.56)}
-.bar{position:relative;height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);box-shadow:0 0 22px rgba(120,160,255,.65);transition:width .18s}
+.bar{position:relative;height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);box-shadow:0 0 22px rgba(120,160,255,.65);transition:none;will-change:width}
 .bar.thin{height:100%;background:linear-gradient(90deg,#34d399,#38bdf8)}
 .bar.ftp-transfer-bar{background:linear-gradient(90deg,#2563eb,#38bdf8,#818cf8);box-shadow:0 0 22px rgba(56,189,248,.48)}
 .ufo-progress-lane>.bar-wrap>.bar{border-radius:0;background:linear-gradient(90deg,#5c9df5,#6e89f1);box-shadow:0 0 8px rgba(78,153,255,.34)}
-.bar-disc-marker{position:absolute;z-index:4;left:100%;top:50%;display:block;width:clamp(42px,12vw,60px);height:auto;aspect-ratio:80/36;transform:translate(-50%,-50%);filter:drop-shadow(0 0 5px rgba(147,255,227,.96)) drop-shadow(0 0 14px rgba(52,211,153,.75)) drop-shadow(0 0 20px rgba(56,189,248,.4));pointer-events:none;animation:bar-disc-pulse 1.15s ease-in-out infinite}
+.bar-disc-marker{position:absolute;z-index:4;left:100%;top:50%;display:block;width:clamp(42px,12vw,60px);height:auto;aspect-ratio:80/36;transform:translate(-50%,-50%);filter:drop-shadow(0 0 8px rgba(52,211,153,.72)) drop-shadow(0 0 16px rgba(56,189,248,.38));pointer-events:none;animation:bar-disc-pulse 1.35s ease-in-out infinite;will-change:opacity}
 .bar-disc-marker svg{display:block;width:100%;height:100%;overflow:visible}
 .bar-disc-marker .disc-shell{transform-box:fill-box;transform-origin:center;animation:ufo-disc-spin 2.8s linear infinite}
 .bar-disc-marker .disc-light{transform-box:fill-box;transform-origin:center;animation-name:ufo-light-blink;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
@@ -162,17 +162,17 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 .bar-disc-marker .disc-light-blue{--light-on:#7dd3fc;--light-off:#155e75;animation-duration:1.19s;animation-delay:.16s}
 .bar-disc-marker .disc-light-lavender{--light-on:#c4b5fd;--light-off:#5b21b6;animation-duration:.76s;animation-delay:.31s}
 .bar-disc-marker .disc-light-pink{--light-on:#f0abfc;--light-off:#86198f;animation-duration:1.34s;animation-delay:.47s}
-@keyframes bar-disc-pulse{0%,100%{opacity:.88;filter:drop-shadow(0 0 5px rgba(147,255,227,.8)) drop-shadow(0 0 11px rgba(52,211,153,.6))}50%{opacity:1;filter:drop-shadow(0 0 8px rgba(223,255,247,1)) drop-shadow(0 0 17px rgba(52,211,153,.92)) drop-shadow(0 0 23px rgba(56,189,248,.55))}}
+@keyframes bar-disc-pulse{0%,100%{opacity:.9}50%{opacity:1}}
 .raw-overall-wrap{margin-top:5px}
 .bar.raw-overall-bar{background:linear-gradient(90deg,#34d399,#818cf8,#e879f9);box-shadow:0 0 18px rgba(129,140,248,.42)}
-#archiveProgressBar,#rawArchiveProgressBar{transition:width .22s cubic-bezier(.22,.61,.36,1);will-change:width,transform}
-#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.35s ease-in-out infinite alternate}
-@keyframes archive-progress-sweep{from{transform:translateX(-108%);opacity:.58}to{transform:translateX(300%);opacity:1}}
+#archiveProgressBar,#rawArchiveProgressBar{transition:none;will-change:width,transform}
+#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.25s linear infinite}
+@keyframes archive-progress-sweep{0%{transform:translateX(-110%);opacity:0}12%{opacity:1}88%{opacity:1}100%{transform:translateX(305%);opacity:0}}
 .bar-wrap.thin{height:8px; margin-top:9px}
 .ufo-progress-lane>.bar-wrap.thin{height:15px;margin-top:0}
 .is-complete .bar{background:linear-gradient(90deg,#34d399,#38bdf8);box-shadow:0 0 18px rgba(56,189,248,.52),0 0 25px rgba(52,211,153,.28)}
 .is-complete .bar-wrap{border-color:rgba(52,211,153,.46)}
-#rawFtpLive.is-complete .bar-wrap.thin{height:10px}
+#rawFtpLive.is-complete .bar-wrap.thin{border-color:rgba(52,211,153,.46)}
 #ftpLive.is-complete #ftpLiveText,#rawFtpLive.is-complete #rawFtpLiveText{color:#c8ffe6;font-size:1rem;font-weight:800}
 #rawFtpUploadResult.is-complete{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12)}
 #rawFtpUploadResult.is-complete::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251d;font-size:.9rem;font-weight:900}
@@ -186,7 +186,7 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 #doneCard.is-complete .done-banner .muted{color:#b6d9dc}
 .download-row{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(130,155,255,.14); flex-wrap:wrap}
 .download-row code{word-break:break-all; color:#bfe9ff}
-details.faq{background:var(--panel); border:1px solid var(--line); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); backdrop-filter:blur(10px); padding:24px; margin-top:22px}
+details.faq{background:var(--panel); border:1px solid var(--line); border-radius:calc(var(--radius) + 6px); box-shadow:var(--shadow); padding:24px; margin-top:22px}
 summary{cursor:pointer; font-weight:800; font-size:1.08rem}
 summary:focus-visible{outline:2px solid rgba(110,231,255,.7); outline-offset:4px; border-radius:8px}
 .faq-body{color:var(--muted); line-height:1.68; font-size:.94rem}
@@ -206,7 +206,7 @@ footer a{color:#9edcff}
 #psxFtpRetryActions[hidden]{display:none}
 #psxFtpStatus.is-connected{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-size:1rem;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12);overflow-wrap:anywhere}
 #psxFtpStatus.is-connected::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251f;font-size:.9rem;font-weight:900;line-height:1}
-#psxFtpLive.is-complete .bar-wrap.thin{height:10px}
+#psxFtpLive.is-complete .bar-wrap.thin{border-color:rgba(52,211,153,.46)}
 #psxFtpLive.is-complete #psxFtpLiveText{color:#c8ffe6;font-size:1rem;font-weight:800}
 #psxLive.is-complete .bar{background:linear-gradient(90deg,#34d399,#38bdf8);box-shadow:0 0 18px rgba(56,189,248,.52),0 0 25px rgba(52,211,153,.28)}
 #psxDoneCard:not([hidden]){animation:panel-in .24s ease-out}
@@ -239,7 +239,13 @@ footer a{color:#9edcff}
   dl.details{grid-template-columns:1fr; gap:2px} dl.details dd{margin-bottom:8px}
   .card{padding:19px}
 }
-@media (max-width:520px){.raw-steps{gap:3px;padding:7px 8px}.raw-step{gap:5px;padding:0 2px;font-size:.78rem}.raw-step .n{width:21px;height:21px;font-size:.75rem}.raw-step-sep{font-size:.9rem}}
+@media (max-width:520px){.raw-steps{width:100%;flex-wrap:wrap;gap:3px 5px;padding:7px 8px}.raw-step{gap:5px;padding:0 2px;font-size:.78rem}.raw-step .n{width:21px;height:21px;font-size:.75rem}.raw-step-sep{font-size:.9rem}code{overflow-wrap:anywhere}}
+#phaseLabel{min-height:1.5em}
+#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText,#psxLiveText,#psxFtpLiveText,#psxOverallLiveText{line-height:1.45;min-height:1.45em}
+#logEl,.logbox{height:230px;scrollbar-gutter:stable}
+.ufo-progress-lane{flex:none;contain:layout style}
+body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body.is-working .drop::before{animation-play-state:paused}
+@media (max-width:700px){#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText,#psxLiveText,#psxFtpLiveText,#psxOverallLiveText{min-height:2.9em}}
 @media (prefers-reduced-motion:reduce){.nebula,h1,.credit-gradient,.drop::before,#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{animation:none!important}#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{transform:none} html{scroll-behavior:auto}}
 </style>
 </head>
@@ -543,7 +549,7 @@ footer a{color:#9edcff}
       <div class="btn-row"><button class="btn small" id="psxClearJobsBtn" type="button">Clear list</button></div>
       <div class="setup psx-group-box" id="psxMultiDiscBox" hidden>
         <strong>Detected multi-disc set(s)</strong>
-        <p class="muted small" style="margin:6px 0 0;line-height:1.55">Drop or select all discs together and the site will keep each disc as its own <code>.bin</code> + <code>.cue</code> pair, grouped inside one folder named after the game. You can edit that folder name before merging.</p>
+        <p class="muted small" style="margin:6px 0 0;line-height:1.55">Drop or select all discs together and the site will keep each disc as its own <code>.bin</code> + <code>.cue</code> pair, grouped inside one folder named after the game. Named companion discs — for example <code>Arcade Mode</code> / <code>Simulation Mode</code>, not only “Disc 1 / Disc 2” — are detected too. You can edit that folder name before merging.</p>
         <div id="psxMultiDiscList"></div>
       </div>
       <label class="check small"><input id="psxGroupMultiDisc" type="checkbox" checked><span><strong>Automatically group multi-disc games into one folder per game</strong> when two or more discs from the same game are detected. Applies to <strong>Save to a folder</strong> and <strong>FTP</strong>; individual browser downloads remain separate files, but their labels show the intended game folder.</span></label>
@@ -919,6 +925,20 @@ const Iso2GodEngine = (() => {
     sha1Into(b.subarray(0x0344, 0x0344 + 0xacbc), b, 0x032c);
     return b;
   }
+
+  async function yieldToBrowser() {
+    if (typeof scheduler !== 'undefined' && scheduler && typeof scheduler.yield === 'function') {
+      await scheduler.yield();
+      return;
+    }
+    await new Promise(resolve => {
+      let settled = false;
+      const finish = () => { if (!settled) { settled = true; resolve(); } };
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(finish);
+      setTimeout(finish, 50);
+    });
+  }
+  const engineNow = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
 
   /* Iso2God's container file name for Xbox 360 packages: first 10 bytes of
    * SHA1 over the .NET-BinaryWriter representation of
@@ -1423,6 +1443,7 @@ const Iso2GodEngine = (() => {
 
     log(`Plan: ${plan.blockCount.toLocaleString()} block(s) in ${plan.partCount} part file(s), ${trimMode === 'none' ? 'keeping the full game partition' : 'trimming unused space from the end'}.`);
 
+    let lastUiYield = engineNow();
     /* ---- Phase 1: hash the whole game partition -------------------- */
     const totalSubparts = Math.ceil(plan.blockCount / BLOCKS_PER_SUBPART);
     const masterLists = [];
@@ -1450,6 +1471,11 @@ const Iso2GodEngine = (() => {
       const subList = new Uint8Array(BLOCK_SIZE);
       for (let b = 0; b < blocksHere; b++) {
         sha1Into(blockBytes.subarray(b * BLOCK_SIZE, (b + 1) * BLOCK_SIZE), subList, b * 20);
+        if ((b & 31) === 31 && engineNow() - lastUiYield >= 40) {
+          await yieldToBrowser();
+          lastUiYield = engineNow();
+          checkCancel();
+        }
       }
       subListsByPart[partIndex].push(subList);
       sha1Into(subList, masterLists[partIndex], subInPart * 20);
@@ -1639,6 +1665,370 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     psxOutputMode: hasDirPicker ? 'folder' : 'files', psxDirHandle: null,
     psxTotalBytes: 0, psxCompletedBytes: 0, psxCurrentBytes: 0, psxJobIndex: 0, psxJobCount: 0, psxDownloadUrls: [], psxDoneReady: false, psxFinishTimer: 0, psxGroupNameOverrides: {},
   };
+
+
+  const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function prefersReducedMotion() { return reducedMotionQuery.matches; }
+  function clamp01(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
+  }
+  function setTextIfChanged(el, text) {
+    if (el && el.textContent !== text) el.textContent = text;
+  }
+  function syncWorkingMotionState() {
+    const working = !!(state.converting || state.batchRunning || state.archiveBusy || state.rawUploading || state.psxBusy);
+    document.body.classList.toggle('is-working', working);
+    return working;
+  }
+  function scrollCardIntoView(el, options = {}) {
+    const block = options.block || 'start';
+    const delay = Math.max(0, Number(options.delay) || 0);
+    const onlyIfNeeded = options.onlyIfNeeded !== false;
+    const go = () => {
+      if (!el || el.hidden) return;
+      if (onlyIfNeeded) {
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom > 0 && rect.top < window.innerHeight * 0.82) return;
+      }
+      el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block });
+    };
+    if (delay) window.setTimeout(go, delay); else go();
+  }
+
+  /* One rAF loop owns every live bar and the big UFO.  Callers only record a
+   * target; the loop is the single writer of width/transform for the frame.
+   * That prevents the old feedback loop where the UFO read a CSS-width
+   * transition, retargeted its own `left` transition from that stale value,
+   * froze while hashing, and then caught up in one large jump. */
+  const progressMotionItems = new Map();
+  let progressMotionRaf = 0;
+  let progressMotionLast = 0;
+  let completionUfoBarId = '';
+  let completionUfoAway = false;
+  let completionUfoReturning = false;
+  let completionUfoTakeoffTimer = 0;
+  const completionUfoMotion = {
+    mode: 'idle', fill: null, track: null, lane: null,
+    x: 0, y: 0, scale: 1, opacity: 1,
+    approachStart: 0, approachFromX: 0, approachFromY: 0,
+    trackLeft: 0, trackCenterY: 0, trackWidth: 0, ufoFraction: 0,
+  };
+
+  function resolveProgressBar(barOrId) {
+    return typeof barOrId === 'string' ? $(barOrId) : barOrId;
+  }
+  function getProgressMotionItem(bar) {
+    let item = progressMotionItems.get(bar);
+    if (!item) {
+      const displayed = clamp01((parseFloat(bar.style.width) || 0) / 100);
+      item = {
+        bar, displayed, target: displayed,
+        tau: /Ftp/.test(bar.id || '') ? 230 : 115,
+      };
+      progressMotionItems.set(bar, item);
+    }
+    return item;
+  }
+  function paintProgressMotionItem(item) {
+    const width = (item.displayed * 100).toFixed(2) + '%';
+    if (item.bar.style.width !== width) item.bar.style.width = width;
+  }
+  function ensureProgressMotionFrame() {
+    if (!progressMotionRaf) progressMotionRaf = requestAnimationFrame(progressMotionFrame);
+  }
+  function setBarProgress(barOrId, fraction, options = {}) {
+    const bar = resolveProgressBar(barOrId);
+    if (!bar) return 0;
+    const item = getProgressMotionItem(bar);
+    const target = clamp01(fraction);
+    const snap = !!options.snap || prefersReducedMotion() || document.hidden;
+    // A new file/disc/stage really does start its fill again.  Snap only the
+    // fill/disc marker; the big UFO glides back in a shallow arc instead of
+    // teleporting or being dragged backwards by two competing transitions.
+    if (snap || (target < item.displayed - 0.35 && !options.animateReset)) {
+      item.displayed = target;
+      item.target = target;
+      paintProgressMotionItem(item);
+    } else {
+      item.target = target;
+    }
+    ensureProgressMotionFrame();
+    return item.displayed;
+  }
+  function refreshCompletionUfoTrackMetrics() {
+    const m = completionUfoMotion;
+    if (!m.track || !m.lane) return false;
+    const laneRect = m.lane.getBoundingClientRect();
+    const trackRect = m.track.getBoundingClientRect();
+    m.trackLeft = trackRect.left - laneRect.left;
+    m.trackCenterY = trackRect.top - laneRect.top + trackRect.height / 2;
+    m.trackWidth = trackRect.width;
+    return m.trackWidth > 0;
+  }
+  function completionUfoDestination() {
+    const m = completionUfoMotion;
+    const fraction = clamp01(m.ufoFraction);
+    return {
+      x: m.trackLeft + fraction * m.trackWidth,
+      y: m.trackCenterY,
+      fraction,
+    };
+  }
+  function paintCompletionUfoMotion(lift = 0) {
+    const craft = $('completionUfo');
+    const m = completionUfoMotion;
+    if (!craft || m.mode === 'idle' || m.mode === 'takeoff') return;
+    craft.style.transform =
+      'translate3d(' + m.x.toFixed(2) + 'px,' + (m.y - lift).toFixed(2) + 'px,0)' +
+      ' translate(-50%,-95%) scale(' + m.scale.toFixed(4) + ')';
+    craft.style.opacity = String(Math.max(0, Math.min(1, m.opacity)));
+  }
+  function stepCompletionUfoMotion(now, dt) {
+    const m = completionUfoMotion;
+    if (m.mode !== 'approach' && m.mode !== 'progress') return false;
+    if (!m.fill || !m.track || !m.lane) return false;
+    if (!m.trackWidth && !refreshCompletionUfoTrackMetrics()) return false;
+    const dest = completionUfoDestination();
+    if (m.mode === 'approach') {
+      const t = Math.max(0, Math.min(1, (now - m.approachStart) / 1000));
+      const eased = 1 - Math.pow(1 - t, 3);
+      m.x = m.approachFromX + (dest.x - m.approachFromX) * eased;
+      m.y = m.approachFromY + (dest.y - m.approachFromY) * eased;
+      m.scale = 0.08 + 0.92 * eased;
+      m.opacity = eased;
+      paintCompletionUfoMotion();
+      if (t >= 1) {
+        m.mode = 'progress';
+        completionUfoReturning = false;
+        const craft = $('completionUfo');
+        craft.classList.remove('approaching');
+        craft.classList.add('progressing');
+        return false;
+      }
+      return true;
+    }
+    const travellingBack = dest.x < m.x - 20;
+    const alphaX = 1 - Math.exp(-dt / (travellingBack ? 155 : 68));
+    const alphaY = 1 - Math.exp(-dt / 85);
+    const stepX = (dest.x - m.x) * alphaX;
+    const stepY = (dest.y - m.y) * alphaY;
+    // Cap travel per painted frame, not per millisecond: after an 80 ms
+    // busy frame, the craft should glide for a few frames rather than leap.
+    m.x += Math.max(-40, Math.min(40, stepX));
+    m.y += Math.max(-20, Math.min(20, stepY));
+    m.scale += (1 - m.scale) * alphaY;
+    m.opacity += (1 - m.opacity) * alphaY;
+    if (Math.abs(dest.x - m.x) < 0.12) m.x = dest.x;
+    if (Math.abs(dest.y - m.y) < 0.08) m.y = dest.y;
+    if (Math.abs(1 - m.scale) < 0.001) m.scale = 1;
+    if (Math.abs(1 - m.opacity) < 0.002) m.opacity = 1;
+    const lift = travellingBack ? Math.min(34, (m.x - dest.x) * 0.05) : 0;
+    paintCompletionUfoMotion(lift);
+    return Math.abs(dest.x - m.x) > 0.12 || Math.abs(dest.y - m.y) > 0.08 || m.scale !== 1 || m.opacity !== 1;
+  }
+  function progressMotionFrame(now) {
+    progressMotionRaf = 0;
+    const dt = progressMotionLast ? Math.min(250, Math.max(1, now - progressMotionLast)) : 16.7;
+    progressMotionLast = now;
+    let active = false;
+    for (const item of [...progressMotionItems.values()]) {
+      if (!item.bar.isConnected) {
+        progressMotionItems.delete(item.bar);
+        continue;
+      }
+      if (item.displayed !== item.target) {
+        const alpha = 1 - Math.exp(-dt / item.tau);
+        const delta = (item.target - item.displayed) * alpha;
+        item.displayed += Math.max(-0.04, Math.min(0.04, delta));
+        if (Math.abs(item.target - item.displayed) < 0.00045) item.displayed = item.target;
+        else active = true;
+      }
+    }
+    for (const item of progressMotionItems.values()) paintProgressMotionItem(item);
+    if (stepCompletionUfoMotion(now, dt)) active = true;
+    if (active) ensureProgressMotionFrame();
+    else progressMotionLast = 0;
+  }
+  function beginCompletionUfoApproach() {
+    const craft = $('completionUfo');
+    const m = completionUfoMotion;
+    if (!craft || !m.lane) return;
+    refreshCompletionUfoTrackMetrics();
+    const dest = completionUfoDestination();
+    m.mode = 'approach';
+    completionUfoReturning = true;
+    m.approachStart = performance.now();
+    m.approachFromX = dest.x + Math.min(90, window.innerWidth * 0.05);
+    m.approachFromY = dest.y - Math.max(260, window.innerHeight * 0.58);
+    m.x = m.approachFromX;
+    m.y = m.approachFromY;
+    m.scale = 0.08;
+    m.opacity = 0;
+    craft.classList.remove('takeoff', 'progressing');
+    craft.classList.add('approaching');
+    paintCompletionUfoMotion();
+  }
+  function attachCompletionUfoToBar(fill) {
+    const craft = $('completionUfo');
+    const track = fill && fill.parentElement;
+    const lane = track && track.parentElement;
+    if (!craft || !track || !lane) return false;
+    const m = completionUfoMotion;
+    const wasFlying = m.mode === 'progress' || m.mode === 'approach';
+    const changingLane = craft.parentElement !== lane;
+    const oldRect = wasFlying && changingLane ? craft.getBoundingClientRect() : null;
+    if (changingLane) lane.appendChild(craft);
+    craft.style.position = 'absolute';
+    craft.style.left = '0px';
+    craft.style.top = '0px';
+    m.fill = fill;
+    m.track = track;
+    m.lane = lane;
+    refreshCompletionUfoTrackMetrics();
+    const dest = completionUfoDestination();
+    if (oldRect) {
+      const laneRect = lane.getBoundingClientRect();
+      m.x = oldRect.left + oldRect.width / 2 - laneRect.left;
+      m.y = oldRect.top + oldRect.height / 2 - laneRect.top + craft.offsetHeight * 0.45;
+      if (m.mode === 'approach') {
+        m.mode = 'progress';
+        completionUfoReturning = false;
+        craft.classList.remove('approaching');
+        craft.classList.add('progressing');
+      }
+    } else if (!wasFlying) {
+      m.x = dest.x;
+      m.y = dest.y;
+      m.scale = 1;
+      m.opacity = 1;
+    }
+    return true;
+  }
+  function positionCompletionUfo(barId, fraction, options = {}) {
+    const craft = $('completionUfo'), fill = $(barId);
+    if (!craft || !fill) return;
+    const pct = clamp01(fraction);
+    const ufoPct = options && options.ufoFraction !== undefined ? clamp01(options.ufoFraction) : pct;
+    completionUfoMotion.ufoFraction = ufoPct;
+    if (prefersReducedMotion()) {
+      setBarProgress(fill, pct, { snap: true });
+      resetCompletionUfo();
+      return;
+    }
+    if (completionUfoTakeoffTimer) {
+      clearTimeout(completionUfoTakeoffTimer);
+      completionUfoTakeoffTimer = 0;
+    }
+    if (craft.classList.contains('takeoff')) {
+      craft.classList.remove('takeoff');
+      completionUfoMotion.mode = 'idle';
+      completionUfoAway = true;
+    }
+    setBarProgress(fill, pct);
+    const lane = fill.parentElement && fill.parentElement.parentElement;
+    const sameBar = completionUfoBarId === barId && completionUfoMotion.fill === fill && craft.parentElement === lane;
+    if (!sameBar && !attachCompletionUfoToBar(fill)) return;
+    if (sameBar && !completionUfoMotion.trackWidth) refreshCompletionUfoTrackMetrics();
+    completionUfoBarId = barId;
+    if (completionUfoAway && completionUfoMotion.mode !== 'approach') {
+      completionUfoAway = false;
+      if (ufoPct < 0.2) {
+        beginCompletionUfoApproach();
+        ensureProgressMotionFrame();
+        return;
+      }
+    }
+    if (completionUfoMotion.mode !== 'approach') {
+      completionUfoMotion.mode = 'progress';
+      completionUfoReturning = false;
+      craft.classList.remove('takeoff', 'approaching');
+      craft.classList.add('progressing');
+      paintCompletionUfoMotion();
+    }
+    ensureProgressMotionFrame();
+  }
+  function resetCompletionUfo() {
+    const craft = $('completionUfo');
+    if (!craft) return;
+    if (completionUfoTakeoffTimer) {
+      clearTimeout(completionUfoTakeoffTimer);
+      completionUfoTakeoffTimer = 0;
+    }
+    if (completionUfoMotion.mode === 'approach' || craft.classList.contains('takeoff')) completionUfoAway = true;
+    completionUfoMotion.mode = 'idle';
+    completionUfoMotion.fill = null;
+    completionUfoMotion.track = null;
+    completionUfoMotion.lane = null;
+    completionUfoReturning = false;
+    completionUfoBarId = '';
+    craft.classList.remove('progressing', 'approaching', 'takeoff');
+    craft.style.position = '';
+    craft.style.left = '';
+    craft.style.top = '';
+    craft.style.transform = '';
+    craft.style.opacity = '';
+  }
+  function launchCompletionUfo() {
+    if (prefersReducedMotion()) return;
+    const craft = $('completionUfo'), fill = $(completionUfoBarId);
+    if (!craft || !fill || !fill.parentElement) return;
+    const m = completionUfoMotion;
+    const item = getProgressMotionItem(fill);
+    item.displayed = item.target;
+    paintProgressMotionItem(item);
+    if (m.fill === fill && m.lane) {
+      refreshCompletionUfoTrackMetrics();
+      const dest = completionUfoDestination();
+      m.x = dest.x;
+      m.y = dest.y;
+      m.scale = 1;
+      m.opacity = 1;
+      if (m.mode === 'idle') m.mode = 'progress';
+      paintCompletionUfoMotion();
+    }
+    const trackRect = fill.parentElement.getBoundingClientRect();
+    const current = craft.getBoundingClientRect();
+    const currentUsable = current.width > 0 && craft.parentElement === m.lane;
+    const x = currentUsable ? current.left + current.width / 2 : trackRect.left + item.target * trackRect.width;
+    const y = trackRect.top + trackRect.height / 2;
+    if (completionUfoTakeoffTimer) {
+      clearTimeout(completionUfoTakeoffTimer);
+      completionUfoTakeoffTimer = 0;
+    }
+    m.mode = 'takeoff';
+    completionUfoReturning = false;
+    craft.classList.remove('progressing', 'approaching', 'takeoff');
+    document.body.appendChild(craft);
+    craft.style.position = 'fixed';
+    craft.style.left = '0px';
+    craft.style.top = '0px';
+    craft.style.setProperty('--ufo-x', x.toFixed(2) + 'px');
+    craft.style.setProperty('--ufo-y', y.toFixed(2) + 'px');
+    craft.style.transform = '';
+    craft.style.opacity = '';
+    void craft.offsetWidth;
+    craft.classList.add('takeoff');
+    completionUfoBarId = '';
+    m.fill = null;
+    m.track = null;
+    m.lane = null;
+    completionUfoAway = true;
+    completionUfoTakeoffTimer = setTimeout(() => {
+      craft.classList.remove('takeoff');
+      if (m.mode === 'takeoff') m.mode = 'idle';
+      completionUfoTakeoffTimer = 0;
+    }, 2700);
+  }
+  window.addEventListener('resize', () => {
+    const m = completionUfoMotion;
+    if ((m.mode === 'progress' || m.mode === 'approach') && refreshCompletionUfoTrackMetrics()) {
+      const dest = completionUfoDestination();
+      if (m.mode === 'progress') { m.x = dest.x; m.y = dest.y; }
+      paintCompletionUfoMotion();
+      ensureProgressMotionFrame();
+    }
+  }, { passive: true });
 
   const FTP_IDENTITY_KEY = 'nebula-iso2god-ftp-identity-v1';
   function identityFields(source) {
@@ -1851,6 +2241,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   }
   function updateConvertEnabled() {
+    syncWorkingMotionState();
     const batchCount = state.batchFiles.length;
     let ok = !!state.analysis && !state.converting && !state.batchRunning && !state.batchFinished && !state.rawUploading && !state.psxBusy && !state.archiveBusy;
     let hint = state.archiveBusy ? 'Extracting .7z archive…' : '';
@@ -1949,7 +2340,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.progressCard.hidden = false;
     $('progressH').textContent = '✨ Conversion progress';
     els.phaseLabel.textContent = 'Analysing ISO…';
-    els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%';
+    setBarProgress(els.overallBar, 0, { snap: true }); setBarProgress(els.phaseBar, 0, { snap: true });
     els.overallPct.textContent = '';
     if (!preserveLog) els.logEl.innerHTML = '';
     log('Imported "' + file.name + '" (' + fmtBytes(file.size) + '). Reading the XDVDFS filesystem locally; the source ISO is not uploaded.');
@@ -2054,7 +2445,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (active) {
       ui.status.hidden = false;
       ui.progressWrap.hidden = false;
-      ui.progressBar.style.width = '0%';
+      setBarProgress(ui.progressBar, 0, { snap: true });
       ui.progressBar.classList.add('indeterminate');
     } else {
       ui.progressBar.classList.remove('indeterminate');
@@ -2099,7 +2490,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       setArchiveBusy(false, kind);
       ui.progressWrap.hidden = false;
       ui.progressBar.classList.remove('indeterminate');
-      ui.progressBar.style.width = '100%';
+      setBarProgress(ui.progressBar, 1, { snap: true });
       const ids = [...new Set(state.rawFiles.map(x => x.titleId))];
       ui.status.hidden = false;
       ui.status.textContent = 'Unpacked ' + state.rawFiles.length + ' XBLA/XBLIG file' + (state.rawFiles.length === 1 ? '' : 's') + ' for Title ID ' + ids.join(', ') + '. Only matching 8-character Title ID/000D0000 files were extracted. Nothing was uploaded; the original .7z is unchanged. Extracted files stay available for FTP retry and are cleared after successful upload or when you replace the selection.';
@@ -2112,7 +2503,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     $('progressH').textContent = '✨ Conversion progress';
     ui.progressWrap.hidden = false;
     ui.progressBar.classList.remove('indeterminate');
-    ui.progressBar.style.width = '100%';
+    setBarProgress(ui.progressBar, 1, { snap: true });
     ui.status.hidden = false;
     ui.status.textContent = 'Unpacked ' + files.length + ' supported image' + (files.length === 1 ? '' : 's') +
       '. Temporary images stay in browser storage during conversion and any FTP retry, then clear automatically after success. Start over or leave the page to clear them sooner. Other archive entries were skipped; the original .7z was not changed.';
@@ -2130,7 +2521,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (kind === 'iso') {
       $('progressH').textContent = cancelled ? '📦 Archive import canceled' : '📦 Archive import failed';
       els.phaseLabel.textContent = cancelled ? 'Archive import canceled' : 'Archive import failed';
-      els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '';
+      setBarProgress(els.overallBar, 0, { snap: true }); setBarProgress(els.phaseBar, 0, { snap: true }); els.overallPct.textContent = '';
       els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
     }
     const removed = await removeArchiveOpfsDir(tempDir);
@@ -2162,7 +2553,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ? 'Preparing local XBLA/XBLIG archive import… nothing is uploaded during extraction.'
       : 'Preparing local ISO archive import…';
     ui.progressWrap.hidden = false;
-    ui.progressBar.style.width = '0%';
+    setBarProgress(ui.progressBar, 0, { snap: true });
     ui.progressBar.classList.add('indeterminate');
     if (kind === 'iso') {
       els.doneCard.hidden = true;
@@ -2170,7 +2561,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.progressCard.hidden = false;
       $('progressH').textContent = '📦 Importing .7z archive';
       els.phaseLabel.textContent = 'Preparing local archive import…';
-      els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '';
+      setBarProgress(els.overallBar, 0, { snap: true }); setBarProgress(els.phaseBar, 0, { snap: true }); els.overallPct.textContent = '';
       els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
       state.file = null; state.reader = null; state.analysis = null;
       state.batchFiles = []; state.batchSkipped = 0; state.batchIndex = 0;
@@ -2240,7 +2631,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           }
           ui.progressWrap.hidden = false;
           ui.progressBar.classList.remove('indeterminate');
-          ui.progressBar.style.width = pct + '%';
+          setBarProgress(ui.progressBar, pct / 100);
           ui.status.textContent = kind === 'raw'
             ? 'Unpacking ' + (currentFile || 'matching XBLA/XBLIG content') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no files are uploaded.'
             : 'Extracting ' + (currentFile || 'supported image files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no image data is uploaded.';
@@ -2393,6 +2784,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!response.ok) throw new Error(result.error || ('Local helper returned HTTP ' + response.status));
     return result;
   }
+  function rawOverallFraction() {
+    const total = Math.max(0, Number(state.rawUploadTotalBytes) || 0);
+    if (!total) return 0;
+    return clamp01(((Number(state.rawUploadCompletedBytes) || 0) + (Number(state.rawUploadCurrentBytes) || 0)) / total);
+  }
   function updateRawOverallProgress(phase = 'starting') {
     const total = Math.max(0, Number(state.rawUploadTotalBytes) || 0);
     const completedBytes = Math.max(0, Number(state.rawUploadCompletedBytes) || 0);
@@ -2407,23 +2803,23 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       transferring: 'Xbox transfer', confirming: 'confirming current file', retrying: 'retrying current file',
       paused: 'paused for retry', failed: 'stopped · selection retained for retry', complete: 'complete',
     }[phase] || phase;
-    els.rawOverallLiveText.textContent = total
+    setTextIfChanged(els.rawOverallLiveText, total
       ? 'Overall job: ' + fmtBytes(done) + ' / ' + fmtBytes(total) + ' (' + percent + '%)' + fileLabel + ' · ' + phaseLabel
-      : 'Overall job: preparing upload…';
-    els.rawOverallLiveBar.style.width = (fraction * 100).toFixed(1) + '%';
+      : 'Overall job: preparing upload…');
+    setBarProgress(els.rawOverallLiveBar, fraction);
   }
   function setFtpLive(message, fraction) {
     els.ftpLive.hidden = false;
-    els.ftpLiveText.textContent = message;
+    setTextIfChanged(els.ftpLiveText, message);
     const pct = Math.max(0, Math.min(100, (Number(fraction) || 0) * 100));
     const completed = message.startsWith('All package files uploaded') || message.startsWith('All selected content files were uploaded');
     els.ftpLive.classList.toggle('is-complete', completed);
-    els.ftpLiveBar.style.width = pct.toFixed(1) + '%';
+    setBarProgress(els.ftpLiveBar, pct / 100);
     if (state.rawUploading) {
       els.rawFtpLive.hidden = false;
-      els.rawFtpLiveText.textContent = message;
+      setTextIfChanged(els.rawFtpLiveText, message);
       els.rawFtpLive.classList.toggle('is-complete', completed);
-      els.rawFtpLiveBar.style.width = pct.toFixed(1) + '%';
+      setBarProgress(els.rawFtpLiveBar, pct / 100);
       if (message.startsWith('Retrying ')) {
         state.rawUploadCurrentBytes = 0;
         updateRawOverallProgress('retrying');
@@ -2432,17 +2828,17 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       else if (message.startsWith('FTP connection failed')) updateRawOverallProgress('paused');
       else if (message.startsWith('Upload failed')) updateRawOverallProgress('failed');
       else if (completed) updateRawOverallProgress('complete');
-      positionCompletionUfo('rawFtpLiveBar', pct / 100);
+      positionCompletionUfo('rawFtpLiveBar', pct / 100, { ufoFraction: completed ? 1 : rawOverallFraction() });
     } else if (state.converting && state.outputMode === 'ftp') {
-      positionCompletionUfo('ftpLiveBar', pct / 100);
+      positionCompletionUfo('overallBar', state.lastOverall || 0);
     }
     if (state.psxFtpActive) {
       els.psxLive.hidden = false;
       els.psxMergeLive.hidden = true;
       els.psxFtpLive.hidden = false;
-      els.psxFtpLiveText.textContent = message;
+      setTextIfChanged(els.psxFtpLiveText, message);
       els.psxFtpLive.classList.toggle('is-complete', completed);
-      els.psxFtpLiveBar.style.width = pct.toFixed(1) + '%';
+      setBarProgress(els.psxFtpLiveBar, pct / 100);
       if (message.startsWith('Retrying ')) {
         state.psxCurrentBytes = 0;
         updatePsxOverallProgress('retrying current file');
@@ -2451,7 +2847,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       else if (message.startsWith('FTP connection failed')) updatePsxOverallProgress('paused for retry');
       else if (message.startsWith('Upload failed')) updatePsxOverallProgress('stopped · selection retained for retry');
       else if (completed) updatePsxOverallProgress('complete');
-      positionCompletionUfo('psxFtpLiveBar', pct / 100);
+      positionCompletionUfo('psxFtpLiveBar', pct / 100, { ufoFraction: completed ? 1 : psxOverallFraction() });
     }
   }
   function setFtpStatus(el, message) {
@@ -2888,8 +3284,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.rawFtpLive.hidden = false;
     els.rawFtpLive.classList.remove('is-complete');
     els.rawFtpLiveText.textContent = 'Starting upload…';
-    els.rawFtpLiveBar.style.width = '0%';
-    els.rawOverallLiveBar.style.width = '0%';
+    setBarProgress(els.rawFtpLiveBar, 0, { snap: true });
+    setBarProgress(els.rawOverallLiveBar, 0, { snap: true });
     updateRawOverallProgress('starting');
     positionCompletionUfo('rawFtpLiveBar', 0);
     els.rawFtpUploadResult.classList.remove('is-complete');
@@ -3189,8 +3585,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     let base = original;
     let hasMarker = false;
     let hasDuplicateSuffix = false;
-    base = base.replace(/\s*[\[(]\s*(?:disc|disk|cd)\s*[-#._ ]?\s*(?:\d+|[ivx]+)(?:\s*(?:of|\/)\s*\d+)?\s*[\])]\s*/ig, () => { hasMarker = true; return ' '; });
-    base = base.replace(/[\s._-]+(?:disc|disk|cd)\s*[-#._ ]?\s*(?:\d+|[ivx]+)(?:\s*(?:of|\/)\s*\d+)?\s*$/i, () => { hasMarker = true; return ''; });
+    base = base.replace(/\s*[\[(]\s*(?:disc|disk|cd)\s*[-#._ ]?\s*(?:\d+|[a-d]|[ivx]+)(?:\s*(?:of|\/)\s*\d+)?\s*[\])]\s*/ig, () => { hasMarker = true; return ' '; });
+    base = base.replace(/[\s._-]+(?:disc|disk|cd)\s*[-#._ ]?\s*(?:\d+|[a-d]|[ivx]+)(?:\s*(?:of|\/)\s*\d+)?\s*$/i, () => { hasMarker = true; return ''; });
+    base = base.replace(/\s*[\[(][^)\]]*\b(?:disc|disk)\b[^)\]]*[\])]\s*/ig, () => { hasMarker = true; return ' '; });
+    base = base.replace(/\s*[\[(]\s*(?:arcade|simulation)\s+mode\s*[\])]\s*/ig, () => { hasMarker = true; return ' '; });
+    base = base.replace(/[\s._-]+(?:arcade|simulation)\s+mode\s*$/i, () => { hasMarker = true; return ''; });
+    base = base.replace(/\s*[\[(]\s*side\s*[-#._ ]?\s*(?:[a-d]|\d+)\s*[\])]\s*/ig, () => { hasMarker = true; return ' '; });
     base = base.replace(/\s*\((\d+)\)\s*$/, (match, n) => {
       if (Number(n) > 1) { hasDuplicateSuffix = true; return ''; }
       return match;
@@ -3199,7 +3599,38 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     return { base: psxSanitizeOutName(base || original), hasMarker, hasDuplicateSuffix };
   }
   function psxHasDiscMarkerText(text) {
-    return /(?:^|[\s._\-\[(])(?:disc|disk|cd)[\s._-]*(?:\d+|[ivx]+)\b/i.test(String(text || ''));
+    return /(?:^|[\s._\-\[(])(?:disc|disk|cd)[\s._-]*(?:\d+|[a-d]|[ivx]+)\b/i.test(String(text || ''));
+  }
+
+  function psxNameTagParts(name) {
+    const tags = [];
+    const title = String(name || '').replace(/\s*[\[(]([^)\]]+)[\])]\s*/g, (match, tag) => {
+      tags.push(String(tag || '').trim().replace(/\s+/g, ' '));
+      return ' ';
+    }).replace(/\s+/g, ' ').trim();
+    return { title, tags };
+  }
+  function psxIsProtectedNameTag(tag) {
+    const t = String(tag || '').trim().toLowerCase();
+    if (!t) return true;
+    if (/^(usa|us|europe|eu|japan|jp|asia|australia|canada|korea|china|taiwan|hong kong|uk|germany|france|spain|italy|netherlands|sweden|norway|denmark|finland|portugal|brazil|russia|scandinavia|world)$/.test(t)) return true;
+    if (/^(en|fr|de|es|it|ja|ko|zh|pt|nl|sv|nb|no|da|fi|ru|pl|cs)$/.test(t)) return true;
+    if (/^[a-z]{2}(?:\s*,\s*[a-z]{2})+$/.test(t)) return true;
+    if (/^(rev\b|v\d|version\b|beta\b|alpha\b|proto\b|prototype\b|demo\b|sample\b|trial\b|promo\b|preview\b|greatest hits\b|platinum\b|the best\b|limited\b|collector\b|special edition\b|reprint\b|alt\b|unl\b|pirate\b)/.test(t)) return true;
+    return false;
+  }
+  function psxNamedDiscCandidateKeys(name) {
+    const { title, tags } = psxNameTagParts(name);
+    const candidates = [];
+    for (let i = 0; i < tags.length; i++) {
+      // In Redump-style names the first tag is normally the region, so never
+      // use dropping it as evidence that two releases are companion discs.
+      if (i === 0 || psxIsProtectedNameTag(tags[i])) continue;
+      const rest = tags.filter((_, idx) => idx !== i);
+      const canonical = psxSanitizeOutName(title + rest.map(tag => ' (' + tag + ')').join(''));
+      candidates.push({ key: 'named:' + canonical.toLowerCase(), base: canonical, descriptor: tags[i] });
+    }
+    return candidates;
   }
   function refreshPsxMultiDiscGroups() {
     const buckets = new Map();
@@ -3225,6 +3656,35 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         job.groupKey = groupKey;
         job.groupName = groupName;
         job.groupDiscCount = jobs.length;
+      }
+    }
+
+    // Named companion discs: when the title and stable tags match and only
+    // one descriptive tag differs (Arcade Mode vs Simulation Mode, Leon vs
+    // Claire, Allied Disc vs Soviet Disc, etc.), treat them as one set.
+    const namedBuckets = new Map();
+    for (const job of state.psxJobs) {
+      if (job.groupKey) continue;
+      for (const candidate of psxNamedDiscCandidateKeys(job.outName)) {
+        if (!namedBuckets.has(candidate.key)) namedBuckets.set(candidate.key, { base: candidate.base, entries: [] });
+        namedBuckets.get(candidate.key).entries.push({ job, descriptor: candidate.descriptor });
+      }
+    }
+    for (const bucket of namedBuckets.values()) {
+      const byJob = new Map();
+      for (const entry of bucket.entries) {
+        if (!entry.job.groupKey && !byJob.has(entry.job.id)) byJob.set(entry.job.id, entry);
+      }
+      const entries = Array.from(byJob.values());
+      const descriptors = new Set(entries.map(entry => entry.descriptor.toLowerCase()));
+      if (entries.length < 2 || descriptors.size < 2) continue;
+      const groupKey = 'set:' + bucket.base.toLowerCase();
+      const groupName = psxSanitizeOutName(state.psxGroupNameOverrides[groupKey] || bucket.base);
+      for (const entry of entries) {
+        entry.job.discSetBase = bucket.base;
+        entry.job.groupKey = groupKey;
+        entry.job.groupName = groupName;
+        entry.job.groupDiscCount = entries.length;
       }
     }
   }
@@ -3594,6 +4054,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         : 'Merge ' + n + ' disc' + (n === 1 ? '' : 's') + ' → single BIN + CUE';
   }
   function updatePsxEnabled() {
+    syncWorkingMotionState();
     const ready = state.psxJobs.some(j => j.status === 'ready');
     let ok = ready && !state.psxBusy && !state.converting && !state.batchRunning && !state.rawUploading && !state.archiveBusy;
     let hint = '';
@@ -3609,24 +4070,29 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.psxGroupMultiDisc.disabled = state.psxBusy;
   }
 
+  function psxOverallFraction() {
+    const total = Math.max(0, Number(state.psxTotalBytes) || 0);
+    if (!total) return 0;
+    return clamp01(((Number(state.psxCompletedBytes) || 0) + (Number(state.psxCurrentBytes) || 0)) / total);
+  }
   function updatePsxOverallProgress(phase) {
     const total = Math.max(0, Number(state.psxTotalBytes) || 0);
     const done = total ? Math.min(total, (Number(state.psxCompletedBytes) || 0) + (Number(state.psxCurrentBytes) || 0)) : 0;
     const frac = total ? Math.max(0, Math.min(1, done / total)) : 0;
     const count = Math.max(0, Number(state.psxJobCount) || 0);
     const discLabel = count ? ' · disc ' + Math.min(count, state.psxJobIndex + 1) + ' of ' + count : '';
-    els.psxOverallLiveText.textContent = total
+    setTextIfChanged(els.psxOverallLiveText, total
       ? 'Overall job: ' + fmtBytes(done) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + discLabel + ' · ' + (phase || 'working')
-      : 'Overall job: preparing…';
+      : 'Overall job: preparing…');
   }
   function psxSetLive(message, fraction) {
     els.psxLive.hidden = false;
     els.psxMergeLive.hidden = false;
     els.psxFtpLive.hidden = true;
-    els.psxLiveText.textContent = message;
+    setTextIfChanged(els.psxLiveText, message);
     const pct = Math.max(0, Math.min(100, (Number(fraction) || 0) * 100));
-    els.psxLiveBar.style.width = pct.toFixed(1) + '%';
-    positionCompletionUfo('psxLiveBar', pct / 100);
+    setBarProgress(els.psxLiveBar, pct / 100);
+    positionCompletionUfo('psxLiveBar', pct / 100, { ufoFraction: state.psxTotalBytes ? psxOverallFraction() : pct / 100 });
   }
   function psxFtpBaseSegments(job) {
     const segs = String(els.psxFtpDir.value || '').split(/[\\/]+/).map(s => s.trim()).filter(Boolean);
@@ -3792,8 +4258,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.psxDoneSummary.innerHTML = lead + '<br><span class="muted">' + where + '</span>';
     els.psxDoneCard.hidden = false;
     window.setTimeout(() => {
-      if (state.taskMode === 'psx' && state.psxDoneReady) els.psxDoneCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, allGood ? 450 : 0);
+      if (state.taskMode === 'psx' && state.psxDoneReady) scrollCardIntoView(els.psxDoneCard);
+    }, allGood ? 1050 : 0);
   }
   function finishPsxLiveWithCelebration() {
     els.psxLive.classList.add('is-finishing');
@@ -3857,11 +4323,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.psxLive.hidden = false;
     els.psxLive.classList.remove('is-complete', 'is-finishing');
     els.psxMergeLive.hidden = state.psxFtpActive;
-    els.psxLiveBar.style.width = '0%';
+    setBarProgress(els.psxLiveBar, 0, { snap: true });
     els.psxLiveText.textContent = state.psxFtpActive ? '' : 'Preparing…';
     els.psxFtpLive.hidden = !state.psxFtpActive;
     els.psxFtpLive.classList.remove('is-complete');
-    els.psxFtpLiveBar.style.width = '0%';
+    setBarProgress(els.psxFtpLiveBar, 0, { snap: true });
     els.psxFtpLiveText.textContent = state.psxFtpActive ? 'Waiting for FTP transfer…' : '';
     els.psxResult.classList.remove('is-complete');
     els.psxResult.textContent = 'Working…';
@@ -4021,26 +4487,26 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.phaseStart = now;
       els.phaseLabel.textContent = p.phaseLabel;
     }
-    if (now - state.lastProgressPaint < 100 && p.overall < 1) return;
-    state.lastProgressPaint = now;
     const phaseFrac = p.total ? p.done / p.total : 1;
-    els.phaseBar.style.width = (phaseFrac * 100).toFixed(1) + '%';
-    els.overallBar.style.width = (p.overall * 100).toFixed(1) + '%';
+    setBarProgress(els.phaseBar, phaseFrac);
+    setBarProgress(els.overallBar, p.overall);
     // During FTP staging/upload, leave the craft on the current-file transfer bar.
     // The overall bar still advances independently above it.
     if (!(state.outputMode === 'ftp' && state.ftpActivity)) positionCompletionUfo('overallBar', p.overall);
-    els.overallPct.textContent = Math.floor(p.overall * 100) + '%';
-    els.bytesEl.textContent = fmtBytes(p.done) + ' / ' + fmtBytes(p.total);
+    if (now - state.lastProgressPaint < 100 && p.overall < 1) return;
+    state.lastProgressPaint = now;
+    setTextIfChanged(els.overallPct, Math.floor(p.overall * 100) + '%');
+    setTextIfChanged(els.bytesEl, fmtBytes(p.done) + ' / ' + fmtBytes(p.total));
     const phaseElapsed = (now - state.phaseStart) / 1000;
     const speed = phaseElapsed > 0.3 && p.done > 0 ? p.done / phaseElapsed : 0;
-    els.speedEl.textContent = speed ? fmtBytes(speed) + '/s' : '—';
+    setTextIfChanged(els.speedEl, speed ? fmtBytes(speed) + '/s' : '—');
     const totalElapsed = Date.now() - state.startTime;
     const eta = p.overall > 0.01 ? totalElapsed * (1 - p.overall) / p.overall : NaN;
     const elapsedLabel = state.batchRunning
       ? ' batch elapsed ' + fmtDuration(Date.now() - state.batchStartTime) + ' · this ISO ' + fmtDuration(totalElapsed)
       : ' elapsed ' + fmtDuration(totalElapsed);
-    els.etaEl.textContent = elapsedLabel + (isFinite(eta) ? ' · ~' + fmtDuration(eta) + (state.batchRunning ? ' left this ISO' : ' left') : '');
-    els.phaseLabel.textContent = (state.batchRunning ? 'Batch ' + (state.batchIndex + 1) + '/' + state.batchFiles.length + ' · ' : '') + p.phaseLabel + (p.partIndex !== undefined && p.phase === 'write' ? ' — Data' + String(p.partIndex).padStart(4, '0') : '');
+    setTextIfChanged(els.etaEl, elapsedLabel + (isFinite(eta) ? ' · ~' + fmtDuration(eta) + (state.batchRunning ? ' left this ISO' : ' left') : ''));
+    setTextIfChanged(els.phaseLabel, (state.batchRunning ? 'Batch ' + (state.batchIndex + 1) + '/' + state.batchFiles.length + ' · ' : '') + p.phaseLabel + (p.partIndex !== undefined && p.phase === 'write' ? ' — Data' + String(p.partIndex).padStart(4, '0') : ''));
   }
 
   async function startSingleConversion() {
@@ -4112,18 +4578,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const elapsedLabel = state.batchRunning
         ? ' batch elapsed ' + fmtDuration(Date.now() - state.batchStartTime) + ' · this ISO ' + fmtDuration(elapsed)
         : ' elapsed ' + fmtDuration(elapsed);
-      els.etaEl.textContent = elapsedLabel + ftpLabel + (ftpLabel ? '' : (isFinite(eta) ? ' · ~' + fmtDuration(eta) + ' left this ISO' : ''));
+      setTextIfChanged(els.etaEl, elapsedLabel + ftpLabel + (ftpLabel ? '' : (isFinite(eta) ? ' · ~' + fmtDuration(eta) + ' left this ISO' : '')));
     }, 1000);
     els.doneCard.hidden = true;
     els.progressCard.classList.remove('is-complete');
-    els.overallBar.style.width = '0%'; els.phaseBar.style.width = '0%'; els.overallPct.textContent = '0%';
+    setBarProgress(els.overallBar, 0, { snap: true }); setBarProgress(els.phaseBar, 0, { snap: true }); els.overallPct.textContent = '0%';
     els.progressCard.hidden = false;
     positionCompletionUfo('overallBar', 0);
     els.cancelBtn.disabled = false;
     els.convertBtn.disabled = true;
     setInputsEnabled(false);
     updateConvertEnabled();
-    if (!state.batchRunning || state.batchIndex === 0) els.progressCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!state.batchRunning || state.batchIndex === 0) scrollCardIntoView(els.progressCard, { block: 'center', delay: 80 });
     log('Converting "' + state.file.name + '" → ' + options.gameTitle + ' [' + layout.titleHex + ']');
     log('Output: ' + layout.headerSegments.join('/') + ' + ' + plan.partCount + ' data part(s). Keep this tab open and in the foreground until it finishes.');
     if (!state.batchRunning) await requestWakeLock();
@@ -4144,7 +4610,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       log('Conversion finished in ' + mins + '. Master hash-table root: ' + result.mhtHashHex);
       els.phaseLabel.textContent = 'Done ✓';
       els.progressCard.classList.add('is-complete');
-      els.overallBar.style.width = '100%'; els.phaseBar.style.width = '100%'; els.overallPct.textContent = '100%';
+      setBarProgress(els.overallBar, 1, { snap: true }); setBarProgress(els.phaseBar, 1, { snap: true }); els.overallPct.textContent = '100%';
       renderDone(options, result, mins);
       if (!state.batchRunning) await cleanupArchiveImportsAfterSuccess();
     } catch (err) {
@@ -4228,7 +4694,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     if (state.batchCompleted === files.length) {
       await cleanupArchiveImportsAfterSuccess();
-      els.doneCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollCardIntoView(els.doneCard, { delay: 650 });
       log('Batch complete: all ' + files.length + ' ISO packages were converted and uploaded sequentially.');
     } else if (state.cancelRequested) {
       log('Batch cancelled after ' + state.batchCompleted + ' completed ISO(s).');
@@ -4305,7 +4771,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } else {
       els.downloadsBox.hidden = true;
     }
-    if (!state.batchRunning) els.doneCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!state.batchRunning) scrollCardIntoView(els.doneCard, { delay: 650 });
     if (state.outputMode === 'zip' && state.zipBlob) {
       // Kick off the download once automatically; the button stays for re-downloads.
       setTimeout(() => triggerDownload(state.zipBlob, state.zipBlobName), 400);
@@ -4340,7 +4806,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (activeArchiveTemp) void removeArchiveOpfsDir(activeArchiveTemp);
     void cleanupArchiveImports();
     els.archiveStatus.hidden = true; els.archiveStatus.textContent = '';
-    els.archiveProgressWrap.hidden = true; els.archiveProgressBar.style.width = '0%';
+    els.archiveProgressWrap.hidden = true; setBarProgress(els.archiveProgressBar, 0, { snap: true });
     els.archiveCancelBtn.hidden = true;
     els.archiveBrowseBtn.disabled = false; els.archiveInput.disabled = false;
     state.file = null; state.reader = null; state.analysis = null;
@@ -4377,7 +4843,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const ctx = canvas.getContext('2d');
     const colors = ['#67e8f9','#a78bfa','#f0abfc','#34d399','#fbbf24','#fb7185','#ffffff'];
     let w=0,h=0,dpr=1;
-    function resize(){dpr=Math.min(2,window.devicePixelRatio||1);w=innerWidth;h=innerHeight;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
+    function resize(){dpr=Math.min(1.5,window.devicePixelRatio||1);w=innerWidth;h=innerHeight;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
     resize();
     const pieces=Array.from({length:150},()=>({x:Math.random()*w,y:-20-Math.random()*h*.35,vx:(Math.random()-.5)*170,vy:90+Math.random()*230,size:4+Math.random()*7,angle:Math.random()*Math.PI*2,spin:(Math.random()-.5)*8,color:colors[Math.floor(Math.random()*colors.length)],shape:Math.random()<.3?'circle':'rect'}));
     const started=performance.now(), duration=4200;
@@ -4390,82 +4856,6 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     confettiResize=resize;
     window.addEventListener('resize',confettiResize);
     confettiRaf=requestAnimationFrame(frame);
-  }
-  let completionUfoBarId = '';
-  let completionUfoAway = false;
-  let completionUfoReturning = false;
-  let completionUfoTakeoffTimer = 0;
-  let completionUfoReturnTimer = 0;
-  function positionCompletionUfo(barId, fraction) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const craft = $('completionUfo'), fill = $(barId);
-    if (!craft || !fill) return;
-    if (craft.classList.contains('takeoff')) {
-      if (completionUfoTakeoffTimer) { clearTimeout(completionUfoTakeoffTimer); completionUfoTakeoffTimer = 0; }
-      craft.classList.remove('takeoff');
-      completionUfoAway = true;
-    }
-    const track = fill.parentElement, lane = track.parentElement;
-    const pct = Math.max(0, Math.min(1, Number(fraction) || 0));
-    if (completionUfoTakeoffTimer) { clearTimeout(completionUfoTakeoffTimer); completionUfoTakeoffTimer = 0; }
-    const returning = completionUfoReturning;
-    const sameBar = !returning && completionUfoBarId === barId && craft.parentElement === lane && craft.classList.contains('progressing');
-    if (!returning && !sameBar) craft.classList.remove('takeoff', 'approaching', 'progressing');
-    if (craft.parentElement !== lane) lane.appendChild(craft);
-    craft.style.position = '';
-    completionUfoBarId = barId;
-    const laneRect = lane.getBoundingClientRect();
-    const fillRect = fill.getBoundingClientRect();
-    craft.style.left = (fillRect.right - laneRect.left) + 'px';
-    craft.style.top = (track.offsetTop + track.offsetHeight / 2) + 'px';
-    if (completionUfoAway && pct === 0 && !returning) {
-      completionUfoAway = false;
-      completionUfoReturning = true;
-      craft.classList.add('approaching');
-      completionUfoReturnTimer = setTimeout(() => {
-        craft.classList.remove('approaching');
-        craft.classList.add('progressing');
-        completionUfoReturning = false;
-        completionUfoReturnTimer = 0;
-      }, 1000);
-    } else if (returning) {
-      // Leave the approach animation running while the bar begins to advance.
-    } else if (!craft.classList.contains('progressing')) {
-      craft.classList.add('progressing');
-    }
-  }
-  function resetCompletionUfo() {
-    const craft = $('completionUfo');
-    if (completionUfoTakeoffTimer) { clearTimeout(completionUfoTakeoffTimer); completionUfoTakeoffTimer = 0; }
-    if (completionUfoReturnTimer) { clearTimeout(completionUfoReturnTimer); completionUfoReturnTimer = 0; }
-    if (completionUfoReturning || craft.classList.contains('takeoff')) completionUfoAway = true;
-    completionUfoReturning = false;
-    completionUfoBarId = '';
-    craft.classList.remove('progressing', 'approaching', 'takeoff');
-  }
-  function launchCompletionUfo() {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const craft = $('completionUfo'), fill = $(completionUfoBarId);
-    if (!craft || !fill) return;
-    if (completionUfoReturnTimer) { clearTimeout(completionUfoReturnTimer); completionUfoReturnTimer = 0; }
-    completionUfoReturning = false;
-    const trackRect = fill.parentElement.getBoundingClientRect();
-    const current = craft.getBoundingClientRect();
-    const x = current.left + current.width / 2;
-    const y = trackRect.top + trackRect.height / 2;
-    craft.classList.remove('progressing', 'approaching', 'takeoff');
-    craft.style.position = 'fixed';
-    craft.style.left = x + 'px';
-    craft.style.top = y + 'px';
-    document.body.appendChild(craft);
-    void craft.offsetWidth;
-    craft.classList.add('takeoff');
-    completionUfoBarId = '';
-    completionUfoAway = true;
-    completionUfoTakeoffTimer = setTimeout(() => {
-      craft.classList.remove('takeoff');
-      completionUfoTakeoffTimer = 0;
-    }, 2700);
   }
   function celebrateCompletion(){launchCompletionUfo();launchCompletionMeteors();fireConfetti();}
 
@@ -4491,7 +4881,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         twSpeed: 0.4 + Math.random() * 1.6,
         drift: 1.5 + Math.random() * 6,
         hue: [210, 230, 260, 190, 45][Math.floor(Math.random() * 5)],
+        color: '',
       }));
+      for (const s of stars) s.color = 'hsla(' + s.hue + ', 90%, 86%, 1)';
       if (reduced) draw(0);
     }
     function spawnShooting() {
@@ -4514,10 +4906,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         const y = (s.y - parY * 12 * s.z + h) % h;
         const alpha = 0.35 + 0.65 * Math.abs(Math.sin(s.tw + t * 0.001 * s.twSpeed));
         ctx.beginPath();
-        ctx.fillStyle = 'hsla(' + s.hue + ', 90%, 86%, ' + (alpha * s.z).toFixed(3) + ')';
+        ctx.globalAlpha = alpha * s.z;
+        ctx.fillStyle = s.color;
         ctx.arc(x, y, s.r * s.z + 0.3, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.globalAlpha = 1;
       for (let i = shooting.length - 1; i >= 0; i--) {
         const sh = shooting[i];
         const fade = Math.sin(Math.min(1, sh.life / sh.ttl) * Math.PI);
@@ -4532,7 +4926,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
     }
     function frame(t) {
-      if (t - lastPaint < 1000 / 30) { raf = requestAnimationFrame(frame); return; }
+      const busy = state.converting || state.batchRunning || state.archiveBusy || state.rawUploading || state.psxBusy;
+      const paintInterval = busy && t >= showerUntil ? 1000 / 12 : 1000 / 30;
+      if (t - lastPaint < paintInterval) { raf = requestAnimationFrame(frame); return; }
       const dt = Math.min(0.05, (t - last) / 1000 || 0);
       last = t; lastPaint = t;
       for (const s of stars) { s.x -= s.drift * dt * 0.35; if (s.x < -4) s.x = w + 4; }
