@@ -200,6 +200,8 @@ footer a{color:#9edcff}
 #psxErrorBox{white-space:pre-wrap; line-height:1.55; margin-top:16px; padding:14px 16px; border-radius:14px; color:#ffd7de; background:rgba(90,12,32,.5); border:1px solid rgba(255,122,144,.55)}
 .logbox{margin-top:14px; max-height:230px; overflow:auto; padding:13px 14px; border-radius:13px; background:rgba(1,4,14,.88); border:1px solid rgba(110,150,255,.18); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.79rem; line-height:1.55; color:#a9f0cf}
 #psxFtpStatus,#psxFtpLiveText,#psxOverallLiveText,#psxLiveText{min-width:0;overflow-wrap:anywhere}
+#psxFtpPathPreset{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:rgba(4,8,24,.8);color:var(--text);font-size:1rem}
+#psxFtpPathPreset:focus{outline:2px solid rgba(110,231,255,.6);outline-offset:1px}
 #psxFtpLive.is-retry-needed{padding:12px;border:1px solid rgba(251,191,36,.65);border-radius:12px;background:rgba(120,80,0,.15)}
 #psxFtpRetryActions[hidden]{display:none}
 #psxFtpStatus.is-connected{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-size:1rem;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12);overflow-wrap:anywhere}
@@ -207,6 +209,14 @@ footer a{color:#9edcff}
 #psxFtpLive.is-complete .bar-wrap.thin{height:10px}
 #psxFtpLive.is-complete #psxFtpLiveText{color:#c8ffe6;font-size:1rem;font-weight:800}
 #psxLive.is-complete .bar{background:linear-gradient(90deg,#34d399,#38bdf8);box-shadow:0 0 18px rgba(56,189,248,.52),0 0 25px rgba(52,211,153,.28)}
+#psxDoneCard:not([hidden]){animation:panel-in .24s ease-out}
+#psxDoneCard.is-complete{border-color:rgba(52,211,153,.62);background:linear-gradient(115deg,rgba(8,45,43,.60),rgba(8,31,48,.68)),var(--panel);box-shadow:0 0 0 1px rgba(52,211,153,.12) inset,0 18px 58px rgba(0,0,0,.48),0 0 30px rgba(56,189,248,.12)}
+#psxDoneCard.is-complete #psxDoneH{color:#bfffe6;text-shadow:0 0 18px rgba(52,211,153,.18)}
+#psxDoneCard.is-complete .done-banner{margin:12px 0 16px;padding:13px 16px;border:1px solid rgba(52,211,153,.42);border-left:4px solid #34d399;border-radius:12px;background:linear-gradient(105deg,rgba(52,211,153,.12),rgba(56,189,248,.12));color:#d5fbea}
+#psxDoneCard.is-complete .done-banner .muted{color:#b6d9dc}
+#psxLive.is-finishing .bar-disc-marker{animation:psx-disc-flyoff .9s cubic-bezier(.2,.72,.25,1) forwards}
+@keyframes psx-disc-flyoff{0%{opacity:1;transform:translate3d(-50%,-50%,0) scale(1) rotate(0deg)}18%{opacity:1;transform:translate3d(calc(-50% + 2vw),calc(-50% - 7vh),0) scale(.86) rotate(70deg)}100%{opacity:0;transform:translate3d(calc(-50% + 5vw),-58vh,0) scale(.08) rotate(320deg)}}
+@media (prefers-reduced-motion:reduce){#psxLive.is-finishing .bar-disc-marker{animation:none!important;opacity:0}}
 #psxResult.is-complete{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12)}
 #psxResult.is-complete::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251d;font-size:.9rem;font-weight:900}
 .psx-job{border:1px solid var(--line);border-radius:14px;background:rgba(6,10,30,.6);padding:12px 14px;margin-top:10px}
@@ -218,6 +228,11 @@ footer a{color:#9edcff}
 .psx-job-warn{color:#ffd98a;font-size:.83rem;line-height:1.5;margin-top:5px}
 .psx-job-error{color:#ffd7de;font-size:.85rem;line-height:1.5;margin-top:5px;white-space:pre-wrap}
 .psx-job-remove{margin-left:auto}
+.psx-group-box{margin-top:14px}
+.psx-group-row{display:grid;grid-template-columns:minmax(170px,.8fr) minmax(240px,1.3fr);gap:8px 14px;align-items:center;margin-top:11px}
+.psx-group-row input[type=text]{width:100%}
+.psx-group-meta{grid-column:1/-1;color:var(--muted);font-size:.83rem;line-height:1.5;overflow-wrap:anywhere}
+@media (max-width:700px){.psx-group-row{grid-template-columns:1fr}}
 @media (max-width:860px){
   .steps,.grid2,.radio-cards{grid-template-columns:1fr}
   .estimates{grid-template-columns:repeat(2,1fr)}
@@ -507,7 +522,7 @@ footer a{color:#9edcff}
 
     <section class="card" id="psxContentCard" data-workflow="psx" aria-labelledby="psxHeading" hidden>
       <h2 id="psxHeading">💿 PS1 multi-BIN merger for PCSXR360</h2>
-      <p class="muted small" style="line-height:1.6">Drop a PS1 game folder that contains <strong>one <code>.cue</code> plus several track files</strong> such as <code>Game (Track 1).bin</code>, <code>Game (Track 2).bin</code>… (the Redump layout). This tab merges them — losslessly, byte for byte — into <strong>one folder with a single <code>.bin</code> and its matching <code>.cue</code></strong>, the pair <strong>PCSXR360 2.1.1b</strong> can load with CD audio. Your original game folder is left completely alone: nothing in it is changed or deleted. The new <code>.cue</code> keeps the same name as the original; inside it, only the <code>FILE</code>/<code>TRACK</code>/<code>INDEX</code> lines PCSXR360 actually reads are kept, with track positions recalculated for the single <code>.bin</code> (PCSXR360 ignores a cue’s <code>FILE</code> lines, so an unchanged multi-file cue would lose track positions and CD audio). Extra files in the source folder — covers, <code>.md5</code>/<code>.ccd</code>/<code>.sub</code>, readmes and similar — are not copied to the output. Choose a parent folder to queue several games at once; multi-disc games stay as one separate <code>.bin</code>/<code>.cue</code> pair per disc.</p>
+      <p class="muted small" style="line-height:1.6">Drop a PS1 game folder that contains <strong>one <code>.cue</code> plus several track files</strong> such as <code>Game (Track 1).bin</code>, <code>Game (Track 2).bin</code>… (the Redump layout). This tab merges them — losslessly, byte for byte — into <strong>one folder with a single <code>.bin</code> and its matching <code>.cue</code></strong>, the pair <strong>PCSXR360 2.1.1b</strong> can load with CD audio. Your original game folder is left completely alone: nothing in it is changed or deleted. The new <code>.cue</code> keeps the same name as the original; inside it, only the <code>FILE</code>/<code>TRACK</code>/<code>INDEX</code> lines PCSXR360 actually reads are kept, with track positions recalculated for the single <code>.bin</code> (PCSXR360 ignores a cue’s <code>FILE</code> lines, so an unchanged multi-file cue would lose track positions and CD audio). Extra files in the source folder — covers, <code>.md5</code>/<code>.ccd</code>/<code>.sub</code>, readmes and similar — are not copied to the output. Choose a parent folder to queue several games at once; multi-disc games stay as one separate <code>.bin</code>/<code>.cue</code> pair per disc, and when all discs are dropped together, detected discs from the same game can automatically share one game folder in folder/FTP output.</p>
       <div class="warn-note small"><strong>Merging is not compression.</strong> The merged <code>.bin</code> is the same total size as the track files combined (only the unneeded side files are left behind). Smaller formats such as CHD or PBP are not supported by PCSXR360 2.1.1b, so a plain <code>.bin</code> is what it needs. Only merge backups of games you own.</div>
       <div id="psxDropZone" class="drop raw-drop-zone" role="button" tabindex="0" aria-label="Drop or choose a PS1 game folder containing a cue and bin track files">
         <div class="big" aria-hidden="true">💿</div>
@@ -526,6 +541,12 @@ footer a{color:#9edcff}
       <h3>Discs to merge</h3>
       <div id="psxJobList"></div>
       <div class="btn-row"><button class="btn small" id="psxClearJobsBtn" type="button">Clear list</button></div>
+      <div class="setup psx-group-box" id="psxMultiDiscBox" hidden>
+        <strong>Detected multi-disc set(s)</strong>
+        <p class="muted small" style="margin:6px 0 0;line-height:1.55">Drop or select all discs together and the site will keep each disc as its own <code>.bin</code> + <code>.cue</code> pair, grouped inside one folder named after the game. You can edit that folder name before merging.</p>
+        <div id="psxMultiDiscList"></div>
+      </div>
+      <label class="check small"><input id="psxGroupMultiDisc" type="checkbox" checked><span><strong>Automatically group multi-disc games into one folder per game</strong> when two or more discs from the same game are detected. Applies to <strong>Save to a folder</strong> and <strong>FTP</strong>; individual browser downloads remain separate files, but their labels show the intended game folder.</span></label>
       <label class="check small"><input id="psxKeepSbi" type="checkbox" checked><span><strong>Keep a matching <span class="kbd">.sbi</span> file</strong> (LibCrypt subchannel data) when one is in the source folder. It is copied beside the merged <code>.bin</code>; on the console, PCSXR360 loads <code>.sbi</code> files from its patches folder using the game-serial file name, so keep it with the game in case a title needs it.</span></label>
 
       <h3>💾 Where should the merged games go?</h3>
@@ -538,11 +559,11 @@ footer a{color:#9edcff}
 
       <div class="setup" id="psxFolderSetup" hidden>
         <strong>Pick the folder that will receive the merged games</strong> — for example a PS1 folder on a USB stick, or an empty folder on this computer.
-        <label class="check small"><input id="psxFolderGameFolder" type="checkbox" checked><span><strong>Create one folder per game</strong> (named after the game above) with its <code>.bin</code> + <code>.cue</code> inside. Turn it off to write every pair flat into the chosen folder.</span></label>
+        <label class="check small"><input id="psxFolderGameFolder" type="checkbox" checked><span><strong>Create a folder for each ungrouped game/disc</strong> with its <code>.bin</code> + <code>.cue</code> inside. Detected multi-disc sets use one shared game folder when automatic grouping above is on. Turn this off to write ungrouped pairs flat into the chosen folder.</span></label>
         <div class="btn-row"><button class="btn" id="psxChooseOutputFolderBtn" type="button">Choose output folder…</button><span class="muted" id="psxFolderName"></span></div>
       </div>
       <div class="setup" id="psxFilesSetup" hidden>
-        No setup needed. When merging finishes, a download button for each merged <span class="kbd">.bin</span>, its <span class="kbd">.cue</span> (and <span class="kbd">.sbi</span> if kept) will appear below. Put each pair in one folder with exactly those names — PCSXR360 only finds the <code>.cue</code> when it has the same name as the <code>.bin</code> beside it. Your browser may ask to allow multiple downloads.
+        No setup needed. When merging finishes, a download button for each merged <span class="kbd">.bin</span>, its <span class="kbd">.cue</span> (and <span class="kbd">.sbi</span> if kept) will appear below. Browsers download the files individually, so create the folder shown on each download row yourself — for a detected multi-disc set, that is one shared game folder containing every disc pair. PCSXR360 only finds the <code>.cue</code> when it has the same name as the <code>.bin</code> beside it. Your browser may ask to allow multiple downloads.
       </div>
       <div class="setup" id="psxFtpSetup" hidden>
         <strong>Xbox FTP connection (same home network only)</strong>
@@ -553,10 +574,11 @@ footer a{color:#9edcff}
           <div><label class="f" for="psxFtpPort">FTP port</label><input id="psxFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
           <div><label class="f" for="psxFtpUser">FTP username</label><input id="psxFtpUser" type="text" placeholder="Check your dash FTP settings" autocomplete="off"></div>
           <div><label class="f" for="psxFtpPassword">FTP password</label><input id="psxFtpPassword" type="password" autocomplete="off"></div>
-          <div style="grid-column:1/-1"><label class="f" for="psxFtpPath">Xbox FTP base path</label><input id="psxFtpPath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Usually the HDD root exposed by your dashboard; confirm the path in Aurora/FSD if connection testing fails.</div></div>
-          <div style="grid-column:1/-1"><label class="f" for="psxFtpDir">Xbox folder for PS1 games <span class="muted">(optional)</span></label><input id="psxFtpDir" type="text" placeholder="e.g. Emulators/PCSXR360/games — or leave blank" autocomplete="off"><div class="muted tiny">Optional. Leave blank to upload directly into the base path above. Point it at the folder you browse for games in PCSXR360 (often a <code>games</code> or <code>ROMS</code> folder beside the emulator). Missing folders are created automatically.</div></div>
+          <div style="grid-column:1/-1"><label class="f" for="psxFtpPathPreset">Quick base-path preset <span class="muted">(optional)</span></label><select id="psxFtpPathPreset"><option value="">Custom path (type below)</option><option value="Hdd1:/" selected>Normal — Hdd1:/</option><option value="Usb1/Emulators/PCSXR360 2.1.1b/roms">PCSXR360 ROMs on USB — Usb1/Emulators/PCSXR360 2.1.1b/roms</option><option value="Hdd1:/Emulators/PCSXR360 2.1.1b/roms">PCSXR360 ROMs on HDD — Hdd1:/Emulators/PCSXR360 2.1.1b/roms</option><option value="Usb1">USB root — Usb1</option></select><div class="muted tiny">Optional shortcut: choosing a preset fills the editable base-path box below.</div></div>
+          <div style="grid-column:1/-1"><label class="f" for="psxFtpPath">Xbox FTP base path</label><input id="psxFtpPath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Normal dashboard base path: <code>Hdd1:/</code>. Use a preset above or type a custom path here.</div></div>
+          <div style="grid-column:1/-1"><label class="f" for="psxFtpDir">Xbox folder for PS1 games <span class="muted">(optional)</span></label><input id="psxFtpDir" type="text" placeholder="e.g. Emulators/PCSXR360 2.1.1b/roms — or leave blank" autocomplete="off"><div class="muted tiny">Optional. Leave blank to upload directly into the base path above. If the base path is just <code>Hdd1:/</code>, put the PCSXR360 <code>roms</code> folder here; if your preset already ends in <code>roms</code>, leave this blank. Missing folders are created automatically.</div></div>
         </div>
-        <label class="check small"><input id="psxFtpGameFolder" type="checkbox"><span><strong>Create a subfolder named after each game</strong> inside that folder. Leave it off for the classic PCSXR360 layout: every <code>.bin</code>/<code>.cue</code> pair flat in the games folder, ready to pick from the emulator’s game list.</span></label>
+        <label class="check small"><input id="psxFtpGameFolder" type="checkbox"><span><strong>Create a subfolder for each ungrouped game/disc</strong> inside that folder. Detected multi-disc sets automatically use one shared game folder when automatic grouping above is on. Leave this off for the classic PCSXR360 layout for ungrouped pairs: flat in the games folder, ready to pick from the emulator’s game list.</span></label>
         <label class="check small"><input id="rememberFtpPsx" type="checkbox"><span>Remember Xbox IP and username on this Mac/browser. The FTP password is never saved.</span></label>
         <div class="btn-row"><button class="btn" id="psxFtpConnectBtn" type="button" disabled>Test connection</button><span class="muted" id="psxFtpStatus">Start the local helper and open its local page to enable FTP.</span></div>
         <p class="muted tiny">The helper runs only on this computer and binds to loopback. It stages one merged file at a time here first (keep free temporary space roughly the size of one game), then sends it to the Xbox by FTP. Temporary staging files are removed after success, cancel, or helper shutdown.</p>
@@ -571,9 +593,10 @@ footer a{color:#9edcff}
 
       <div id="psxLive" hidden style="margin-top:14px">
         <div class="muted small" id="psxOverallLiveText" aria-live="polite"></div>
-        <div class="bar-wrap thin raw-overall-wrap"><div class="bar thin raw-overall-bar" id="psxOverallLiveBar" style="width:0%"></div></div>
-        <div class="ufo-progress-lane"><div class="bar-wrap"><div class="bar" id="psxLiveBar"><span class="bar-disc-marker" aria-hidden="true"><svg viewBox="0 0 80 36" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="discHullPsx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#effff8"/><stop offset=".48" stop-color="#83f4de"/><stop offset="1" stop-color="#43cbd0"/></linearGradient></defs><g class="disc-shell"><ellipse cx="40" cy="18" rx="38" ry="15" fill="url(#discHullPsx)" stroke="#effffb" stroke-width="2.3"/><ellipse cx="40" cy="17.5" rx="34.5" ry="10.5" fill="none" stroke="#f4fffc" stroke-opacity=".82" stroke-width="1.2" stroke-dasharray="5 4"/><ellipse cx="40" cy="18" rx="9.5" ry="4.2" fill="#07131d" stroke="#eafffa" stroke-width="1.5"/><path d="M13 15 Q27 7 45 10 M50 26 Q64 23 68 15" fill="none" stroke="#f4fffd" stroke-opacity=".9" stroke-width="1.5" stroke-linecap="round"/><path d="M19 20 Q40 30 61 20" fill="none" stroke="#effffb" stroke-opacity=".82" stroke-width="1.1"/><circle class="disc-light disc-light-cyan" cx="21" cy="16" r="2.5" fill="#a7fff0"/><circle class="disc-light disc-light-blue" cx="31" cy="27" r="2" fill="#7dd3fc"/><circle class="disc-light disc-light-lavender" cx="49" cy="27" r="2" fill="#c4b5fd"/><circle class="disc-light disc-light-pink" cx="59" cy="16" r="2.5" fill="#f0abfc"/></g></svg></span></div></div></div>
-        <div class="muted small" id="psxLiveText" aria-live="polite" style="margin-top:9px"></div>
+        <div id="psxMergeLive">
+          <div class="ufo-progress-lane"><div class="bar-wrap"><div class="bar" id="psxLiveBar"><span class="bar-disc-marker" aria-hidden="true"><svg viewBox="0 0 80 36" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="discHullPsx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#effff8"/><stop offset=".48" stop-color="#83f4de"/><stop offset="1" stop-color="#43cbd0"/></linearGradient></defs><g class="disc-shell"><ellipse cx="40" cy="18" rx="38" ry="15" fill="url(#discHullPsx)" stroke="#effffb" stroke-width="2.3"/><ellipse cx="40" cy="17.5" rx="34.5" ry="10.5" fill="none" stroke="#f4fffc" stroke-opacity=".82" stroke-width="1.2" stroke-dasharray="5 4"/><ellipse cx="40" cy="18" rx="9.5" ry="4.2" fill="#07131d" stroke="#eafffa" stroke-width="1.5"/><path d="M13 15 Q27 7 45 10 M50 26 Q64 23 68 15" fill="none" stroke="#f4fffd" stroke-opacity=".9" stroke-width="1.5" stroke-linecap="round"/><path d="M19 20 Q40 30 61 20" fill="none" stroke="#effffb" stroke-opacity=".82" stroke-width="1.1"/><circle class="disc-light disc-light-cyan" cx="21" cy="16" r="2.5" fill="#a7fff0"/><circle class="disc-light disc-light-blue" cx="31" cy="27" r="2" fill="#7dd3fc"/><circle class="disc-light disc-light-lavender" cx="49" cy="27" r="2" fill="#c4b5fd"/><circle class="disc-light disc-light-pink" cx="59" cy="16" r="2.5" fill="#f0abfc"/></g></svg></span></div></div></div>
+          <div class="muted small" id="psxLiveText" aria-live="polite" style="margin-top:9px"></div>
+        </div>
         <div id="psxFtpLive" hidden style="margin-top:12px">
           <div class="ufo-progress-lane ftp-transfer-lane"><div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="psxFtpLiveBar" style="width:0%"><span class="bar-disc-marker" aria-hidden="true"><svg viewBox="0 0 80 36" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="discHullPsxFtp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#effff8"/><stop offset=".48" stop-color="#83f4de"/><stop offset="1" stop-color="#43cbd0"/></linearGradient></defs><g class="disc-shell"><ellipse cx="40" cy="18" rx="38" ry="15" fill="url(#discHullPsxFtp)" stroke="#effffb" stroke-width="2.3"/><ellipse cx="40" cy="17.5" rx="34.5" ry="10.5" fill="none" stroke="#f4fffc" stroke-opacity=".82" stroke-width="1.2" stroke-dasharray="5 4"/><ellipse cx="40" cy="18" rx="9.5" ry="4.2" fill="#07131d" stroke="#eafffa" stroke-width="1.5"/><path d="M13 15 Q27 7 45 10 M50 26 Q64 23 68 15" fill="none" stroke="#f4fffd" stroke-opacity=".9" stroke-width="1.5" stroke-linecap="round"/><path d="M19 20 Q40 30 61 20" fill="none" stroke="#effffb" stroke-opacity=".82" stroke-width="1.1"/><circle class="disc-light disc-light-cyan" cx="21" cy="16" r="2.5" fill="#a7fff0"/><circle class="disc-light disc-light-blue" cx="31" cy="27" r="2" fill="#7dd3fc"/><circle class="disc-light disc-light-lavender" cx="49" cy="27" r="2" fill="#c4b5fd"/><circle class="disc-light disc-light-pink" cx="59" cy="16" r="2.5" fill="#f0abfc"/></g></svg></span></div></div></div>
           <div class="muted small" id="psxFtpLiveText" aria-live="polite" style="margin-top:9px"></div>
@@ -582,6 +605,15 @@ footer a{color:#9edcff}
         <div class="btn-row"><button class="btn danger" id="psxCancelBtn" type="button" disabled>Cancel merge</button></div>
       </div>
 
+      <div class="logbox" id="psxLogEl" aria-live="polite"></div>
+    </section>
+
+    <section class="card" id="psxDoneCard" aria-labelledby="psxDoneH" hidden>
+      <h2 id="psxDoneH">🌟 Finished — ready for PCSXR360</h2>
+      <p class="done-banner" id="psxDoneSummary" aria-live="polite"></p>
+      <div class="btn-row">
+        <button class="btn" id="psxMergeAnotherBtn" type="button">Merge another PS1 game</button>
+      </div>
       <div id="psxDownloadsBox" hidden>
         <h3>Download the merged files</h3>
         <p class="muted small" style="line-height:1.6">Download each <span class="kbd">.bin</span> together with the <span class="kbd">.cue</span> of the same name and keep them side by side. In PCSXR360, select the <code>.bin</code> — the matching <code>.cue</code> beside it is read automatically for game info and CD audio.</p>
@@ -592,10 +624,9 @@ footer a{color:#9edcff}
       <ol class="faq-body" style="margin-top:0">
         <li>Put each merged <strong><code>.bin</code> + same-named <code>.cue</code></strong> pair in the folder you browse for games in PCSXR360 (by FTP above, or via USB + a file manager). Never separate or rename one without the other.</li>
         <li>In PCSXR360’s game list, select the <strong><code>.bin</code></strong> file. The <code>.cue</code> does not need to be selected — the emulator looks for a <code>.cue</code> with the same name beside the <code>.bin</code> and uses it for track layout and CD-audio music.</li>
-        <li>Multi-disc games: keep one pair per disc and swap with the in-game menu’s eject option when the game asks for the next disc; don’t try to combine different discs into one <code>.bin</code>.</li>
+        <li>Multi-disc games: when all discs were selected together and grouping was on, their separate pairs are placed together in one game folder. Keep one pair per disc and swap with the in-game menu’s eject/change-disc option when the game asks for the next disc; don’t try to combine different discs into one <code>.bin</code>.</li>
         <li>No music in a CD-audio game usually means the <code>.cue</code> is missing, renamed, or in a different folder from the <code>.bin</code>.</li>
       </ol>
-      <div class="logbox" id="psxLogEl" aria-live="polite"></div>
     </section>
 
     <details class="faq">
@@ -1575,15 +1606,17 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     psxContentCard: $('psxContentCard'), psxDropZone: $('psxDropZone'), psxFolderInput: $('psxFolderInput'), psxFilesInput: $('psxFilesInput'),
     psxChooseFolderBtn: $('psxChooseFolderBtn'), psxChooseFilesBtn: $('psxChooseFilesBtn'), psxSelectedSummary: $('psxSelectedSummary'), psxErrorBox: $('psxErrorBox'),
     psxJobList: $('psxJobList'), psxClearJobsBtn: $('psxClearJobsBtn'), psxKeepSbi: $('psxKeepSbi'),
+    psxMultiDiscBox: $('psxMultiDiscBox'), psxMultiDiscList: $('psxMultiDiscList'), psxGroupMultiDisc: $('psxGroupMultiDisc'),
     psxModeFolder: $('psxModeFolder'), psxModeFiles: $('psxModeFiles'), psxModeFtp: $('psxModeFtp'), psxOutputModeNote: $('psxOutputModeNote'),
     psxFolderSetup: $('psxFolderSetup'), psxFilesSetup: $('psxFilesSetup'), psxFtpSetup: $('psxFtpSetup'),
     psxFolderGameFolder: $('psxFolderGameFolder'), psxChooseOutputFolderBtn: $('psxChooseOutputFolderBtn'), psxFolderName: $('psxFolderName'),
-    psxFtpHost: $('psxFtpHost'), psxFtpPort: $('psxFtpPort'), psxFtpUser: $('psxFtpUser'), psxFtpPassword: $('psxFtpPassword'), psxFtpPath: $('psxFtpPath'), psxFtpDir: $('psxFtpDir'),
+    psxFtpHost: $('psxFtpHost'), psxFtpPort: $('psxFtpPort'), psxFtpUser: $('psxFtpUser'), psxFtpPassword: $('psxFtpPassword'), psxFtpPath: $('psxFtpPath'), psxFtpPathPreset: $('psxFtpPathPreset'), psxFtpDir: $('psxFtpDir'),
     psxFtpGameFolder: $('psxFtpGameFolder'), rememberFtpPsx: $('rememberFtpPsx'), psxFtpConnectBtn: $('psxFtpConnectBtn'), psxFtpStatus: $('psxFtpStatus'),
     psxMergeBtn: $('psxMergeBtn'), psxResetBtn: $('psxResetBtn'), psxResult: $('psxResult'),
-    psxLive: $('psxLive'), psxOverallLiveText: $('psxOverallLiveText'), psxOverallLiveBar: $('psxOverallLiveBar'), psxLiveBar: $('psxLiveBar'), psxLiveText: $('psxLiveText'),
+    psxLive: $('psxLive'), psxOverallLiveText: $('psxOverallLiveText'), psxMergeLive: $('psxMergeLive'), psxLiveBar: $('psxLiveBar'), psxLiveText: $('psxLiveText'),
     psxFtpLive: $('psxFtpLive'), psxFtpLiveBar: $('psxFtpLiveBar'), psxFtpLiveText: $('psxFtpLiveText'),
     psxFtpRetryActions: $('psxFtpRetryActions'), psxFtpRetryBtn: $('psxFtpRetryBtn'), psxFtpCancelBtn: $('psxFtpCancelBtn'), psxCancelBtn: $('psxCancelBtn'),
+    psxDoneCard: $('psxDoneCard'), psxDoneH: $('psxDoneH'), psxDoneSummary: $('psxDoneSummary'), psxMergeAnotherBtn: $('psxMergeAnotherBtn'),
     psxDownloadsBox: $('psxDownloadsBox'), psxDownloadList: $('psxDownloadList'), psxLogEl: $('psxLogEl'),
   };
 
@@ -1604,7 +1637,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], rawArchiveImportDirs: [],
     psxFtpConnected: false, psxBusy: false, psxFtpActive: false, psxCancelRequested: false, psxJobs: [],
     psxOutputMode: hasDirPicker ? 'folder' : 'files', psxDirHandle: null,
-    psxTotalBytes: 0, psxCompletedBytes: 0, psxCurrentBytes: 0, psxJobIndex: 0, psxJobCount: 0, psxDownloadUrls: [],
+    psxTotalBytes: 0, psxCompletedBytes: 0, psxCurrentBytes: 0, psxJobIndex: 0, psxJobCount: 0, psxDownloadUrls: [], psxDoneReady: false, psxFinishTimer: 0, psxGroupNameOverrides: {},
   };
 
   const FTP_IDENTITY_KEY = 'nebula-iso2god-ftp-identity-v1';
@@ -1725,6 +1758,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     document.querySelectorAll('[data-workflow="iso"]').forEach(el => el.classList.toggle('workflow-mode-hidden', !iso));
     els.rawContentUploadCard.hidden = !raw;
     els.psxContentCard.hidden = !psx;
+    els.psxDoneCard.hidden = !psx || !state.psxDoneReady;
     els.heroIsoIntro.classList.toggle('workflow-mode-hidden', !iso);
     els.heroPsxIntro.classList.toggle('workflow-mode-hidden', !psx);
     els.isoSteps.classList.toggle('workflow-mode-hidden', !iso);
@@ -2403,6 +2437,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       positionCompletionUfo('ftpLiveBar', pct / 100);
     }
     if (state.psxFtpActive) {
+      els.psxLive.hidden = false;
+      els.psxMergeLive.hidden = true;
       els.psxFtpLive.hidden = false;
       els.psxFtpLiveText.textContent = message;
       els.psxFtpLive.classList.toggle('is-complete', completed);
@@ -3147,6 +3183,104 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   }
 
+
+  function psxDiscSetInfo(name) {
+    const original = String(name || '').trim();
+    let base = original;
+    let hasMarker = false;
+    let hasDuplicateSuffix = false;
+    base = base.replace(/\s*[\[(]\s*(?:disc|disk|cd)\s*[-#._ ]?\s*(?:\d+|[ivx]+)(?:\s*(?:of|\/)\s*\d+)?\s*[\])]\s*/ig, () => { hasMarker = true; return ' '; });
+    base = base.replace(/[\s._-]+(?:disc|disk|cd)\s*[-#._ ]?\s*(?:\d+|[ivx]+)(?:\s*(?:of|\/)\s*\d+)?\s*$/i, () => { hasMarker = true; return ''; });
+    base = base.replace(/\s*\((\d+)\)\s*$/, (match, n) => {
+      if (Number(n) > 1) { hasDuplicateSuffix = true; return ''; }
+      return match;
+    });
+    base = base.replace(/[\s._-]+$/, '').replace(/\s+/g, ' ').trim();
+    return { base: psxSanitizeOutName(base || original), hasMarker, hasDuplicateSuffix };
+  }
+  function psxHasDiscMarkerText(text) {
+    return /(?:^|[\s._\-\[(])(?:disc|disk|cd)[\s._-]*(?:\d+|[ivx]+)\b/i.test(String(text || ''));
+  }
+  function refreshPsxMultiDiscGroups() {
+    const buckets = new Map();
+    for (const job of state.psxJobs) {
+      const info = psxDiscSetInfo(job.outName);
+      job.discSetBase = info.base;
+      job.discSetMarker = info.hasMarker;
+      job.discDuplicateSuffix = info.hasDuplicateSuffix;
+      job.discSetSourceMarker = psxHasDiscMarkerText(psxBaseOf(job.dir || ''));
+      job.groupKey = '';
+      job.groupName = '';
+      job.groupDiscCount = 0;
+      const key = info.base.toLowerCase();
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(job);
+    }
+    for (const [key, jobs] of buckets) {
+      const indicatorCount = jobs.filter(job => job.discSetMarker || job.discDuplicateSuffix || job.discSetSourceMarker).length;
+      if (jobs.length < 2 || indicatorCount < 2) continue;
+      const groupKey = 'set:' + key;
+      const groupName = psxSanitizeOutName(state.psxGroupNameOverrides[groupKey] || jobs[0].discSetBase);
+      for (const job of jobs) {
+        job.groupKey = groupKey;
+        job.groupName = groupName;
+        job.groupDiscCount = jobs.length;
+      }
+    }
+  }
+  function psxMultiDiscGroups() {
+    const groups = new Map();
+    for (const job of state.psxJobs) {
+      if (!job.groupKey) continue;
+      if (!groups.has(job.groupKey)) groups.set(job.groupKey, { key: job.groupKey, name: job.groupName, base: job.discSetBase, jobs: [] });
+      const group = groups.get(job.groupKey);
+      group.name = job.groupName || group.name;
+      group.jobs.push(job);
+    }
+    return Array.from(groups.values());
+  }
+  function psxJobGroupSegment(job) {
+    return els.psxGroupMultiDisc && els.psxGroupMultiDisc.checked && job.groupName ? psxSanitizeOutName(job.groupName) : '';
+  }
+  function psxFolderSegments(job) {
+    const group = psxJobGroupSegment(job);
+    return group ? [group] : (els.psxFolderGameFolder.checked ? [job.outName] : []);
+  }
+  function renderPsxMultiDiscGroups() {
+    const groups = psxMultiDiscGroups();
+    els.psxMultiDiscBox.hidden = !groups.length;
+    els.psxMultiDiscList.innerHTML = '';
+    for (const group of groups) {
+      const row = document.createElement('div');
+      row.className = 'psx-group-row';
+      const label = document.createElement('label');
+      label.className = 'f';
+      label.style.margin = '0';
+      label.textContent = group.jobs.length + ' discs → game folder';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = group.name;
+      input.disabled = state.psxBusy || !els.psxGroupMultiDisc.checked;
+      input.setAttribute('aria-label', 'Folder name for detected multi-disc set ' + group.name);
+      input.title = 'All detected discs in this set will be placed together in this folder for folder/FTP output.';
+      input.addEventListener('input', () => {
+        state.psxGroupNameOverrides[group.key] = input.value;
+        for (const job of group.jobs) job.groupName = input.value;
+      });
+      input.addEventListener('change', () => {
+        const value = psxSanitizeOutName(input.value || group.base);
+        state.psxGroupNameOverrides[group.key] = value;
+        renderPsxJobs();
+        updatePsxEnabled();
+      });
+      const meta = document.createElement('div');
+      meta.className = 'psx-group-meta';
+      meta.textContent = group.jobs.map(job => job.outName).join(' · ') + (els.psxGroupMultiDisc.checked ? '' : ' — automatic grouping is currently off below.');
+      row.append(label, input, meta);
+      els.psxMultiDiscList.appendChild(row);
+    }
+  }
+
   async function addPsxInputs(inputs) {
     if (state.psxBusy) return;
     psxClearError();
@@ -3224,6 +3358,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
 
   function renderPsxJobs() {
+    refreshPsxMultiDiscGroups();
+    renderPsxMultiDiscGroups();
     const list = els.psxJobList;
     list.innerHTML = '';
     if (!state.psxJobs.length) {
@@ -3260,6 +3396,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         job.outName = nameInput.value;
         warn.textContent = psxFatxWarning(psxSanitizeOutName(nameInput.value));
         warn.style.display = warn.textContent ? '' : 'none';
+        refreshPsxMultiDiscGroups();
+        renderPsxMultiDiscGroups();
       });
       nameInput.addEventListener('change', () => {
         job.outName = psxSanitizeOutName(nameInput.value);
@@ -3279,6 +3417,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       if (job.status === 'ready') {
         let text = job.plan.trackCount + ' track(s) · ' + job.plan.files.length + ' .bin file(s) → 1 × .bin (' + fmtBytes(job.plan.totalBytes) + ') + matching .cue';
         if (job.sbi && els.psxKeepSbi.checked) text += ' + .sbi kept';
+        if (job.groupName) text += ' · Detected multi-disc set: ' + job.groupName + ' (' + job.groupDiscCount + ' discs)';
         if (job.dropped.length) text += ' · Not copied into the new .cue: ' + job.dropped.join(', ');
         if (job.ignoredCount) text += ' · ' + job.ignoredCount + ' other file(s) in the source folder will not be copied';
         text += ' · Source: ' + job.cuePath;
@@ -3306,10 +3445,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   }
   els.psxKeepSbi.addEventListener('change', renderPsxJobs);
+  els.psxGroupMultiDisc.addEventListener('change', renderPsxJobs);
   els.psxClearJobsBtn.addEventListener('click', () => {
     if (state.psxBusy) return;
     state.psxJobs = [];
+    state.psxGroupNameOverrides = {};
     revokePsxDownloadUrls();
+    hidePsxDone();
     els.psxDownloadsBox.hidden = true;
     renderPsxJobs();
     updatePsxSummary();
@@ -3425,9 +3567,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.psxFtpConnected = false;
       setFtpStatus(els.psxFtpStatus, 'Settings changed; test the PS1-merger FTP connection again.');
       if (el === els.psxFtpHost || el === els.psxFtpUser) persistIdentityOnInput('psx');
+      if (el === els.psxFtpPath) syncPsxFtpPathPreset();
       updatePsxEnabled();
     });
   }
+  function syncPsxFtpPathPreset() {
+    const current = els.psxFtpPath.value.trim();
+    const matches = Array.from(els.psxFtpPathPreset.options).some(option => option.value && option.value === current);
+    els.psxFtpPathPreset.value = matches ? current : '';
+  }
+  els.psxFtpPathPreset.addEventListener('change', () => {
+    const preset = els.psxFtpPathPreset.value;
+    if (!preset) { els.psxFtpPath.focus(); return; }
+    els.psxFtpPath.value = preset;
+    els.psxFtpPath.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   els.psxFtpDir.addEventListener('input', updatePsxEnabled);
 
   function psxMergeLabel() {
@@ -3452,6 +3606,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.psxDropZone.setAttribute('aria-disabled', selDisabled ? 'true' : 'false');
     els.psxCancelBtn.disabled = !state.psxBusy;
     els.psxFtpConnectBtn.disabled = !state.ftpToken || state.psxBusy;
+    els.psxGroupMultiDisc.disabled = state.psxBusy;
   }
 
   function updatePsxOverallProgress(phase) {
@@ -3463,10 +3618,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.psxOverallLiveText.textContent = total
       ? 'Overall job: ' + fmtBytes(done) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + discLabel + ' · ' + (phase || 'working')
       : 'Overall job: preparing…';
-    els.psxOverallLiveBar.style.width = (frac * 100).toFixed(1) + '%';
   }
   function psxSetLive(message, fraction) {
     els.psxLive.hidden = false;
+    els.psxMergeLive.hidden = false;
+    els.psxFtpLive.hidden = true;
     els.psxLiveText.textContent = message;
     const pct = Math.max(0, Math.min(100, (Number(fraction) || 0) * 100));
     els.psxLiveBar.style.width = pct.toFixed(1) + '%';
@@ -3477,7 +3633,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     for (const s of segs) {
       if (s === '.' || s === '..' || /[\u0000-\u001f\u007f]/.test(s)) throw new Error('Invalid folder name "' + s + '" in the optional Xbox folder field.');
     }
-    if (els.psxFtpGameFolder.checked) segs.push(job.outName);
+    const group = psxJobGroupSegment(job);
+    if (group) segs.push(group);
+    else if (els.psxFtpGameFolder.checked) segs.push(job.outName);
     return segs;
   }
   function psxJobOutputs(job) {
@@ -3572,7 +3730,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       row.className = 'download-row';
       const label = document.createElement('span');
       const code = document.createElement('code');
-      code.textContent = job.outName + '/' + out.name;
+      code.textContent = (psxJobGroupSegment(job) || job.outName) + '/' + out.name;
       label.append(code, document.createTextNode(' · ' + fmtBytes(out.size)));
       const link = document.createElement('a');
       link.className = 'btn small';
@@ -3588,6 +3746,67 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     updatePsxOverallProgress('preparing downloads');
   }
 
+
+  function clearPsxFinishTimer() {
+    if (state.psxFinishTimer) window.clearTimeout(state.psxFinishTimer);
+    state.psxFinishTimer = 0;
+  }
+  function hidePsxDone() {
+    state.psxDoneReady = false;
+    els.psxDoneCard.hidden = true;
+    els.psxDoneCard.classList.remove('is-complete');
+    els.psxDoneSummary.innerHTML = '';
+  }
+  function showPsxDone(successJobs, failedCount, totalCount, durationMs, cancelled) {
+    if (!successJobs.length) return;
+    const allGood = !cancelled && !failedCount && successJobs.length === totalCount;
+    state.psxDoneReady = true;
+    els.psxDoneH.textContent = allGood ? '🌟 Finished — ready for PCSXR360' : 'Finished — check the results';
+    els.psxDoneCard.classList.toggle('is-complete', allGood);
+    els.psxDownloadsBox.hidden = state.psxOutputMode !== 'files';
+    const totalBytes = successJobs.reduce((sum, job) => sum + psxJobOutputs(job).reduce((s, out) => s + out.size, 0), 0);
+    const names = successJobs.map(job => job.outName).join(', ');
+    const groupedNames = [...new Set(successJobs.map(job => psxJobGroupSegment(job)).filter(Boolean))];
+    const groupNote = groupedNames.length ? ' Multi-disc set folder(s): ' + groupedNames.map(name => '<code>' + esc(name) + '</code>').join(', ') + '.' : '';
+    const action = state.psxOutputMode === 'ftp' ? 'merged and uploaded' : 'merged';
+    const wasWere = successJobs.length === 1 ? 'was' : 'were';
+    let lead;
+    if (cancelled) {
+      lead = 'Cancelled after ' + successJobs.length + ' of ' + totalCount + ' disc(s). <strong>' + esc(names) + '</strong> ' + wasWere + ' completed and can be used.';
+    } else if (allGood) {
+      lead = '<strong>' + esc(names) + '</strong> ' + wasWere + ' ' + action + ' (' + fmtBytes(totalBytes) + ' total) in ' + fmtDuration(durationMs) + '.';
+    } else {
+      lead = successJobs.length + ' of ' + totalCount + ' disc(s) completed: <strong>' + esc(names) + '</strong> ' + wasWere + ' ' + action + '. ' + failedCount + ' failed — see the log above.';
+    }
+    let where;
+    if (state.psxOutputMode === 'folder') {
+      where = 'Written into the output folder you chose' + (state.psxDirHandle ? ' (<code>' + esc(state.psxDirHandle.name) + '</code>)' : '') + '.' + groupNote + ' Follow the steps below to put the game on your Xbox 360.';
+    } else if (state.psxOutputMode === 'ftp') {
+      const base = (els.psxFtpPath.value.trim() || 'Hdd1:/').replace(/\/+$/, '');
+      const extra = String(els.psxFtpDir.value || '').split(/[\\/]+/).map(s => s.trim()).filter(Boolean);
+      const shownPath = [base, ...extra].join('/');
+      where = 'Uploaded to <code>' + esc(shownPath) + '</code> on your Xbox.' + (groupNote || (els.psxFtpGameFolder.checked ? ' Each ungrouped game/disc is in its own subfolder inside it.' : ''));
+    } else {
+      where = 'Use the download buttons below, then keep each .bin in the same folder as its same-named .cue.' + (groupedNames.length ? ' For detected multi-disc sets, create the game folder shown on the download rows and put every disc pair in it.' + groupNote : '');
+    }
+    els.psxDoneSummary.innerHTML = lead + '<br><span class="muted">' + where + '</span>';
+    els.psxDoneCard.hidden = false;
+    window.setTimeout(() => {
+      if (state.taskMode === 'psx' && state.psxDoneReady) els.psxDoneCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, allGood ? 450 : 0);
+  }
+  function finishPsxLiveWithCelebration() {
+    els.psxLive.classList.add('is-finishing');
+    celebrateCompletion();
+    clearPsxFinishTimer();
+    state.psxFinishTimer = window.setTimeout(() => {
+      state.psxFinishTimer = 0;
+      if (state.psxBusy) return;
+      els.psxLive.hidden = true;
+      els.psxLive.classList.remove('is-finishing');
+    }, 950);
+  }
+
   els.psxCancelBtn.addEventListener('click', () => {
     if (!state.psxBusy) return;
     state.psxCancelRequested = true;
@@ -3596,12 +3815,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   });
   els.psxResetBtn.addEventListener('click', () => {
     if (state.psxBusy) return;
+    clearPsxFinishTimer();
     state.psxJobs = [];
+    state.psxGroupNameOverrides = {};
     revokePsxDownloadUrls();
     els.psxLogEl.innerHTML = '';
     els.psxLive.hidden = true;
-    els.psxLive.classList.remove('is-complete');
+    els.psxLive.classList.remove('is-complete', 'is-finishing');
+    els.psxMergeLive.hidden = false;
     els.psxFtpLive.hidden = true;
+    hidePsxDone();
     els.psxDownloadsBox.hidden = true;
     els.psxDownloadList.innerHTML = '';
     els.psxResult.classList.remove('is-complete');
@@ -3614,10 +3837,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   });
 
   async function runPsxMerge() {
+    refreshPsxMultiDiscGroups();
     const ready = state.psxJobs.filter(j => j.status === 'ready');
     if (!ready.length || state.psxBusy) return;
     psxClearError();
     revokePsxDownloadUrls();
+    hidePsxDone();
+    clearPsxFinishTimer();
     els.psxDownloadsBox.hidden = true;
     els.psxDownloadList.innerHTML = '';
     state.psxBusy = true;
@@ -3629,10 +3855,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.psxCurrentBytes = 0;
     state.psxTotalBytes = ready.reduce((sum, j) => sum + psxJobOutputs(j).reduce((s, o) => s + o.size, 0), 0);
     els.psxLive.hidden = false;
-    els.psxLive.classList.remove('is-complete');
-    els.psxOverallLiveBar.style.width = '0%';
+    els.psxLive.classList.remove('is-complete', 'is-finishing');
+    els.psxMergeLive.hidden = state.psxFtpActive;
     els.psxLiveBar.style.width = '0%';
-    els.psxLiveText.textContent = 'Preparing…';
+    els.psxLiveText.textContent = state.psxFtpActive ? '' : 'Preparing…';
     els.psxFtpLive.hidden = !state.psxFtpActive;
     els.psxFtpLive.classList.remove('is-complete');
     els.psxFtpLiveBar.style.width = '0%';
@@ -3647,6 +3873,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     updatePsxEnabled();
     renderPsxJobs();
     let succeeded = 0, failed = 0;
+    const succeededJobs = [];
     const startedAt = Date.now();
     try {
       if (state.psxOutputMode === 'folder') {
@@ -3659,8 +3886,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           const job = ready[i];
           try {
             psxLog('Merging "' + job.outName + '" (' + (i + 1) + ' of ' + ready.length + ')…');
-            await writePsxJob(job, () => writer, els.psxFolderGameFolder.checked ? [job.outName] : []);
+            await writePsxJob(job, () => writer, psxFolderSegments(job));
             succeeded++;
+            succeededJobs.push(job);
           } catch (err) {
             if (err && err.name === 'AbortError') throw err;
             failed++;
@@ -3677,6 +3905,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             psxLog('Merging & uploading "' + job.outName + '" (' + (i + 1) + ' of ' + ready.length + ') to ' + (baseSegments.length ? baseSegments.join('/') + '/' : 'the base path') + '…');
             await writePsxJob(job, () => new FTPWriter(state.ftpToken), baseSegments);
             succeeded++;
+            succeededJobs.push(job);
           } catch (err) {
             if (err && err.name === 'AbortError') throw err;
             failed++;
@@ -3684,7 +3913,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           }
         }
       } else {
-        els.psxDownloadsBox.hidden = false;
+        els.psxDownloadsBox.hidden = true;
         for (let i = 0; i < ready.length; i++) {
           state.psxJobIndex = i;
           const job = ready[i];
@@ -3692,6 +3921,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             psxSetLive('Preparing downloads for "' + job.outName + '"…', ready.length ? i / ready.length : 0);
             buildPsxDownloadRows(job);
             succeeded++;
+            succeededJobs.push(job);
             psxLog('Downloads ready for "' + job.outName + '". The .bin is assembled from your track files when you click Download — keep this tab open until the downloads finish.');
           } catch (err) {
             failed++;
@@ -3715,10 +3945,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.psxFtpActive = false;
       await releaseWakeLock();
       if (succeeded && !failed && !state.psxCancelRequested) {
-        const took = ' in ' + fmtDuration(Date.now() - startedAt);
+        const elapsedMs = Date.now() - startedAt;
+        const took = ' in ' + fmtDuration(elapsedMs);
         els.psxLive.classList.add('is-complete');
         updatePsxOverallProgress('complete');
-        els.psxResult.classList.add('is-complete');
+        els.psxResult.classList.remove('is-complete');
         if (state.psxOutputMode === 'folder') {
           psxSetLive('All discs merged.', 1);
           els.psxResult.textContent = 'Complete: ' + succeeded + ' disc(s) merged into "' + state.psxDirHandle.name + '"' + took + '. Keep each .bin with its same-named .cue.';
@@ -3731,10 +3962,17 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           els.psxResult.textContent = 'Ready: download each .bin with its .cue below' + took + ', and keep each pair together in one folder.';
         }
         psxLog('All PS1 merges complete (' + succeeded + ' disc(s))' + took + '.');
-        celebrateCompletion();
+        finishPsxLiveWithCelebration();
+        showPsxDone(succeededJobs, failed, ready.length, elapsedMs, false);
       } else if (succeeded || failed) {
         if (!state.psxCancelRequested) els.psxResult.textContent = 'Finished with ' + failed + ' failed disc(s) and ' + succeeded + ' completed. See the log below.';
         updatePsxOverallProgress(state.psxCancelRequested ? 'cancelled' : 'stopped · see log');
+        if (succeeded) {
+          clearPsxFinishTimer();
+          els.psxLive.hidden = true;
+          resetCompletionUfo();
+          showPsxDone(succeededJobs, failed, ready.length, Date.now() - startedAt, state.psxCancelRequested);
+        }
       }
       updateConvertEnabled();
       updatePsxEnabled();
@@ -3742,6 +3980,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   }
   els.psxMergeBtn.addEventListener('click', () => { runPsxMerge().catch(err => psxError('Merge could not start: ' + err.message)); });
+  els.psxMergeAnotherBtn.addEventListener('click', () => {
+    els.psxResetBtn.click();
+    els.psxContentCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
   if (!hasDirPicker) {
     els.psxModeFolder.disabled = true;
