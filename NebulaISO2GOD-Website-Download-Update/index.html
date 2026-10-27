@@ -125,7 +125,7 @@ input[type=text]:focus,input[type=password]:focus{outline:2px solid rgba(110,231
 .mode-btn:disabled{opacity:1;cursor:not-allowed;background:rgba(17,24,43,.92);border-color:rgba(160,175,205,.35);color:#e0e7f5}
 .mode-btn:disabled span{color:#b5c1dc}
 .setup{margin-top:12px; padding:14px; border:1px solid var(--line); border-radius:14px; background:rgba(5,9,26,.62); line-height:1.55}
-#archiveStatus[hidden],#archiveProgressWrap[hidden],#archiveCancelBtn[hidden],#rawArchiveStatus[hidden],#rawArchiveProgressWrap[hidden],#rawArchiveCancelBtn[hidden]{display:none !important}
+#archiveStatus[hidden],#archiveProgressWrap[hidden],#archiveCancelBtn[hidden],#rawArchiveStatus[hidden],#rawArchiveProgressWrap[hidden],#rawArchiveCancelBtn[hidden],#psxArchiveProgressWrap[hidden]{display:none !important}
 .raw-drop-zone{min-height:210px;display:flex;flex-direction:column;justify-content:center;align-items:center}
 .raw-drop-zone[data-disabled="true"]{opacity:.7;cursor:not-allowed}
 .raw-drop-zone.drag-active{border-color:transparent;background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
@@ -310,7 +310,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
        <strong>one .bin + .cue pair</strong> for <strong>PCSXR360 2.1.1b</strong> on a modded JTAG/RGH Xbox 360 —
        locally in your browser, then save it to a folder, download it, or FTP it to the console.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.2.3 · build 2026-10-27</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.2.5 · build 2026-10-27</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
       <div class="step"><b><span class="n">2</span> Convert</b><span>The game partition is hashed and packed into a LIVE/SVOD header plus <span class="kbd">Data0000…</span> parts, exactly like Iso2God.</span></div>
@@ -545,17 +545,17 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
       <div id="psxDropZone" class="drop raw-drop-zone" role="group" aria-label="Drop or choose a PS1 game folder containing a cue and bin track files">
         <div class="big" aria-hidden="true">💿</div>
         <div class="t">Drop a PS1 game folder here</div>
-        <div class="s">The folder must include the game’s <code>.cue</code> and every <code>.bin</code> track it references. You can also drop/select a parent folder containing several game folders, select the <code>.cue</code> + <code>.bin</code> files directly, or drop one <code>.7z</code> archive here. For archives, only <code>.cue</code>, <code>.bin</code>, and optional <code>.sbi</code> files are extracted locally; other entries are skipped.</div>
+        <div class="s">The folder must include the game’s <code>.cue</code> and every <code>.bin</code> track it references. You can also drop/select a parent folder containing several game folders, select the <code>.cue</code> + <code>.bin</code> files directly, or drop multiple <code>.7z</code> archives here. For archives, only <code>.cue</code>, <code>.bin</code>, and optional <code>.sbi</code> files are extracted locally; other entries are skipped.</div>
         <input id="psxFolderInput" type="file" webkitdirectory directory multiple hidden>
         <input id="psxFilesInput" type="file" accept=".cue,.bin,.sbi" multiple hidden>
-        <input id="psxArchiveInput" type="file" accept=".7z,application/x-7z-compressed" hidden>
+        <input id="psxArchiveInput" type="file" accept=".7z,application/x-7z-compressed" multiple hidden>
         <div class="btn-row" style="justify-content:center">
           <button class="btn primary" id="psxChooseFolderBtn" type="button">Choose PS1 game folder…</button>
           <button class="btn" id="psxChooseFilesBtn" type="button">Choose .cue + .bin files…</button>
-          <button class="btn" id="psxArchiveBrowseBtn" type="button">Choose .7z archive…</button>
+          <button class="btn" id="psxArchiveBrowseBtn" type="button">Choose .7z archives…</button>
         </div>
         <div class="setup" id="psxArchiveImportPanel" style="margin-top:10px">
-          <strong>Import PS1 files from a .7z archive</strong>
+          <strong>Import PS1 files from one or more .7z archives</strong>
           <div class="muted small" id="psxArchiveStatus" role="status" aria-live="polite" hidden style="margin-top:6px"></div>
           <div class="bar-wrap thin" id="psxArchiveProgressWrap" role="progressbar" aria-label="PS1 .7z extraction progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden style="margin-top:8px"><div class="bar thin" id="psxArchiveProgressBar" aria-hidden="true" style="width:0%"></div></div>
           <div class="btn-row" style="margin-top:8px"><button class="btn small danger" id="psxArchiveCancelBtn" type="button" hidden>Cancel .7z extraction</button></div>
@@ -729,7 +729,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.2.3 · build 2026-10-27</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.2.5 · build 2026-10-27</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -1692,7 +1692,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.2.3';
+  const APP_VERSION = '1.2.5';
   const APP_BUILD = '2026-10-27';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -1710,6 +1710,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
     lastOverall: 0, elapsedTimer: null, ftpActivity: '', ftpRetryPending: false, ftpRetryResolver: null,
     archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], rawArchiveImportDirs: [], psxArchiveImportDirs: [],
+    psxArchiveBatchActive: false, psxArchiveBatchQueue: [], psxArchiveBatchTotal: 0, psxArchiveBatchIndex: 0, psxArchiveBatchSuccess: 0, psxArchiveBatchFailures: 0, psxArchiveBatchCancelled: false, psxArchivePathPrefix: '',
     psxFtpConnected: false, psxBusy: false, psxFtpActive: false, psxCancelRequested: false, psxJobs: [],
     psxOutputMode: hasDirPicker ? 'folder' : 'files', psxDirHandle: null,
     psxTotalBytes: 0, psxCompletedBytes: 0, psxCurrentBytes: 0, psxJobIndex: 0, psxJobCount: 0, psxDownloadUrls: [], psxDoneReady: false, psxFinishTimer: 0, psxGroupNameOverrides: {}, psxAutoCoverRun: false, psxCoverFtpTarget: null, psxCoverFtpSettings: null, psxCoverAbortController: null, psxCoverPreviewJobId: null,
@@ -1761,7 +1762,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     mode: 'idle', fill: null, track: null, lane: null,
     x: 0, y: 0, scale: 1, opacity: 1,
     approachStart: 0, approachFromX: 0, approachFromY: 0,
-    trackLeft: 0, trackCenterY: 0, trackWidth: 0, ufoFraction: 0,
+    trackLeft: 0, trackCenterY: 0, trackWidth: 0, ufoFraction: 0, followFill: true,
   };
 
   function resolveProgressBar(barOrId) {
@@ -1840,9 +1841,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const item = getProgressMotionItem(bar);
     const target = clamp01(fraction);
     const snap = !!options.snap || prefersReducedMotion() || document.hidden;
-    // A new file/disc/stage really does start its fill again.  Snap only the
-    // fill/disc marker; the big UFO glides back in a shallow arc instead of
-    // teleporting or being dragged backwards by two competing transitions.
+    // A new file/disc/stage can start its fill again. By default only the
+    // marker snaps while the UFO glides back; per-file lanes that keep the
+    // UFO centered over the marker opt into animateReset for a shared return.
     if (snap || (target < item.displayed - 0.35 && !options.animateReset)) {
       item.displayed = target;
       item.target = target;
@@ -1874,12 +1875,29 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const fraction = clamp01(m.ufoFraction);
     const craft = $('completionUfo');
     const halfCraft = craft ? (craft.offsetWidth || 0) / 2 : 0;
-    const inset = Math.min(m.trackWidth / 2, halfCraft + 4);
-    const travelWidth = Math.max(0, m.trackWidth - inset * 2);
+    let centerInTrack;
+    if (m.followFill && m.fill) {
+      // Read the actual rendered marker instead of approximating its position
+      // from percentages. This keeps the UFO centered over the disc despite
+      // borders, responsive widths, and the fill's eased animation.
+      const marker = m.fill.querySelector('.bar-disc-marker');
+      const markerRect = marker && marker.getBoundingClientRect();
+      const laneRect = m.lane && m.lane.getBoundingClientRect();
+      centerInTrack = markerRect && markerRect.width && laneRect
+        ? markerRect.left + markerRect.width / 2 - laneRect.left - m.trackLeft
+        : Math.max(30, fraction * m.trackWidth - 30);
+    } else {
+      const inset = Math.min(m.trackWidth / 2, halfCraft + 4);
+      centerInTrack = inset + fraction * Math.max(0, m.trackWidth - inset * 2);
+    }
+    centerInTrack = Math.max(0, Math.min(m.trackWidth, centerInTrack));
+    const availableHalf = Math.max(0, Math.min(centerInTrack, m.trackWidth - centerInTrack) - 4);
+    const edgeScale = halfCraft > 0 ? Math.min(1, availableHalf / halfCraft) : 1;
     return {
-      x: m.trackLeft + inset + fraction * travelWidth,
+      x: m.trackLeft + centerInTrack,
       y: m.trackCenterY,
       fraction,
+      scale: Math.max(0.04, edgeScale),
     };
   }
   function paintCompletionUfoMotion(lift = 0) {
@@ -1888,7 +1906,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!craft || m.mode === 'idle' || m.mode === 'takeoff') return;
     craft.style.transform =
       'translate3d(' + m.x.toFixed(2) + 'px,' + (m.y - lift).toFixed(2) + 'px,0)' +
-      ' translate(-50%,-95%) scale(' + m.scale.toFixed(4) + ')';
+      ' translate(-50%,-100%) scale(' + m.scale.toFixed(4) + ')';
     craft.style.opacity = String(Math.max(0, Math.min(1, m.opacity)));
   }
   function stepCompletionUfoMotion(now, dt) {
@@ -1902,7 +1920,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const eased = 1 - Math.pow(1 - t, 3);
       m.x = m.approachFromX + (dest.x - m.approachFromX) * eased;
       m.y = m.approachFromY + (dest.y - m.approachFromY) * eased;
-      m.scale = 0.08 + 0.92 * eased;
+      m.scale = 0.04 + (dest.scale - 0.04) * eased;
       m.opacity = eased;
       paintCompletionUfoMotion();
       if (t >= 1) {
@@ -1915,6 +1933,17 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
       return true;
     }
+    if (m.followFill) {
+      // The marker itself is eased by the shared progress loop; following its
+      // rendered position directly keeps the UFO centered over it without
+      // a second, lagging chase animation.
+      m.x = dest.x;
+      m.y = dest.y;
+      m.scale = dest.scale;
+      m.opacity = 1;
+      paintCompletionUfoMotion();
+      return false;
+    }
     const travellingBack = dest.x < m.x - 20;
     const alphaX = 1 - Math.exp(-dt / (travellingBack ? 155 : 68));
     const alphaY = 1 - Math.exp(-dt / 85);
@@ -1924,15 +1953,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     // busy frame, the craft should glide for a few frames rather than leap.
     m.x += Math.max(-40, Math.min(40, stepX));
     m.y += Math.max(-20, Math.min(20, stepY));
-    m.scale += (1 - m.scale) * alphaY;
+    m.scale += (dest.scale - m.scale) * alphaY;
     m.opacity += (1 - m.opacity) * alphaY;
     if (Math.abs(dest.x - m.x) < 0.12) m.x = dest.x;
     if (Math.abs(dest.y - m.y) < 0.08) m.y = dest.y;
-    if (Math.abs(1 - m.scale) < 0.001) m.scale = 1;
+    if (Math.abs(dest.scale - m.scale) < 0.001) m.scale = dest.scale;
     if (Math.abs(1 - m.opacity) < 0.002) m.opacity = 1;
     const lift = travellingBack ? Math.min(34, (m.x - dest.x) * 0.05) : 0;
     paintCompletionUfoMotion(lift);
-    return Math.abs(dest.x - m.x) > 0.12 || Math.abs(dest.y - m.y) > 0.08 || m.scale !== 1 || m.opacity !== 1;
+    return Math.abs(dest.x - m.x) > 0.12 || Math.abs(dest.y - m.y) > 0.08 || Math.abs(dest.scale - m.scale) >= 0.001 || m.opacity !== 1;
   }
   function progressMotionFrame(now) {
     progressMotionRaf = 0;
@@ -1953,6 +1982,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
     }
     for (const item of progressMotionItems.values()) paintProgressMotionItem(item);
+    if (completionUfoMotion.fill && completionUfoMotion.followFill) {
+      const activeProgress = progressMotionItems.get(completionUfoMotion.fill);
+      if (activeProgress) completionUfoMotion.ufoFraction = activeProgress.displayed;
+    }
     if (stepCompletionUfoMotion(now, dt)) active = true;
     if (active) ensureProgressMotionFrame();
     else progressMotionLast = 0;
@@ -1997,19 +2030,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     refreshCompletionUfoTrackMetrics();
     const dest = completionUfoDestination();
     if (oldRect) {
-      const laneRect = lane.getBoundingClientRect();
-      m.x = oldRect.left + oldRect.width / 2 - laneRect.left;
-      m.y = oldRect.top + oldRect.height / 2 - laneRect.top + craft.offsetHeight * 0.45;
-      if (m.mode === 'approach') {
-        m.mode = 'progress';
-        completionUfoReturning = false;
-        craft.classList.remove('approaching');
-        craft.classList.add('progressing');
-      }
+      // A new workflow uses a different progress scale/lane. Reattach at the
+      // active disc marker rather than carrying the old lane's screen-space
+      // position across; otherwise the UFO can appear hundreds of pixels away
+      // from the disc while the new transfer is underway.
+      m.x = dest.x;
+      m.y = dest.y;
+      m.scale = dest.scale;
+      m.opacity = 1;
+      completionUfoReturning = false;
+      craft.classList.remove('approaching');
+      craft.classList.add('progressing');
+      m.mode = 'progress';
     } else if (!wasFlying) {
       m.x = dest.x;
       m.y = dest.y;
-      m.scale = 1;
+      m.scale = dest.scale;
       m.opacity = 1;
     }
     return true;
@@ -2018,7 +2054,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const craft = $('completionUfo'), fill = $(barId);
     if (!craft || !fill) return;
     const pct = clamp01(fraction);
-    const ufoPct = options && options.ufoFraction !== undefined ? clamp01(options.ufoFraction) : pct;
+    const followsFill = !(options && options.ufoFraction !== undefined);
+    const ufoPct = followsFill ? pct : clamp01(options.ufoFraction);
+    completionUfoMotion.followFill = followsFill;
     completionUfoMotion.ufoFraction = ufoPct;
     if (prefersReducedMotion()) {
       setBarProgress(fill, pct, { snap: true });
@@ -2034,12 +2072,25 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       completionUfoMotion.mode = 'idle';
       completionUfoAway = true;
     }
-    setBarProgress(fill, pct);
     const lane = fill.parentElement && fill.parentElement.parentElement;
     const sameBar = completionUfoBarId === barId && completionUfoMotion.fill === fill && craft.parentElement === lane;
+    const displayedFill = getProgressMotionItem(fill).displayed;
+    const animateReset = sameBar && followsFill && pct < displayedFill - 0.35;
+    setBarProgress(fill, pct, { animateReset });
     if (!sameBar && !attachCompletionUfoToBar(fill)) return;
     if (sameBar && !completionUfoMotion.trackWidth) refreshCompletionUfoTrackMetrics();
     completionUfoBarId = barId;
+    if (followsFill && completionUfoMotion.mode === 'progress') {
+      // Resynchronize to the currently rendered marker before publishing a
+      // new progress target (notably at per-file resets); the shared RAF then
+      // moves both together from that point.
+      const currentDest = completionUfoDestination();
+      completionUfoMotion.x = currentDest.x;
+      completionUfoMotion.y = currentDest.y;
+      completionUfoMotion.scale = currentDest.scale;
+      completionUfoMotion.opacity = 1;
+      paintCompletionUfoMotion();
+    }
     if (completionUfoAway && completionUfoMotion.mode !== 'approach') {
       completionUfoAway = false;
       if (ufoPct < 0.2) {
@@ -2092,7 +2143,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const dest = completionUfoDestination();
       m.x = dest.x;
       m.y = dest.y;
-      m.scale = 1;
+      m.scale = dest.scale;
       m.opacity = 1;
       if (m.mode === 'idle') m.mode = 'progress';
       paintCompletionUfoMotion();
@@ -2134,7 +2185,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const m = completionUfoMotion;
     if ((m.mode === 'progress' || m.mode === 'approach') && refreshCompletionUfoTrackMetrics()) {
       const dest = completionUfoDestination();
-      if (m.mode === 'progress') { m.x = dest.x; m.y = dest.y; }
+      if (m.mode === 'progress') { m.x = dest.x; m.y = dest.y; m.scale = dest.scale; }
       paintCompletionUfoMotion();
       ensureProgressMotionFrame();
     }
@@ -2292,7 +2343,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   /* ---------------- top-level workflow tabs ---------------- */
   function setTaskMode(mode) {
-    if ((state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.archiveBusy) && mode !== state.taskMode) return;
+    if ((state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive) && mode !== state.taskMode) return;
     state.taskMode = (mode === 'raw' || mode === 'psx') ? mode : 'iso';
     const iso = state.taskMode === 'iso';
     const raw = state.taskMode === 'raw';
@@ -2613,7 +2664,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function setArchiveBusy(active, kind = state.archiveKind) {
     state.archiveBusy = active;
     state.archiveKind = kind;
-    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.psxArchiveInput, els.psxArchiveBrowseBtn]) el.disabled = active;
+    const controlsLocked = active || state.psxArchiveBatchActive;
+    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.psxArchiveInput, els.psxArchiveBrowseBtn]) el.disabled = controlsLocked;
     const ui = archiveUi(kind);
     ui.cancelBtn.hidden = !active;
     if (active) {
@@ -2671,7 +2723,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.archiveWorker = null;
     state.archiveTempDir = '';
     if (kind === 'psx') {
-      const usable = (files || []).filter(it => it && it.file && /\.(?:cue|bin|sbi)$/i.test(it.file.name));
+      const prefix = state.psxArchivePathPrefix;
+      const usable = (files || []).filter(it => it && it.file && /\.(?:cue|bin|sbi)$/i.test(it.file.name)).map(it => ({
+        ...it, path: prefix ? prefix + '/' + it.path : it.path
+      }));
       if (!usable.some(it => /\.cue$/i.test(it.file.name)) && !usable.some(it => /\.bin$/i.test(it.file.name))) {
         throw new Error('No PS1 .cue sheet or .bin track was found in this .7z archive.');
       }
@@ -2744,11 +2799,63 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ? (removed ? '7z extraction canceled. Temporary extracted data was removed.' : '7z extraction canceled; close and reopen the page to retry temporary-data cleanup.')
       : '7z extraction failed: ' + displayMessage + (removed ? ' Partial temporary data was removed.' : ' The browser could not confirm cleanup; close and reopen the page.');
     if (!cancelled) log('7z import failed: ' + rawMessage);
+    if (kind === 'psx') advancePsxArchiveBatch(false);
   }
-  async function startArchiveImport(file, kind = 'iso') {
+  function advancePsxArchiveBatch(succeeded) {
+    if (!state.psxArchiveBatchActive) return;
+    if (succeeded) state.psxArchiveBatchSuccess++;
+    else state.psxArchiveBatchFailures++;
+    if (state.psxArchiveBatchCancelled) state.psxArchiveBatchQueue = [];
+    if (state.psxArchiveBatchQueue.length) {
+      window.setTimeout(startNextPsxArchiveBatchItem, 0);
+      return;
+    }
+    const total = state.psxArchiveBatchTotal;
+    const success = state.psxArchiveBatchSuccess;
+    const failed = state.psxArchiveBatchFailures;
+    state.psxArchiveBatchActive = false;
+    state.psxArchivePathPrefix = '';
+    state.psxArchiveBatchCancelled = false;
+    setArchiveBusy(false, 'psx');
+    const status = els.psxArchiveStatus;
+    status.hidden = false;
+    status.textContent = failed
+      ? 'Finished importing ' + success + ' of ' + total + ' .7z archives; ' + failed + ' failed or were canceled. Any valid games found were kept in the list.'
+      : 'Finished importing all ' + total + ' .7z archive' + (total === 1 ? '' : 's') + '. Only cue/bin/SBI files were extracted; unrelated entries were skipped.';
+    updatePsxEnabled();
+  }
+  function startNextPsxArchiveBatchItem() {
+    if (!state.psxArchiveBatchActive) return;
+    const next = state.psxArchiveBatchQueue.shift();
+    if (!next) { advancePsxArchiveBatch(true); return; }
+    state.psxArchiveBatchIndex = next.index;
+    state.psxArchivePathPrefix = next.prefix;
+    els.psxArchiveStatus.hidden = false;
+    els.psxArchiveStatus.textContent = 'Importing PS1 archive ' + next.index + ' of ' + state.psxArchiveBatchTotal + ': ' + next.file.name + '. Only cue/bin/SBI entries are extracted locally.';
+    void startArchiveImport(next.file, 'psx', next.prefix);
+  }
+  function startPsxArchiveBatch(fileList) {
+    if (state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive || state.taskMode !== 'psx') return;
+    const archives = Array.from(fileList || []).filter(file => file && /\.7z$/i.test(file.name));
+    if (!archives.length) return;
+    state.psxArchiveBatchActive = true;
+    state.psxArchiveBatchQueue = archives.map((file, index) => {
+      const stem = psxSanitizeOutName(file.name.replace(/\.7z$/i, ''));
+      return { file, index: index + 1, prefix: (index + 1) + ' - ' + stem };
+    });
+    state.psxArchiveBatchTotal = archives.length;
+    state.psxArchiveBatchIndex = 0;
+    state.psxArchiveBatchSuccess = 0;
+    state.psxArchiveBatchFailures = 0;
+    state.psxArchiveBatchCancelled = false;
+    updatePsxEnabled();
+    startNextPsxArchiveBatchItem();
+  }
+  async function startArchiveImport(file, kind = 'iso', pathPrefix = '') {
     if (!file || state.archiveBusy || state.converting || state.batchRunning || state.rawUploading || state.psxBusy) return;
     if (kind === 'raw' && state.taskMode !== 'raw') return;
     if (kind === 'psx' && state.taskMode !== 'psx') return;
+    if (kind === 'psx') state.psxArchivePathPrefix = pathPrefix;
     clearError();
     state.archiveKind = kind;
     const ui = archiveUi(kind);
@@ -2869,6 +2976,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             images.sort((a, b) => (a.nebulaArchivePath || a.name).localeCompare(b.nebulaArchivePath || b.name));
             await finishArchiveImport(id, tempDir, images, kind);
           }
+          if (kind === 'psx') advancePsxArchiveBatch(true);
         } catch (err) {
           await failArchiveImport(id, tempDir, err.message || String(err), false, kind);
         }
@@ -2923,7 +3031,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   els.archiveCancelBtn.addEventListener('click', cancelArchiveImport);
   els.rawArchiveCancelBtn.addEventListener('click', cancelArchiveImport);
-  els.psxArchiveCancelBtn.addEventListener('click', cancelArchiveImport);
+  els.psxArchiveCancelBtn.addEventListener('click', () => {
+    if (state.psxArchiveBatchActive) {
+      state.psxArchiveBatchCancelled = true;
+      state.psxArchiveBatchQueue = [];
+    }
+    cancelArchiveImport();
+  });
   els.drop.addEventListener('click', () => { if (!state.converting && !state.batchRunning && !state.archiveBusy) els.fileInput.click(); });
   function selectIsoFiles(fileList) {
     if (state.converting || state.batchRunning || state.archiveBusy) return;
@@ -3035,7 +3149,6 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.rawFtpLive.hidden = false;
       setTextIfChanged(els.rawFtpLiveText, message);
       els.rawFtpLive.classList.toggle('is-complete', completed);
-      setBarProgress(els.rawFtpLiveBar, pct / 100);
       if (message.startsWith('Retrying ')) {
         state.rawUploadCurrentBytes = 0;
         updateRawOverallProgress('retrying');
@@ -3044,7 +3157,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       else if (message.startsWith('FTP connection failed')) updateRawOverallProgress('paused');
       else if (message.startsWith('Upload failed')) updateRawOverallProgress('failed');
       else if (completed) updateRawOverallProgress('complete');
-      positionCompletionUfo('rawFtpLiveBar', pct / 100, { ufoFraction: completed ? 1 : rawOverallFraction() });
+      positionCompletionUfo('rawFtpLiveBar', pct / 100);
     } else if (state.converting && state.outputMode === 'ftp') {
       positionCompletionUfo('overallBar', state.lastOverall || 0);
     }
@@ -3054,7 +3167,6 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.psxFtpLive.hidden = false;
       setTextIfChanged(els.psxFtpLiveText, message);
       els.psxFtpLive.classList.toggle('is-complete', completed);
-      setBarProgress(els.psxFtpLiveBar, pct / 100);
       if (message.startsWith('Retrying ')) {
         state.psxCurrentBytes = 0;
         updatePsxOverallProgress('retrying current file');
@@ -3063,7 +3175,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       else if (message.startsWith('FTP connection failed')) updatePsxOverallProgress('paused for retry');
       else if (message.startsWith('Upload failed')) updatePsxOverallProgress('stopped · selection retained for retry');
       else if (completed) updatePsxOverallProgress('complete');
-      positionCompletionUfo('psxFtpLiveBar', pct / 100, { ufoFraction: completed ? 1 : psxOverallFraction() });
+      positionCompletionUfo('psxFtpLiveBar', pct / 100);
     }
   }
   function setFtpStatus(el, message) {
@@ -3529,6 +3641,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       setFtpLive('All selected content files were uploaded unchanged to 000D0000.', 1);
       els.rawFtpUploadResult.textContent = 'Complete: ' + items.length + ' file(s) copied for Title ID(s) ' + ids.join(', ') + '. Rescan Aurora.';
       els.rawFtpUploadResult.classList.add('is-complete');
+      els.rawArchiveProgressWrap.hidden = true;
       state.rawFiles = [];
       els.rawContentFiles.value = '';
       els.rawSelectedFiles.textContent = 'Upload complete. Drop or choose another extracted Title ID folder or parent game folder.';
@@ -4139,7 +4252,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.psxGroupMultiDisc.addEventListener('change', renderPsxJobs);
   els.psxAutoCover.addEventListener('change', renderPsxJobs);
   els.psxClearJobsBtn.addEventListener('click', () => {
-    if (state.psxBusy || state.archiveBusy) return;
+    if (state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive) return;
     void cleanupPsxArchiveDirs();
     revokeAllPsxCoverPreviewUrls();
     clearPsxCoverPreview();
@@ -4155,16 +4268,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   });
 
   /* ---- PS1 source selection (folder picker, file picker, drag & drop) ---- */
-  els.psxChooseFolderBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy) els.psxFolderInput.click(); });
-  els.psxChooseFilesBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy && !state.archiveBusy) els.psxFilesInput.click(); });
-  els.psxArchiveBrowseBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy && !state.archiveBusy) els.psxArchiveInput.click(); });
+  els.psxChooseFolderBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy && !state.archiveBusy && !state.psxArchiveBatchActive) els.psxFolderInput.click(); });
+  els.psxChooseFilesBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy && !state.archiveBusy && !state.psxArchiveBatchActive) els.psxFilesInput.click(); });
+  els.psxArchiveBrowseBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy && !state.archiveBusy && !state.psxArchiveBatchActive) els.psxArchiveInput.click(); });
   els.psxArchiveInput.addEventListener('change', () => {
-    const file = els.psxArchiveInput.files && els.psxArchiveInput.files[0];
-    if (file) startArchiveImport(file, 'psx');
+    const files = Array.from(els.psxArchiveInput.files || []);
+    if (files.length) startPsxArchiveBatch(files);
     els.psxArchiveInput.value = '';
   });
   els.psxDropZone.addEventListener('click', (ev) => {
-    if (ev.target.closest('button') || state.psxBusy) return;
+    if (ev.target.closest('button') || state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive) return;
     els.psxFolderInput.click();
   });
   els.psxFolderInput.addEventListener('change', () => {
@@ -4184,7 +4297,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.psxDropZone.addEventListener('drop', async (ev) => {
     ev.preventDefault();
     els.psxDropZone.classList.remove('drag-active');
-    if (state.psxBusy) return;
+    if (state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive) return;
     try {
       const items = Array.from((ev.dataTransfer && ev.dataTransfer.items) || []);
       const files = Array.from((ev.dataTransfer && ev.dataTransfer.files) || []);
@@ -4197,11 +4310,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         return;
       }
       if (archiveFiles.length) {
-        if (archiveFiles.length !== 1 || candidates.length !== 1 || entries.some(e => e.isDirectory)) {
-          psxError('Drop one .7z archive at a time by itself. You can add extracted folders/files separately afterward.');
+        if (archiveFiles.length !== candidates.length || entries.some(e => e.isDirectory)) {
+          psxError('Drop one or more .7z archives by themselves; do not mix archives with folders or loose PS1 files.');
           return;
         }
-        await startArchiveImport(archiveFiles[0], 'psx');
+        startPsxArchiveBatch(archiveFiles);
         return;
       }
       if (entries.length) {
@@ -4305,13 +4418,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function updatePsxEnabled() {
     syncWorkingMotionState();
     const ready = state.psxJobs.some(j => j.status === 'ready');
-    let ok = ready && !state.psxBusy && !state.converting && !state.batchRunning && !state.rawUploading && !state.archiveBusy;
+    let ok = ready && !state.psxBusy && !state.converting && !state.batchRunning && !state.rawUploading && !state.archiveBusy && !state.psxArchiveBatchActive;
     let hint = '';
     if (ok && state.psxOutputMode === 'folder' && !state.psxDirHandle) { ok = false; hint = 'Choose an output folder first.'; }
     if (ok && state.psxOutputMode === 'ftp' && !state.psxFtpConnected) { ok = false; hint = 'Test the Xbox FTP connection first.'; }
     els.psxMergeBtn.disabled = !ok;
     els.psxMergeBtn.textContent = state.psxBusy ? 'Merging…' : (hint || psxMergeLabel());
-    const selDisabled = state.psxBusy || state.archiveBusy;
+    const selDisabled = state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive;
     for (const el of [els.psxFolderInput, els.psxFilesInput, els.psxArchiveInput, els.psxChooseFolderBtn, els.psxChooseFilesBtn, els.psxArchiveBrowseBtn, els.psxClearJobsBtn, els.psxResetBtn, els.psxChooseOutputFolderBtn]) el.disabled = selDisabled;
     els.psxDropZone.setAttribute('data-disabled', selDisabled ? 'true' : 'false');
     els.psxCancelBtn.disabled = !state.psxBusy;
@@ -4342,8 +4455,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.psxFtpLive.hidden = true;
     setTextIfChanged(els.psxLiveText, message);
     const pct = Math.max(0, Math.min(100, (Number(fraction) || 0) * 100));
-    setBarProgress(els.psxLiveBar, pct / 100);
-    positionCompletionUfo('psxLiveBar', pct / 100, { ufoFraction: state.psxTotalBytes ? psxOverallFraction() : pct / 100 });
+    positionCompletionUfo('psxLiveBar', pct / 100);
   }
   function psxFtpBaseSegments(job) {
     const segs = String(els.psxFtpDir.value || '').split(/[\\/]+/).map(s => s.trim()).filter(Boolean);
@@ -5054,6 +5166,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function showPsxDone(successJobs, failedCount, totalCount, durationMs, cancelled) {
     if (!successJobs.length) return;
+    els.psxArchiveProgressWrap.hidden = true;
     const allGood = !cancelled && !failedCount && successJobs.length === totalCount;
     state.psxDoneReady = true;
     els.psxDoneH.textContent = allGood ? '🌟 Finished — ready for PCSXR360' : 'Finished — check the results';
@@ -5119,7 +5232,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     psxLog('Cancel requested — stopping after the current chunk/file. A partially written output file must not be used; delete it before retrying.');
   });
   els.psxResetBtn.addEventListener('click', () => {
-    if (state.psxBusy || state.archiveBusy) return;
+    if (state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive) return;
     void cleanupPsxArchiveDirs();
     clearPsxFinishTimer();
     stopConfetti();
@@ -5375,11 +5488,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.wakeLock = null;
   }
   window.addEventListener('beforeunload', (e) => {
-    if (state.converting || state.batchRunning || state.archiveBusy || state.rawUploading || state.psxBusy) { e.preventDefault(); e.returnValue = ''; }
+    if (state.converting || state.batchRunning || state.archiveBusy || state.psxArchiveBatchActive || state.rawUploading || state.psxBusy) { e.preventDefault(); e.returnValue = ''; }
   });
   window.addEventListener('pagehide', (e) => {
     if (e.persisted) return;
     if (state.archiveWorker) { state.archiveWorker.terminate(); state.archiveWorker = null; }
+    if (state.psxArchiveBatchActive) { state.psxArchiveBatchCancelled = true; state.psxArchiveBatchQueue = []; }
     const activeDir = state.archiveTempDir; state.archiveTempDir = '';
     if (activeDir) void removeArchiveOpfsDir(activeDir);
     void cleanupArchiveImports();
@@ -5645,6 +5759,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       plan.partCount + ' data part(s), ' + fmtBytes(plan.totalGodSize) + ' total. ' + where +
       '<br><span class="muted">Console path: Hdd1:\\Content\\0000000000000000\\' + layout.titleHex + '\\' + layout.typeFolder + '\\' + layout.headerName +
       ' &nbsp;·&nbsp; Requires a JTAG/RGH console (Iso2God-style unsigned LIVE header).</span>';
+    if (!state.batchRunning || state.batchIndex >= state.batchFiles.length - 1) els.archiveProgressWrap.hidden = true;
     els.doneCard.hidden = false;
     els.doneCard.classList.add('is-complete');
     if (!state.batchRunning || state.batchIndex === state.batchFiles.length - 1) celebrateCompletion();
