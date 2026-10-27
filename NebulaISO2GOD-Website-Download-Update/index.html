@@ -155,7 +155,7 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 .bar.thin{height:100%;background:linear-gradient(90deg,#34d399,#38bdf8)}
 .bar.ftp-transfer-bar{background:linear-gradient(90deg,#2563eb,#38bdf8,#818cf8);box-shadow:0 0 22px rgba(56,189,248,.48)}
 .ufo-progress-lane>.bar-wrap>.bar{border-radius:0;background:linear-gradient(90deg,#5c9df5,#6e89f1);box-shadow:0 0 8px rgba(78,153,255,.34)}
-.bar-disc-marker{position:absolute;z-index:4;left:100%;top:50%;display:block;width:clamp(42px,12vw,60px);height:auto;aspect-ratio:80/36;transform:translate(-50%,-50%);filter:drop-shadow(0 0 8px rgba(52,211,153,.72)) drop-shadow(0 0 16px rgba(56,189,248,.38));pointer-events:none;animation:bar-disc-pulse 1.35s ease-in-out infinite;will-change:opacity}
+.bar-disc-marker{position:absolute;z-index:4;left:max(30px,calc(100% - 30px));top:50%;display:block;width:clamp(42px,12vw,60px);height:auto;aspect-ratio:80/36;transform:translate(-50%,-50%);filter:drop-shadow(0 0 8px rgba(52,211,153,.72)) drop-shadow(0 0 16px rgba(56,189,248,.38));pointer-events:none;animation:bar-disc-pulse 1.35s ease-in-out infinite;will-change:opacity}
 .bar-disc-marker svg{display:block;width:100%;height:100%;overflow:visible}
 .bar-disc-marker .disc-shell{transform-box:fill-box;transform-origin:center;animation:ufo-disc-spin 2.8s linear infinite}
 .bar-disc-marker .disc-light{transform-box:fill-box;transform-origin:center;animation-name:ufo-light-blink;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
@@ -310,7 +310,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
        <strong>one .bin + .cue pair</strong> for <strong>PCSXR360 2.1.1b</strong> on a modded JTAG/RGH Xbox 360 —
        locally in your browser, then save it to a folder, download it, or FTP it to the console.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.2.1 · build 2026-10-27</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.2.3 · build 2026-10-27</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
       <div class="step"><b><span class="n">2</span> Convert</b><span>The game partition is hashed and packed into a LIVE/SVOD header plus <span class="kbd">Data0000…</span> parts, exactly like Iso2God.</span></div>
@@ -540,17 +540,26 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
     <section class="card" id="psxContentCard" data-workflow="psx" aria-labelledby="psxHeading" hidden>
       <h2 id="psxHeading">💿 PS1 multi-BIN merger for PCSXR360</h2>
-      <p class="muted small" style="line-height:1.6">Drop a PS1 game folder that contains <strong>one <code>.cue</code> plus several track files</strong> such as <code>Game (Track 1).bin</code>, <code>Game (Track 2).bin</code>… (the Redump layout). This tab merges them — losslessly, byte for byte — into <strong>one folder with a single <code>.bin</code> and its matching <code>.cue</code></strong>, the pair <strong>PCSXR360 2.1.1b</strong> can load with CD audio. Your original game folder is left completely alone: nothing in it is changed or deleted. The new <code>.cue</code> keeps the same name as the original; inside it, only the <code>FILE</code>/<code>TRACK</code>/<code>INDEX</code> lines PCSXR360 actually reads are kept, with track positions recalculated for the single <code>.bin</code> (PCSXR360 ignores a cue’s <code>FILE</code> lines, so an unchanged multi-file cue would lose track positions and CD audio). Extra files in the source folder — covers, <code>.md5</code>/<code>.ccd</code>/<code>.sub</code>, readmes and similar — are not copied to the output. Choose a parent folder to queue several games at once; multi-disc games stay as one separate <code>.bin</code>/<code>.cue</code> pair per disc, and when all discs are dropped together, detected discs from the same game can automatically share one game folder in folder/FTP output.</p>
+      <p class="muted small" style="line-height:1.6">Drop a PS1 game folder that contains <strong>one <code>.cue</code> plus several track files</strong> such as <code>Game (Track 1).bin</code>, <code>Game (Track 2).bin</code>… (the Redump layout), or drop a <code>.7z</code> archive containing those files. This tab merges them — losslessly, byte for byte — into <strong>one folder with a single <code>.bin</code> and its matching <code>.cue</code></strong>, the pair <strong>PCSXR360 2.1.1b</strong> can load with CD audio. Your original game folder is left completely alone: nothing in it is changed or deleted. The new <code>.cue</code> keeps the same name as the original; inside it, only the <code>FILE</code>/<code>TRACK</code>/<code>INDEX</code> lines PCSXR360 actually reads are kept, with track positions recalculated for the single <code>.bin</code> (PCSXR360 ignores a cue’s <code>FILE</code> lines, so an unchanged multi-file cue would lose track positions and CD audio). Extra files in the source folder — covers, <code>.md5</code>/<code>.ccd</code>/<code>.sub</code>, readmes and similar — are not copied to the output. Choose a parent folder to queue several games at once; multi-disc games stay as one separate <code>.bin</code>/<code>.cue</code> pair per disc, and when all discs are dropped together, detected discs from the same game can automatically share one game folder in folder/FTP output.</p>
       <div class="warn-note small"><strong>Merging is not compression.</strong> The merged <code>.bin</code> is the same total size as the track files combined (only the unneeded side files are left behind). Smaller formats such as CHD or PBP are not supported by PCSXR360 2.1.1b, so a plain <code>.bin</code> is what it needs. Only merge backups of games you own.</div>
       <div id="psxDropZone" class="drop raw-drop-zone" role="group" aria-label="Drop or choose a PS1 game folder containing a cue and bin track files">
         <div class="big" aria-hidden="true">💿</div>
         <div class="t">Drop a PS1 game folder here</div>
-        <div class="s">The folder must include the game’s <code>.cue</code> and every <code>.bin</code> track it references. You can also drop/select a parent folder containing several game folders, or select the <code>.cue</code> + <code>.bin</code> files directly. Unzip archives first.</div>
+        <div class="s">The folder must include the game’s <code>.cue</code> and every <code>.bin</code> track it references. You can also drop/select a parent folder containing several game folders, select the <code>.cue</code> + <code>.bin</code> files directly, or drop one <code>.7z</code> archive here. For archives, only <code>.cue</code>, <code>.bin</code>, and optional <code>.sbi</code> files are extracted locally; other entries are skipped.</div>
         <input id="psxFolderInput" type="file" webkitdirectory directory multiple hidden>
         <input id="psxFilesInput" type="file" accept=".cue,.bin,.sbi" multiple hidden>
+        <input id="psxArchiveInput" type="file" accept=".7z,application/x-7z-compressed" hidden>
         <div class="btn-row" style="justify-content:center">
           <button class="btn primary" id="psxChooseFolderBtn" type="button">Choose PS1 game folder…</button>
           <button class="btn" id="psxChooseFilesBtn" type="button">Choose .cue + .bin files…</button>
+          <button class="btn" id="psxArchiveBrowseBtn" type="button">Choose .7z archive…</button>
+        </div>
+        <div class="setup" id="psxArchiveImportPanel" style="margin-top:10px">
+          <strong>Import PS1 files from a .7z archive</strong>
+          <div class="muted small" id="psxArchiveStatus" role="status" aria-live="polite" hidden style="margin-top:6px"></div>
+          <div class="bar-wrap thin" id="psxArchiveProgressWrap" role="progressbar" aria-label="PS1 .7z extraction progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden style="margin-top:8px"><div class="bar thin" id="psxArchiveProgressBar" aria-hidden="true" style="width:0%"></div></div>
+          <div class="btn-row" style="margin-top:8px"><button class="btn small danger" id="psxArchiveCancelBtn" type="button" hidden>Cancel .7z extraction</button></div>
+          <div class="muted tiny">The archive is read locally. Only cue sheets, BIN tracks, and optional SBI files are unpacked into temporary browser storage; unrelated archive contents are ignored. The archive itself is unchanged.</div>
         </div>
         <div class="muted tiny" id="psxSelectedSummary" aria-live="polite" style="margin-top:8px">No PS1 games selected yet.</div>
       </div>
@@ -720,7 +729,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.2.1 · build 2026-10-27</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.2.3 · build 2026-10-27</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -1662,7 +1671,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     downloadsBox: $('downloadsBox'), downloadList: $('downloadList'),
     zipDownloadBtn: $('zipDownloadBtn'), convertAnotherBtn: $('convertAnotherBtn'),
     outputModeNote: $('outputModeNote'),
-    psxContentCard: $('psxContentCard'), psxDropZone: $('psxDropZone'), psxFolderInput: $('psxFolderInput'), psxFilesInput: $('psxFilesInput'),
+    psxContentCard: $('psxContentCard'), psxDropZone: $('psxDropZone'), psxFolderInput: $('psxFolderInput'), psxFilesInput: $('psxFilesInput'), psxArchiveInput: $('psxArchiveInput'),
+    psxArchiveBrowseBtn: $('psxArchiveBrowseBtn'), psxArchiveStatus: $('psxArchiveStatus'), psxArchiveProgressWrap: $('psxArchiveProgressWrap'), psxArchiveProgressBar: $('psxArchiveProgressBar'), psxArchiveCancelBtn: $('psxArchiveCancelBtn'),
     psxChooseFolderBtn: $('psxChooseFolderBtn'), psxChooseFilesBtn: $('psxChooseFilesBtn'), psxSelectedSummary: $('psxSelectedSummary'), psxErrorBox: $('psxErrorBox'),
     psxJobList: $('psxJobList'), psxClearJobsBtn: $('psxClearJobsBtn'), psxKeepSbi: $('psxKeepSbi'), psxAutoCover: $('psxAutoCover'),
     psxMultiDiscBox: $('psxMultiDiscBox'), psxMultiDiscList: $('psxMultiDiscList'), psxGroupMultiDisc: $('psxGroupMultiDisc'),
@@ -1682,7 +1692,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.2.1';
+  const APP_VERSION = '1.2.3';
   const APP_BUILD = '2026-10-27';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -1699,7 +1709,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
     lastOverall: 0, elapsedTimer: null, ftpActivity: '', ftpRetryPending: false, ftpRetryResolver: null,
-    archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], rawArchiveImportDirs: [],
+    archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], rawArchiveImportDirs: [], psxArchiveImportDirs: [],
     psxFtpConnected: false, psxBusy: false, psxFtpActive: false, psxCancelRequested: false, psxJobs: [],
     psxOutputMode: hasDirPicker ? 'folder' : 'files', psxDirHandle: null,
     psxTotalBytes: 0, psxCompletedBytes: 0, psxCurrentBytes: 0, psxJobIndex: 0, psxJobCount: 0, psxDownloadUrls: [], psxDoneReady: false, psxFinishTimer: 0, psxGroupNameOverrides: {}, psxAutoCoverRun: false, psxCoverFtpTarget: null, psxCoverFtpSettings: null, psxCoverAbortController: null, psxCoverPreviewJobId: null,
@@ -1852,13 +1862,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     m.trackLeft = trackRect.left - laneRect.left;
     m.trackCenterY = trackRect.top - laneRect.top + trackRect.height / 2;
     m.trackWidth = trackRect.width;
+    const craft = $('completionUfo');
+    if (craft && m.trackWidth > 0) {
+      const responsiveWidth = Math.min(330, window.innerWidth * 0.675, Math.max(60, m.trackWidth * 0.4), Math.max(1, m.trackWidth - 8));
+      craft.style.width = responsiveWidth.toFixed(2) + 'px';
+    }
     return m.trackWidth > 0;
   }
   function completionUfoDestination() {
     const m = completionUfoMotion;
     const fraction = clamp01(m.ufoFraction);
+    const craft = $('completionUfo');
+    const halfCraft = craft ? (craft.offsetWidth || 0) / 2 : 0;
+    const inset = Math.min(m.trackWidth / 2, halfCraft + 4);
+    const travelWidth = Math.max(0, m.trackWidth - inset * 2);
     return {
-      x: m.trackLeft + fraction * m.trackWidth,
+      x: m.trackLeft + inset + fraction * travelWidth,
       y: m.trackCenterY,
       fraction,
     };
@@ -1947,8 +1966,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     m.mode = 'approach';
     completionUfoReturning = true;
     m.approachStart = performance.now();
-    m.approachFromX = dest.x + Math.min(90, window.innerWidth * 0.05);
-    m.approachFromY = dest.y - Math.max(260, window.innerHeight * 0.58);
+    const halfCraft = ($('completionUfo').offsetWidth || 0) / 2;
+    const inset = Math.min(m.trackWidth / 2, halfCraft + 4);
+    m.approachFromX = Math.max(m.trackLeft + inset, Math.min(m.trackLeft + m.trackWidth - inset, dest.x + Math.min(90, window.innerWidth * 0.05)));
+    m.approachFromY = dest.y;
     m.x = m.approachFromX;
     m.y = m.approachFromY;
     m.scale = 0.08;
@@ -2054,6 +2075,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     craft.style.position = '';
     craft.style.left = '';
     craft.style.top = '';
+    craft.style.width = '';
     craft.style.transform = '';
     craft.style.opacity = '';
   }
@@ -2499,6 +2521,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
 
   const ARCHIVE_SESSION_KEY = 'nebula-iso2god-7z-opfs-dir';
+  const PSX_ARCHIVE_SESSION_KEY = 'nebula-psx-7z-opfs-dirs';
   function forgetArchiveSessionDir(name) {
     try { if (sessionStorage.getItem(ARCHIVE_SESSION_KEY) === name) sessionStorage.removeItem(ARCHIVE_SESSION_KEY); } catch (_) {}
   }
@@ -2544,9 +2567,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     return failed.length === 0;
   }
   function archiveUi(kind = state.archiveKind) {
-    return kind === 'raw'
-      ? { status: els.rawArchiveStatus, progressWrap: els.rawArchiveProgressWrap, progressBar: els.rawArchiveProgressBar, cancelBtn: els.rawArchiveCancelBtn }
-      : { status: els.archiveStatus, progressWrap: els.archiveProgressWrap, progressBar: els.archiveProgressBar, cancelBtn: els.archiveCancelBtn };
+    if (kind === 'raw') return { status: els.rawArchiveStatus, progressWrap: els.rawArchiveProgressWrap, progressBar: els.rawArchiveProgressBar, cancelBtn: els.rawArchiveCancelBtn };
+    if (kind === 'psx') return { status: els.psxArchiveStatus, progressWrap: els.psxArchiveProgressWrap, progressBar: els.psxArchiveProgressBar, cancelBtn: els.psxArchiveCancelBtn };
+    return { status: els.archiveStatus, progressWrap: els.archiveProgressWrap, progressBar: els.archiveProgressBar, cancelBtn: els.archiveCancelBtn };
+  }
+  function savePsxArchiveSessionDirs() {
+    try { sessionStorage.setItem(PSX_ARCHIVE_SESSION_KEY, JSON.stringify(state.psxArchiveImportDirs)); } catch (_) {}
+  }
+  async function cleanupPsxArchiveDirs(names = state.psxArchiveImportDirs) {
+    const removing = [...new Set(names || [])].filter(name => /^nebula-7z-[a-z0-9-]+$/.test(name));
+    const failed = [];
+    for (const name of removing) if (!(await removeArchiveOpfsDir(name))) failed.push(name);
+    state.psxArchiveImportDirs = state.psxArchiveImportDirs.filter(name => !removing.includes(name));
+    for (const name of failed) if (!state.psxArchiveImportDirs.includes(name)) state.psxArchiveImportDirs.push(name);
+    savePsxArchiveSessionDirs();
+    return failed.length === 0;
   }
   async function cleanupArchiveImportsAfterSuccess() {
     if (!state.archiveImportDirs.length) return;
@@ -2561,15 +2596,24 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       : 'Conversion succeeded, but Safari could not clear temporary .7z browser storage.');
   }
   let archiveStartupCleanup = Promise.resolve(true);
+  let psxArchiveStartupCleanup = Promise.resolve(true);
   try {
     const previousDir = sessionStorage.getItem(ARCHIVE_SESSION_KEY);
     if (previousDir && /^nebula-7z-[a-z0-9-]+$/.test(previousDir)) archiveStartupCleanup = removeArchiveOpfsDir(previousDir);
     else if (previousDir) sessionStorage.removeItem(ARCHIVE_SESSION_KEY);
+    const psxDirsRaw = sessionStorage.getItem(PSX_ARCHIVE_SESSION_KEY);
+    if (psxDirsRaw) {
+      let psxDirs = JSON.parse(psxDirsRaw);
+      if (!Array.isArray(psxDirs)) psxDirs = [];
+      psxDirs = psxDirs.filter(name => /^nebula-7z-[a-z0-9-]+$/.test(name));
+      psxArchiveStartupCleanup = Promise.all(psxDirs.map(removeArchiveOpfsDir)).then(results => results.every(Boolean));
+      sessionStorage.removeItem(PSX_ARCHIVE_SESSION_KEY);
+    }
   } catch (_) {}
   function setArchiveBusy(active, kind = state.archiveKind) {
     state.archiveBusy = active;
     state.archiveKind = kind;
-    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode, els.taskPsxMode]) el.disabled = active;
+    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.psxArchiveInput, els.psxArchiveBrowseBtn]) el.disabled = active;
     const ui = archiveUi(kind);
     ui.cancelBtn.hidden = !active;
     if (active) {
@@ -2582,6 +2626,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ui.progressBar.style.transform = '';
     }
     updateConvertEnabled();
+    updatePsxEnabled();
   }
   async function collectExtractedImages(dirHandle, path = '') {
     const found = [];
@@ -2592,6 +2637,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         const file = await handle.getFile();
         try { Object.defineProperty(file, 'nebulaArchivePath', { value: rel }); } catch (_) {}
         found.push(file);
+      }
+    }
+    return found;
+  }
+  async function collectExtractedPsxFiles(dirHandle, path = '') {
+    const found = [];
+    for await (const [name, handle] of dirHandle.entries()) {
+      const rel = path ? path + '/' + name : name;
+      if (handle.kind === 'directory') found.push(...await collectExtractedPsxFiles(handle, rel));
+      else if (handle.kind === 'file' && /\.(?:cue|bin|sbi)$/i.test(name) && name !== '.DS_Store' && !name.startsWith('._')) {
+        const file = await handle.getFile();
+        found.push({ file, path: rel });
       }
     }
     return found;
@@ -2613,6 +2670,23 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const ui = archiveUi(kind);
     state.archiveWorker = null;
     state.archiveTempDir = '';
+    if (kind === 'psx') {
+      const usable = (files || []).filter(it => it && it.file && /\.(?:cue|bin|sbi)$/i.test(it.file.name));
+      if (!usable.some(it => /\.cue$/i.test(it.file.name)) && !usable.some(it => /\.bin$/i.test(it.file.name))) {
+        throw new Error('No PS1 .cue sheet or .bin track was found in this .7z archive.');
+      }
+      state.psxArchiveImportDirs.push(tempDir);
+      savePsxArchiveSessionDirs();
+      setArchiveBusy(false, kind);
+      ui.progressWrap.hidden = false;
+      ui.progressBar.classList.remove('indeterminate');
+      setBarProgress(ui.progressBar, 1, { snap: true });
+      ui.status.hidden = false;
+      ui.status.textContent = 'Unpacked ' + usable.length + ' PS1 cue/bin/SBI file' + (usable.length === 1 ? '' : 's') + '. Other archive entries were skipped. Temporary files stay in browser storage while these games remain in the list and are removed when you clear the list, start over, or close this page. The original .7z is unchanged.';
+      psxLog('Imported ' + usable.length + ' PS1 cue/bin/SBI file(s) from .7z; unrelated archive entries were skipped.');
+      await addPsxInputs(usable);
+      return;
+    }
     if (kind === 'raw') {
       const matching = extractTitleIdItems(files || []);
       if (!matching.length) throw new Error('No content file was found directly inside an 8-character Title ID/000D0000 folder.');
@@ -2661,7 +2735,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const displayMessage = writeFailure
       ? kind === 'raw'
         ? 'The browser could not save the extracted XBLA/XBLIG files to site storage. Check browser storage and Mac free space; in Safari, use a regular window rather than Private Browsing.'
-        : 'The browser could not write the extracted image to site storage. This often means the browser site-storage quota or Mac free space is too low. Check that you have space roughly equal to the uncompressed ISO plus headroom; in Safari, use a regular window (not Private Browsing).'
+        : kind === 'psx'
+          ? 'The browser could not save the extracted PS1 files to site storage. Check browser storage and Mac free space; allow space for the uncompressed cue/bin files and use a regular Safari window, not Private Browsing.'
+          : 'The browser could not write the extracted image to site storage. This often means the browser site-storage quota or Mac free space is too low. Check that you have space roughly equal to the uncompressed ISO plus headroom; in Safari, use a regular window (not Private Browsing).'
       : rawMessage;
     ui.status.hidden = false;
     ui.status.textContent = cancelled
@@ -2670,8 +2746,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!cancelled) log('7z import failed: ' + rawMessage);
   }
   async function startArchiveImport(file, kind = 'iso') {
-    if (!file || state.archiveBusy || state.converting || state.batchRunning || state.rawUploading) return;
+    if (!file || state.archiveBusy || state.converting || state.batchRunning || state.rawUploading || state.psxBusy) return;
     if (kind === 'raw' && state.taskMode !== 'raw') return;
+    if (kind === 'psx' && state.taskMode !== 'psx') return;
     clearError();
     state.archiveKind = kind;
     const ui = archiveUi(kind);
@@ -2681,7 +2758,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     ui.status.hidden = false;
     ui.status.textContent = kind === 'raw'
       ? 'Preparing local XBLA/XBLIG archive import… nothing is uploaded during extraction.'
-      : 'Preparing local ISO archive import…';
+      : kind === 'psx'
+        ? 'Preparing local PS1 archive import… only cue/bin/SBI files will be unpacked.'
+        : 'Preparing local ISO archive import…';
     ui.progressWrap.hidden = false;
     setBarProgress(ui.progressBar, 0, { snap: true });
     ui.progressBar.classList.add('indeterminate');
@@ -2704,8 +2783,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         : 'Reading .7z archive index locally…';
     }
     const startupCleanupOk = await archiveStartupCleanup;
+    const psxStartupCleanupOk = kind === 'psx' ? await psxArchiveStartupCleanup : true;
     if (id !== state.archiveRequestId || !state.archiveBusy) return;
-    if (startupCleanupOk === false) {
+    if (startupCleanupOk === false || psxStartupCleanupOk === false) {
       await failArchiveImport(id, '', 'The browser could not clear temporary data from an earlier .7z import. Close this page, reopen it, and retry.', false, kind);
       return;
     }
@@ -2732,8 +2812,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       await failArchiveImport(id, tempDir, 'Could not start the local 7z worker: ' + (err.message || String(err)), false, kind);
       return;
     }
-    ui.status.textContent = kind === 'raw'
-      ? 'Reading the 7z archive index locally… nothing is uploaded.'
+    ui.status.textContent = kind === 'psx'
+      ? 'Reading the 7z archive index locally… only cue/bin/SBI files will be unpacked.'
       : 'Reading the 7z archive index locally… nothing is uploaded.';
     worker.onmessage = async event => {
       const msg = event.data || {};
@@ -2749,7 +2829,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           ui.progressBar.classList.add('indeterminate');
           ui.status.textContent = kind === 'raw'
             ? 'Reading the archive index locally… only 8-character Title ID/000D0000 files will be unpacked; nothing is uploaded.'
-            : 'Reading the archive index locally… large archives may take a little while. Nothing is uploaded.';
+            : kind === 'psx'
+              ? 'Reading the archive index locally… only cue/bin/SBI files will be unpacked; unrelated entries are ignored.'
+              : 'Reading the archive index locally… large archives may take a little while. Nothing is uploaded.';
         } else if (msg.phase === 'extracting') {
           const total = Math.max(1, Number(msg.totalBytes) || 1);
           const done = Math.max(0, Number(msg.processedBytes) || 0);
@@ -2764,7 +2846,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           setBarProgress(ui.progressBar, pct / 100);
           ui.status.textContent = kind === 'raw'
             ? 'Unpacking ' + (currentFile || 'matching XBLA/XBLIG content') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no files are uploaded.'
-            : 'Extracting ' + (currentFile || 'supported image files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no image data is uploaded.';
+            : kind === 'psx'
+              ? 'Unpacking ' + (currentFile || 'PS1 cue/bin/SBI files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; unrelated archive entries are skipped.'
+              : 'Extracting ' + (currentFile || 'supported image files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no image data is uploaded.';
         }
       } else if (msg.type === 'done') {
         worker.terminate();
@@ -2774,6 +2858,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           const dir = await root.getDirectoryHandle(tempDir, { create: false });
           if (kind === 'raw') {
             const files = await collectExtractedRawFiles(dir);
+            files.sort((a, b) => a.path.localeCompare(b.path));
+            await finishArchiveImport(id, tempDir, files, kind);
+          } else if (kind === 'psx') {
+            const files = await collectExtractedPsxFiles(dir);
             files.sort((a, b) => a.path.localeCompare(b.path));
             await finishArchiveImport(id, tempDir, files, kind);
           } else {
@@ -2835,6 +2923,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   els.archiveCancelBtn.addEventListener('click', cancelArchiveImport);
   els.rawArchiveCancelBtn.addEventListener('click', cancelArchiveImport);
+  els.psxArchiveCancelBtn.addEventListener('click', cancelArchiveImport);
   els.drop.addEventListener('click', () => { if (!state.converting && !state.batchRunning && !state.archiveBusy) els.fileInput.click(); });
   function selectIsoFiles(fileList) {
     if (state.converting || state.batchRunning || state.archiveBusy) return;
@@ -3926,7 +4015,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } else if (bins.length > 1) {
       psxError('No .cue file was found with those ' + bins.length + ' .bin files. Multi-track games need their .cue so track order, types and audio offsets are known — select the whole game folder (or the .cue together with every .bin it references).');
     } else {
-      psxError('No .cue or .bin files were found in that selection. Unzip the game first, then choose/drop the extracted game folder containing the .cue and its .bin track files.');
+      psxError('No .cue or .bin files were found in that selection. Choose/drop the extracted game folder containing the .cue and its .bin tracks, or drop a .7z archive here.');
     }
     dedupePsxOutNames();
     renderPsxJobs();
@@ -4050,7 +4139,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.psxGroupMultiDisc.addEventListener('change', renderPsxJobs);
   els.psxAutoCover.addEventListener('change', renderPsxJobs);
   els.psxClearJobsBtn.addEventListener('click', () => {
-    if (state.psxBusy) return;
+    if (state.psxBusy || state.archiveBusy) return;
+    void cleanupPsxArchiveDirs();
     revokeAllPsxCoverPreviewUrls();
     clearPsxCoverPreview();
     state.psxJobs = [];
@@ -4066,7 +4156,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   /* ---- PS1 source selection (folder picker, file picker, drag & drop) ---- */
   els.psxChooseFolderBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy) els.psxFolderInput.click(); });
-  els.psxChooseFilesBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy) els.psxFilesInput.click(); });
+  els.psxChooseFilesBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy && !state.archiveBusy) els.psxFilesInput.click(); });
+  els.psxArchiveBrowseBtn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!state.psxBusy && !state.archiveBusy) els.psxArchiveInput.click(); });
+  els.psxArchiveInput.addEventListener('change', () => {
+    const file = els.psxArchiveInput.files && els.psxArchiveInput.files[0];
+    if (file) startArchiveImport(file, 'psx');
+    els.psxArchiveInput.value = '';
+  });
   els.psxDropZone.addEventListener('click', (ev) => {
     if (ev.target.closest('button') || state.psxBusy) return;
     els.psxFolderInput.click();
@@ -4094,8 +4190,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const files = Array.from((ev.dataTransfer && ev.dataTransfer.files) || []);
       const candidates = files.length ? files : items.map(item => item.getAsFile ? item.getAsFile() : null).filter(Boolean);
       const entries = items.map(item => item.webkitGetAsEntry ? item.webkitGetAsEntry() : null).filter(Boolean);
-      if (candidates.some(f => /\.(7z|zip|rar)$/i.test(f.name)) || entries.some(e => e.isFile && /\.(7z|zip|rar)$/i.test(e.name))) {
-        psxError('That looks like an archive. Unzip the PS1 game first, then drop the extracted game folder containing the .cue and its .bin track files.');
+      const archiveFiles = candidates.filter(f => /\.7z$/i.test(f.name));
+      const unsupportedArchives = candidates.filter(f => /\.(?:zip|rar)$/i.test(f.name));
+      if (unsupportedArchives.length || entries.some(e => e.isFile && /\.(?:zip|rar)$/i.test(e.name))) {
+        psxError('The PS1 section can import .7z archives only. Extract this ZIP/RAR first, or create a .7z archive.');
+        return;
+      }
+      if (archiveFiles.length) {
+        if (archiveFiles.length !== 1 || candidates.length !== 1 || entries.some(e => e.isDirectory)) {
+          psxError('Drop one .7z archive at a time by itself. You can add extracted folders/files separately afterward.');
+          return;
+        }
+        await startArchiveImport(archiveFiles[0], 'psx');
         return;
       }
       if (entries.length) {
@@ -4205,8 +4311,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (ok && state.psxOutputMode === 'ftp' && !state.psxFtpConnected) { ok = false; hint = 'Test the Xbox FTP connection first.'; }
     els.psxMergeBtn.disabled = !ok;
     els.psxMergeBtn.textContent = state.psxBusy ? 'Merging…' : (hint || psxMergeLabel());
-    const selDisabled = state.psxBusy;
-    for (const el of [els.psxFolderInput, els.psxFilesInput, els.psxChooseFolderBtn, els.psxChooseFilesBtn, els.psxClearJobsBtn, els.psxResetBtn, els.psxChooseOutputFolderBtn]) el.disabled = selDisabled;
+    const selDisabled = state.psxBusy || state.archiveBusy;
+    for (const el of [els.psxFolderInput, els.psxFilesInput, els.psxArchiveInput, els.psxChooseFolderBtn, els.psxChooseFilesBtn, els.psxArchiveBrowseBtn, els.psxClearJobsBtn, els.psxResetBtn, els.psxChooseOutputFolderBtn]) el.disabled = selDisabled;
     els.psxDropZone.setAttribute('data-disabled', selDisabled ? 'true' : 'false');
     els.psxCancelBtn.disabled = !state.psxBusy;
     els.psxFtpConnectBtn.disabled = !state.ftpToken || state.psxBusy;
@@ -5013,8 +5119,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     psxLog('Cancel requested — stopping after the current chunk/file. A partially written output file must not be used; delete it before retrying.');
   });
   els.psxResetBtn.addEventListener('click', () => {
-    if (state.psxBusy) return;
+    if (state.psxBusy || state.archiveBusy) return;
+    void cleanupPsxArchiveDirs();
     clearPsxFinishTimer();
+    stopConfetti();
+    clearCompletionMeteors();
     revokeAllPsxCoverPreviewUrls();
     clearPsxCoverPreview();
     state.psxJobs = [];
@@ -5246,7 +5355,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.psxMergeBtn.addEventListener('click', () => { runPsxMerge().catch(err => psxError('Merge could not start: ' + err.message)); });
   els.psxMergeAnotherBtn.addEventListener('click', () => {
     els.psxResetBtn.click();
-    els.psxContentCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    els.psxDropZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
   if (!hasDirPicker) {
@@ -5275,6 +5384,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (activeDir) void removeArchiveOpfsDir(activeDir);
     void cleanupArchiveImports();
     void cleanupRawArchiveDirs(state.rawArchiveImportDirs.slice());
+    void cleanupPsxArchiveDirs(state.psxArchiveImportDirs.slice());
   });
 
   function onProgress(p) {
@@ -5627,6 +5737,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   /* ---------------- completion celebration ---------------- */
   let launchCompletionMeteors = () => {};
+  let clearCompletionMeteors = () => {};
   let confettiRaf = 0, confettiResize = null;
   function fireConfetti() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -5654,6 +5765,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     confettiResize=resize;
     window.addEventListener('resize',confettiResize);
     confettiRaf=requestAnimationFrame(frame);
+  }
+  function stopConfetti() {
+    if (confettiRaf) cancelAnimationFrame(confettiRaf);
+    confettiRaf = 0;
+    if (confettiResize) window.removeEventListener('resize', confettiResize);
+    confettiResize = null;
+    const canvas = document.getElementById('nebulaConfetti');
+    if (canvas) canvas.remove();
   }
   function celebrateCompletion(){launchCompletionUfo();launchCompletionMeteors();fireConfetti();}
 
@@ -5695,6 +5814,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       if (reduced) return;
       showerUntil = performance.now() + 6500;
       for (let i=0;i<5 && shooting.length<10;i++) spawnShooting();
+    };
+    clearCompletionMeteors = () => {
+      showerUntil = 0;
+      shooting.length = 0;
     };
     function draw(t) {
       ctx.clearRect(0, 0, w, h);
