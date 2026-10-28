@@ -310,7 +310,8 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
        <strong>one .bin + .cue pair</strong> for <strong>PCSXR360 2.1.1b</strong> on a modded JTAG/RGH Xbox 360 —
        locally in your browser, then save it to a folder, download it, or FTP it to the console.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.2.6 · build 2026-10-27</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.2.7 · build 2026-10-27</div>
+    <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
       <div class="step"><b><span class="n">2</span> Convert</b><span>The game partition is hashed and packed into a LIVE/SVOD header plus <span class="kbd">Data0000…</span> parts, exactly like Iso2God.</span></div>
@@ -737,7 +738,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.2.6 · build 2026-10-27</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.2.7 · build 2026-10-27</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -1700,7 +1701,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.2.6';
+  const APP_VERSION = '1.2.7';
   const APP_BUILD = '2026-10-27';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -2687,6 +2688,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     updateConvertEnabled();
     updatePsxEnabled();
+    if (!active) void releaseWakeLockIfIdle();
   }
   async function collectExtractedImages(dirHandle, path = '') {
     const found = [];
@@ -2870,6 +2872,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const id = (state.archiveRequestId || 0) + 1;
     state.archiveRequestId = id;
     setArchiveBusy(true, kind);
+    await requestWakeLock();
     ui.status.hidden = false;
     ui.status.textContent = kind === 'raw'
       ? 'Preparing local XBLA/XBLIG archive import… nothing is uploaded during extraction.'
@@ -3613,6 +3616,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.rawUploadCurrentIndex = 0;
     state.rawUploadItemCount = items.length;
     state.rawUploading = true;
+    await requestWakeLock();
     clearFtpRetryPrompt();
     els.rawFtpLive.hidden = false;
     els.rawFtpLive.classList.remove('is-complete');
@@ -3669,6 +3673,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       log('Raw content upload failed: ' + err.message);
     } finally {
       state.rawUploading = false;
+      await releaseWakeLockIfIdle();
       updateConvertEnabled();
       updateRawUploadEnabled();
     }
@@ -5391,6 +5396,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       job.coverCounted = false;
     }
     state.psxBusy = true;
+    void requestWakeLock();
     state.psxCancelRequested = false;
     state.psxFtpActive = state.psxOutputMode === 'ftp';
     state.psxJobCount = ready.length;
@@ -5417,6 +5423,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         state.psxBusy = false;
         state.psxFtpActive = false;
         state.psxCoverAbortController = null;
+        await releaseWakeLockIfIdle();
         els.psxLive.hidden = true;
         clearPsxCoverPreview();
         resetCompletionUfo();
@@ -5532,7 +5539,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } finally {
       state.psxBusy = false;
       state.psxFtpActive = false;
-      await releaseWakeLock();
+      await releaseWakeLockIfIdle();
       if (succeeded && !failed && !state.psxCancelRequested) {
         const elapsedMs = Date.now() - startedAt;
         const took = ' in ' + fmtDuration(elapsedMs);
@@ -5584,13 +5591,48 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   updatePsxSummary();
   updatePsxEnabled();
   /* ---------------- conversion ---------------- */
+  function shouldKeepScreenAwake() {
+    return !!(state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive);
+  }
+  let wakeLockRequest = null;
   async function requestWakeLock() {
-    try { if (navigator.wakeLock) state.wakeLock = await navigator.wakeLock.request('screen'); } catch (_) {}
+    if (!navigator.wakeLock || document.hidden) return false;
+    if (state.wakeLock && !state.wakeLock.released) return true;
+    if (wakeLockRequest) return wakeLockRequest;
+    wakeLockRequest = navigator.wakeLock.request('screen').then(async lock => {
+      // A very fast job may finish before the browser resolves request(); do not
+      // let that late sentinel keep the display awake after the job is over.
+      if (!lock || document.hidden || !shouldKeepScreenAwake()) {
+        try { if (lock && !lock.released) await lock.release(); } catch (_) {}
+        return false;
+      }
+      state.wakeLock = lock;
+      if (typeof lock.addEventListener === 'function') {
+        lock.addEventListener('release', () => {
+          if (state.wakeLock === lock) state.wakeLock = null;
+        }, { once: true });
+      }
+      return true;
+    }).catch(() => false).finally(() => { wakeLockRequest = null; });
+    return wakeLockRequest;
   }
   async function releaseWakeLock() {
-    try { if (state.wakeLock) await state.wakeLock.release(); } catch (_) {}
+    const lock = state.wakeLock;
     state.wakeLock = null;
+    try { if (lock && !lock.released) await lock.release(); } catch (_) {}
   }
+  async function releaseWakeLockIfIdle() {
+    if (!shouldKeepScreenAwake()) await releaseWakeLock();
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (!shouldKeepScreenAwake()) void releaseWakeLock();
+    } else if (shouldKeepScreenAwake()) {
+      // Browsers automatically release screen locks when a tab is backgrounded;
+      // request a fresh one when the active job returns to the foreground.
+      void requestWakeLock();
+    }
+  });
   window.addEventListener('beforeunload', (e) => {
     if (state.converting || state.batchRunning || state.archiveBusy || state.psxArchiveBatchActive || state.rawUploading || state.psxBusy) { e.preventDefault(); e.returnValue = ''; }
   });
