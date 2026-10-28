@@ -310,7 +310,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
        <strong>one .bin + .cue pair</strong> for <strong>PCSXR360 2.1.1b</strong> on a modded JTAG/RGH Xbox 360 —
        locally in your browser, then save it to a folder, download it, or FTP it to the console.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.2.5 · build 2026-10-27</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.2.6 · build 2026-10-27</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
       <div class="step"><b><span class="n">2</span> Convert</b><span>The game partition is hashed and packed into a LIVE/SVOD header plus <span class="kbd">Data0000…</span> parts, exactly like Iso2God.</span></div>
@@ -575,7 +575,14 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
       </div>
       <label class="check small"><input id="psxGroupMultiDisc" type="checkbox" checked><span><strong>Automatically group multi-disc games into one folder per game</strong> when two or more discs from the same game are detected. Applies to <strong>Save to a folder</strong> and <strong>FTP</strong>; individual browser downloads remain separate files, but their labels show the intended game folder.</span></label>
       <label class="check small"><input id="psxKeepSbi" type="checkbox" checked><span><strong>Keep a matching <span class="kbd">.sbi</span> file</strong> (LibCrypt subchannel data) when one is in the source folder. It is copied beside the merged <code>.bin</code>; on the console, PCSXR360 loads <code>.sbi</code> files from its patches folder using the game-serial file name, so keep it with the game in case a title needs it.</span></label>
-      <label class="check small"><input id="psxAutoCover" type="checkbox"><span><strong>Automatically fetch PCSXR360 cover JPGs</strong> for each merged disc (off by default). The site reads the game serial from the disc locally and asks the public <code>xlenore/psx-covers</code> collection on GitHub for that serial’s JPG (GitHub sees the serial and normal web-request metadata such as your IP address and browser); no game files are uploaded. Each found cover is resized/re-encoded to a baseline JPG named from the exact output file (for example <code>Game.bin.jpg</code>) for PCSXR360’s own game browser; during an FTP merge, the image it found is shown beside the live transfer progress. Folder output puts covers in <code>PCSXR360-covers</code> inside your chosen folder (copy its contents into the PCSXR360 folder’s <code>covers</code> folder); downloads add one cover download per disc; FTP sends covers directly to that emulator <code>covers</code> folder. A missing or unavailable cover never stops the merge. This does not add Aurora artwork: launch PCSXR360 itself from Aurora, then highlight the <code>.bin</code> inside PCSXR360.</span></label>
+      <label class="check small"><input id="psxAutoCover" type="checkbox"><span><strong>Automatically fetch PCSXR360 cover JPGs</strong> for each merged disc (off by default). The site reads the game serial from the disc locally and asks the public <code>xlenore/psx-covers</code> collection on GitHub for that serial’s JPG (GitHub sees the serial and normal web-request metadata such as your IP address and browser); no game files are uploaded. Found art is resized/re-encoded to a baseline JPG named for the output file (for example <code>Game.bin.jpg</code>). Local cover images chosen below take priority; online covers fill the remaining matches. A missing cover never stops the merge.</span></label>
+      <div class="setup" style="margin-top:8px">
+        <strong>Optional local cover images</strong>
+        <div class="muted small" style="margin-top:4px">Choose JPG, PNG, or WebP art to fill database gaps or use covers without an online lookup. Name each image after the game (or its PS1 serial, such as <code>SCUS-94455.jpg</code>). A game-name cover also applies to its Disc 1/Disc 2 jobs. Local images stay on this computer and are sent with the game only to the output you choose.</div>
+        <input id="psxCoverFilesInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple hidden>
+        <div class="btn-row" style="margin-top:8px"><button class="btn small" id="psxChooseCoverFilesBtn" type="button">Choose local cover images…</button><button class="btn small" id="psxClearCoverFilesBtn" type="button" disabled>Clear covers</button><span class="muted small" id="psxCoverFilesStatus" role="status" aria-live="polite">No local cover images selected.</span></div>
+        <div class="muted tiny">Covers go into PCSXR360’s <code>covers</code> folder (or the folder/download location shown after the merge). This does not add Aurora artwork; launch PCSXR360 itself from Aurora, then highlight the <code>.bin</code> inside PCSXR360.</div>
+      </div>
 
       <h3>💾 Where should the merged games go?</h3>
       <div class="mode-row" role="group" aria-label="PS1 output method">
@@ -591,7 +598,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
         <div class="btn-row"><button class="btn" id="psxChooseOutputFolderBtn" type="button">Choose output folder…</button><span class="muted" id="psxFolderName"></span></div>
       </div>
       <div class="setup" id="psxFilesSetup" hidden>
-        No setup needed. When merging finishes, a download button for each merged <span class="kbd">.bin</span>, its <span class="kbd">.cue</span> (and <span class="kbd">.sbi</span> if kept) will appear below. Browsers download the files individually, so create the folder shown on each download row yourself — for a detected multi-disc set, that is one shared game folder containing every disc pair. PCSXR360 only finds the <code>.cue</code> when it has the same name as the <code>.bin</code> beside it. Your browser may ask to allow multiple downloads. If automatic covers are on, the <code>.bin.jpg</code> cover downloads belong in the PCSXR360 folder’s <code>covers</code> folder, not beside the <code>.bin</code>.
+        No setup needed. When merging finishes, a download button for each merged <span class="kbd">.bin</span>, its <span class="kbd">.cue</span> (and <span class="kbd">.sbi</span> if kept) will appear below. Browsers download the files individually, so create the folder shown on each download row yourself — for a detected multi-disc set, that is one shared game folder containing every disc pair. PCSXR360 only finds the <code>.cue</code> when it has the same name as the <code>.bin</code> beside it. Your browser may ask to allow multiple downloads. If cover art was matched, each <code>.bin.jpg</code> cover belongs in the PCSXR360 folder’s <code>covers</code> folder, not beside the <code>.bin</code>.
       </div>
       <div class="setup" id="psxFtpSetup" hidden>
         <strong>Xbox FTP connection (same home network only)</strong>
@@ -605,7 +612,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
           <div style="grid-column:1/-1"><label class="f" for="psxFtpPathPreset">Quick base-path preset <span class="muted">(optional)</span></label><select id="psxFtpPathPreset"><option value="">Custom path (type below)</option><option value="Hdd1:/" selected>Normal — Hdd1:/</option><option value="Usb1/Emulators/PCSXR360 2.1.1b/roms">PCSXR360 ROMs on USB — Usb1/Emulators/PCSXR360 2.1.1b/roms</option><option value="Hdd1:/Emulators/PCSXR360 2.1.1b/roms">PCSXR360 ROMs on HDD — Hdd1:/Emulators/PCSXR360 2.1.1b/roms</option><option value="Usb1">USB root — Usb1</option></select><div class="muted tiny">Optional shortcut: choosing a preset fills the editable base-path box below.</div></div>
           <div style="grid-column:1/-1"><label class="f" for="psxFtpPath">Xbox FTP base path</label><input id="psxFtpPath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Normal dashboard base path: <code>Hdd1:/</code>. Use a preset above or type a custom path here.</div></div>
           <div style="grid-column:1/-1"><label class="f" for="psxFtpDir">Xbox folder for PS1 games <span class="muted">(optional)</span></label><input id="psxFtpDir" type="text" placeholder="e.g. Emulators/PCSXR360 2.1.1b/roms — or leave blank" autocomplete="off"><div class="muted tiny">Optional. Leave blank to upload directly into the base path above. If the base path is just <code>Hdd1:/</code>, put the PCSXR360 <code>roms</code> folder here; if your preset already ends in <code>roms</code>, leave this blank. Missing folders are created automatically.</div></div>
-          <div style="grid-column:1/-1"><label class="f" for="psxFtpCoverPath">PCSXR360 covers FTP path <span class="muted">(optional; automatic covers only)</span></label><input id="psxFtpCoverPath" type="text" placeholder="Leave blank to auto-detect — or e.g. Usb1/Emulators/PCSXR360 2.1.1b/covers" autocomplete="off"><div class="muted tiny">Used only when automatic covers above are on. Leave blank when the game destination above is PCSXR360’s <code>roms</code> folder: the sibling <code>covers</code> folder is derived automatically. Otherwise enter the full FTP path to the <code>covers</code> folder inside the PCSXR360 emulator folder.</div></div>
+          <div style="grid-column:1/-1"><label class="f" for="psxFtpCoverPath">PCSXR360 covers FTP path <span class="muted">(optional; cover art only)</span></label><input id="psxFtpCoverPath" type="text" placeholder="Leave blank to auto-detect — or e.g. Usb1/Emulators/PCSXR360 2.1.1b/covers" autocomplete="off"><div class="muted tiny">Used when local or automatic cover art is being sent. Leave blank when the game destination above is PCSXR360’s <code>roms</code> folder: the sibling <code>covers</code> folder is derived automatically. Otherwise enter the full FTP path to the <code>covers</code> folder inside the PCSXR360 emulator folder.</div></div>
         </div>
         <label class="check small"><input id="psxFtpGameFolder" type="checkbox"><span><strong>Create a subfolder for each ungrouped game/disc</strong> inside that folder. Detected multi-disc sets automatically use one shared game folder when automatic grouping above is on. Leave this off for the classic PCSXR360 layout for ungrouped pairs: flat in the games folder, ready to pick from the emulator’s game list.</span></label>
         <label class="check small"><input id="rememberFtpPsx" type="checkbox"><span>Remember Xbox IP and username on this Mac/browser. The FTP password is never saved.</span></label>
@@ -662,7 +669,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
       <ol class="faq-body" style="margin-top:0">
         <li>Put each merged <strong><code>.bin</code> + same-named <code>.cue</code></strong> pair in the folder you browse for games in PCSXR360 (by FTP above, or via USB + a file manager). Never separate or rename one without the other.</li>
         <li>In PCSXR360’s game list, select the <strong><code>.bin</code></strong> file. The <code>.cue</code> does not need to be selected — the emulator looks for a <code>.cue</code> with the same name beside the <code>.bin</code> and uses it for track layout and CD-audio music.</li>
-        <li>Automatic covers (only if you enabled them): PCSXR360 looks for <code>ExactGameName.bin.jpg</code> in the <code>covers</code> folder inside the PCSXR360 emulator folder. FTP can put them there directly; for folder/download output, copy the contents of <code>PCSXR360-covers</code> (or the cover JPG downloads) into that <code>covers</code> folder. A grouped game folder may still show PCSXR360’s generic folder icon until you open it and highlight the <code>.bin</code>.</li>
+        <li>Cover art: PCSXR360 looks for <code>ExactGameName.bin.jpg</code> in the <code>covers</code> folder inside the PCSXR360 emulator folder. FTP can put matched covers there directly; for folder/download output, copy the contents of <code>PCSXR360-covers</code> (or the cover JPG downloads) into that <code>covers</code> folder. A grouped game folder may still show PCSXR360’s generic folder icon until you open it and highlight the <code>.bin</code>.</li>
         <li>Multi-disc games: when all discs were selected together and grouping was on, their separate pairs are placed together in one game folder. Keep one pair per disc and swap with the in-game menu’s eject/change-disc option when the game asks for the next disc; don’t try to combine different discs into one <code>.bin</code>.</li>
         <li>No music in a CD-audio game usually means the <code>.cue</code> is missing, renamed, or in a different folder from the <code>.bin</code>.</li>
       </ol>
@@ -715,21 +722,22 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
           <p><strong>Long PS1 file names:</strong> the Xbox 360 internal-HDD (FATX) file system limits names to 42
           characters. The merger warns you when a game name exceeds that — such names still work from USB/FAT32, but
           shorten the output name in the list if an FTP copy to <code>Hdd1</code> fails.</p>
-          <p><strong>PS1 automatic covers:</strong> this is off by default. If you turn it on, the merger reads each
-          disc’s serial locally (normally from <code>SYSTEM.CNF</code>) and asks the public
-          <code>xlenore/psx-covers</code> collection on GitHub for that serial’s JPG. The serial is the only game-derived
-          identifier in that request (GitHub also receives normal web-request metadata); game files are never uploaded. A found image is converted in the browser to a baseline JPG no larger than 512×512 and
-          named after the exact output <code>.bin</code> plus <code>.jpg</code> (such as <code>Game.bin.jpg</code>), which is
-          what PCSXR360 2.1.1b looks for in its emulator folder’s <code>covers</code> folder. Missing covers or network
-          problems are logged and skipped without affecting the merged game. Aurora still launches PCSXR360 itself; this
-          artwork appears inside PCSXR360 when the <code>.bin</code> is highlighted.</p>
+          <p><strong>PS1 cover art:</strong> online lookup is off by default. When enabled, the merger reads each disc’s
+          serial locally (normally from <code>SYSTEM.CNF</code>) and asks the public <code>xlenore/psx-covers</code>
+          collection on GitHub for that serial’s JPG; the serial is the only game-derived identifier sent (along with
+          normal web-request metadata), and game files are never uploaded. You can also select local JPG, PNG, or WebP
+          images, matched by game name or PS1 serial; local art is tried first and stays on this computer. Images are
+          converted in-browser to a baseline JPG up to 512×512 named after the output <code>.bin</code> (for example
+          <code>Game.bin.jpg</code>), as PCSXR360 2.1.1b expects in its emulator folder’s <code>covers</code> folder.
+          Missing/unavailable covers are logged and skipped without affecting the game. This art appears inside PCSXR360
+          when the <code>.bin</code> is highlighted; it does not create Aurora artwork.</p>
         </div>
     </details>
   </main>
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.2.5 · build 2026-10-27</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.2.6 · build 2026-10-27</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -1674,7 +1682,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     psxContentCard: $('psxContentCard'), psxDropZone: $('psxDropZone'), psxFolderInput: $('psxFolderInput'), psxFilesInput: $('psxFilesInput'), psxArchiveInput: $('psxArchiveInput'),
     psxArchiveBrowseBtn: $('psxArchiveBrowseBtn'), psxArchiveStatus: $('psxArchiveStatus'), psxArchiveProgressWrap: $('psxArchiveProgressWrap'), psxArchiveProgressBar: $('psxArchiveProgressBar'), psxArchiveCancelBtn: $('psxArchiveCancelBtn'),
     psxChooseFolderBtn: $('psxChooseFolderBtn'), psxChooseFilesBtn: $('psxChooseFilesBtn'), psxSelectedSummary: $('psxSelectedSummary'), psxErrorBox: $('psxErrorBox'),
-    psxJobList: $('psxJobList'), psxClearJobsBtn: $('psxClearJobsBtn'), psxKeepSbi: $('psxKeepSbi'), psxAutoCover: $('psxAutoCover'),
+    psxJobList: $('psxJobList'), psxClearJobsBtn: $('psxClearJobsBtn'), psxKeepSbi: $('psxKeepSbi'), psxAutoCover: $('psxAutoCover'), psxCoverFilesInput: $('psxCoverFilesInput'), psxChooseCoverFilesBtn: $('psxChooseCoverFilesBtn'), psxClearCoverFilesBtn: $('psxClearCoverFilesBtn'), psxCoverFilesStatus: $('psxCoverFilesStatus'),
     psxMultiDiscBox: $('psxMultiDiscBox'), psxMultiDiscList: $('psxMultiDiscList'), psxGroupMultiDisc: $('psxGroupMultiDisc'),
     psxModeFolder: $('psxModeFolder'), psxModeFiles: $('psxModeFiles'), psxModeFtp: $('psxModeFtp'), psxOutputModeNote: $('psxOutputModeNote'),
     psxFolderSetup: $('psxFolderSetup'), psxFilesSetup: $('psxFilesSetup'), psxFtpSetup: $('psxFtpSetup'),
@@ -1692,7 +1700,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.2.5';
+  const APP_VERSION = '1.2.6';
   const APP_BUILD = '2026-10-27';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -1713,7 +1721,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     psxArchiveBatchActive: false, psxArchiveBatchQueue: [], psxArchiveBatchTotal: 0, psxArchiveBatchIndex: 0, psxArchiveBatchSuccess: 0, psxArchiveBatchFailures: 0, psxArchiveBatchCancelled: false, psxArchivePathPrefix: '',
     psxFtpConnected: false, psxBusy: false, psxFtpActive: false, psxCancelRequested: false, psxJobs: [],
     psxOutputMode: hasDirPicker ? 'folder' : 'files', psxDirHandle: null,
-    psxTotalBytes: 0, psxCompletedBytes: 0, psxCurrentBytes: 0, psxJobIndex: 0, psxJobCount: 0, psxDownloadUrls: [], psxDoneReady: false, psxFinishTimer: 0, psxGroupNameOverrides: {}, psxAutoCoverRun: false, psxCoverFtpTarget: null, psxCoverFtpSettings: null, psxCoverAbortController: null, psxCoverPreviewJobId: null,
+    psxTotalBytes: 0, psxCompletedBytes: 0, psxCurrentBytes: 0, psxJobIndex: 0, psxJobCount: 0, psxDownloadUrls: [], psxDoneReady: false, psxFinishTimer: 0, psxGroupNameOverrides: {}, psxAutoCoverRun: false, psxLocalCoverFiles: [], psxCoverFtpTarget: null, psxCoverFtpSettings: null, psxCoverAbortController: null, psxCoverPreviewJobId: null,
   };
 
 
@@ -3879,7 +3887,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const full = name + '.bin';
     if (full.length > 42) return '“' + full + '” is ' + full.length + ' characters — over the Xbox 360 internal-HDD (FATX) 42-character file-name limit. It still works from USB/FAT32, but shorten the name here if an FTP copy to Hdd1 fails.';
     const coverFull = name + '.bin.jpg';
-    if (els.psxAutoCover && els.psxAutoCover.checked && coverFull.length > 42) return 'The automatic cover name “' + coverFull + '” is ' + coverFull.length + ' characters — over the Xbox 360 internal-HDD (FATX) 42-character limit, even though the .bin name fits. Shorten the output name if the cover must live on Hdd1; the game itself is unaffected.';
+    const coversEnabled = !!((els.psxAutoCover && els.psxAutoCover.checked) || (state.psxLocalCoverFiles && state.psxLocalCoverFiles.length));
+    if (coversEnabled && coverFull.length > 42) return 'The cover name “' + coverFull + '” is ' + coverFull.length + ' characters — over the Xbox 360 internal-HDD (FATX) 42-character limit, even though the .bin name fits. Shorten the output name if the cover must live on Hdd1; the game itself is unaffected.';
     if (/[<>+=;,"*?|]/.test(name)) return 'This name contains characters the Xbox 360 internal-HDD file system can reject; consider renaming it here (the .bin and .cue will still match).';
     return '';
   }
@@ -4220,7 +4229,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         if (job.sbi && els.psxKeepSbi.checked) text += ' + .sbi kept';
         if (job.coverSerial) text += ' · Serial ' + job.coverSerial;
         if (job.coverBlob) text += ' · Cover JPG ' + (psxCoverDelivered(job) ? 'included' : 'ready') + ' (' + fmtBytes(job.coverBlob.size) + ')';
-        else if (['no-serial', 'missing', 'error', 'no-target', 'target-error', 'name-too-long'].includes(job.coverStatus)) text += ' · No cover JPG';
+        else if (['no-serial', 'missing', 'missing-local', 'error', 'no-target', 'target-error', 'name-too-long'].includes(job.coverStatus)) text += ' · No cover JPG';
         if (job.groupName) text += ' · Detected multi-disc set: ' + job.groupName + ' (' + job.groupDiscCount + ' discs)';
         if (job.dropped.length) text += ' · Not copied into the new .cue: ' + job.dropped.join(', ');
         if (job.ignoredCount) text += ' · ' + job.ignoredCount + ' other file(s) in the source folder will not be copied';
@@ -4248,6 +4257,33 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       list.appendChild(root);
     }
   }
+  function refreshPsxLocalCoverStatus() {
+    const count = state.psxLocalCoverFiles.length;
+    els.psxCoverFilesStatus.textContent = count
+      ? count + ' local cover image' + (count === 1 ? '' : 's') + ' selected; matching is by game name or PS1 serial.'
+      : 'No local cover images selected.';
+    els.psxClearCoverFilesBtn.disabled = state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive || !count;
+  }
+  function clearPsxLocalCoverFiles() {
+    state.psxLocalCoverFiles = [];
+    els.psxCoverFilesInput.value = '';
+    refreshPsxLocalCoverStatus();
+    renderPsxJobs();
+    updatePsxEnabled();
+  }
+  els.psxChooseCoverFilesBtn.addEventListener('click', () => els.psxCoverFilesInput.click());
+  els.psxCoverFilesInput.addEventListener('change', () => {
+    const chosen = Array.from(els.psxCoverFilesInput.files || []);
+    const valid = chosen.filter(file => /\.(?:jpe?g|png|webp)$/i.test(file.name) && file.size > 0 && file.size <= PSX_COVER_MAX_SOURCE_BYTES);
+    const rejected = chosen.length - valid.length;
+    state.psxLocalCoverFiles = valid;
+    if (rejected) psxLog(rejected + ' local cover file(s) were skipped; choose non-empty JPG/PNG/WebP files no larger than ' + fmtBytes(PSX_COVER_MAX_SOURCE_BYTES) + ' each.');
+    refreshPsxLocalCoverStatus();
+    renderPsxJobs();
+    updatePsxEnabled();
+    els.psxCoverFilesInput.value = '';
+  });
+  els.psxClearCoverFilesBtn.addEventListener('click', clearPsxLocalCoverFiles);
   els.psxKeepSbi.addEventListener('change', renderPsxJobs);
   els.psxGroupMultiDisc.addEventListener('change', renderPsxJobs);
   els.psxAutoCover.addEventListener('change', renderPsxJobs);
@@ -4425,7 +4461,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.psxMergeBtn.disabled = !ok;
     els.psxMergeBtn.textContent = state.psxBusy ? 'Merging…' : (hint || psxMergeLabel());
     const selDisabled = state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive;
-    for (const el of [els.psxFolderInput, els.psxFilesInput, els.psxArchiveInput, els.psxChooseFolderBtn, els.psxChooseFilesBtn, els.psxArchiveBrowseBtn, els.psxClearJobsBtn, els.psxResetBtn, els.psxChooseOutputFolderBtn]) el.disabled = selDisabled;
+    for (const el of [els.psxFolderInput, els.psxFilesInput, els.psxArchiveInput, els.psxCoverFilesInput, els.psxChooseFolderBtn, els.psxChooseFilesBtn, els.psxArchiveBrowseBtn, els.psxChooseCoverFilesBtn, els.psxClearCoverFilesBtn, els.psxClearJobsBtn, els.psxResetBtn, els.psxChooseOutputFolderBtn]) el.disabled = selDisabled;
+    els.psxClearCoverFilesBtn.disabled = selDisabled || !state.psxLocalCoverFiles.length;
     els.psxDropZone.setAttribute('data-disabled', selDisabled ? 'true' : 'false');
     els.psxCancelBtn.disabled = !state.psxBusy;
     els.psxFtpConnectBtn.disabled = !state.ftpToken || state.psxBusy;
@@ -4487,6 +4524,37 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   const PSX_COVER_MAX_EDGE = 512;
 
   function psxCoverName(job) { return job.outName + '.bin.jpg'; }
+  function psxCoverNameVariants(value) {
+    const base = String(value || '').split(/[\\/]/).pop().replace(/\.(?:bin|cue|jpe?g|png|webp)$/i, '');
+    const variants = [];
+    const add = text => {
+      const key = String(text || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (key.length >= 6 && !variants.includes(key)) variants.push(key);
+    };
+    const noDisc = base.replace(/\b(?:disc|disk|cd)\s*0*\d+\b/gi, ' ').replace(/\b(?:front|boxart|artwork)\b/gi, ' ');
+    const noRegion = noDisc.replace(/\b(?:usa|europe|japan|world|worldwide|asia|pal|ntsc)\b/gi, ' ');
+    add(base); add(noDisc); add(noRegion);
+    return variants;
+  }
+  function psxFindLocalCover(job, serial = '') {
+    const jobNames = [job && job.outName, job && job.groupName, job && job.cuePath].filter(Boolean);
+    const jobKeys = [...new Set(jobNames.flatMap(psxCoverNameVariants))];
+    let best = null, bestScore = 0, tied = false;
+    for (const file of state.psxLocalCoverFiles) {
+      let score = 0;
+      if (serial && psxSerialFromText(file.name, true) === serial) score = 10000;
+      if (!score) {
+        const fileKeys = psxCoverNameVariants(file.name);
+        for (let i = 0; i < fileKeys.length; i++) {
+          const at = jobKeys.indexOf(fileKeys[i]);
+          if (at >= 0) score = Math.max(score, 1000 - i * 10 - at);
+        }
+      }
+      if (score > bestScore) { best = file; bestScore = score; tied = false; }
+      else if (score && score === bestScore && file !== best) tied = true;
+    }
+    return best ? { file: best, ambiguous: tied } : null;
+  }
   function psxCoverDelivered(job) { return !!job && ['written', 'uploaded', 'download-ready'].includes(job.coverStatus); }
   function psxCoverPreviewUrl(job) {
     if (!job || !job.coverBlob) return '';
@@ -4806,16 +4874,47 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       if (state.psxCoverAbortController === controller) state.psxCoverAbortController = null;
     }
   }
-  async function preparePsxCovers(jobs) {
+  async function preparePsxCovers(jobs, onlineEnabled = true) {
     const cache = new Map();
     for (let i = 0; i < jobs.length; i++) {
       const job = jobs[i];
       try {
         psxCheckCancel();
         clearPsxCoverPreview();
-        els.psxResult.textContent = 'Finding PCSXR360 cover ' + (i + 1) + ' of ' + jobs.length + ': "' + job.outName + '"…';
-        const detected = await psxDetectSerial(job);
-        job.coverSerial = detected.serial || '';
+        els.psxResult.textContent = 'Matching cover ' + (i + 1) + ' of ' + jobs.length + ': "' + job.outName + '"…';
+        let detected = { serial: '', source: '' };
+        let local = psxFindLocalCover(job, '');
+        if ((!local || local.ambiguous) && (onlineEnabled || state.psxLocalCoverFiles.length)) {
+          detected = await psxDetectSerial(job);
+          job.coverSerial = detected.serial || '';
+          if (detected.serial) local = psxFindLocalCover(job, detected.serial) || local;
+        }
+        if (local && !local.ambiguous) {
+          try {
+            const blob = await psxNormalizeCover(local.file);
+            job.coverBlob = blob;
+            job.coverSource = 'local';
+            job.coverStatus = 'ready';
+            showPsxCoverPreview(job, state.psxOutputMode === 'ftp' ? 'Local cover ready to upload after the game files' : 'Local cover ready');
+            psxLog('Matched local cover "' + local.file.name + '" to "' + job.outName + '"; it will be delivered as ' + psxCoverName(job) + '.');
+            if (psxCoverName(job).length > 42) psxLog('Note: "' + psxCoverName(job) + '" exceeds the Xbox internal-HDD FATX 42-character limit; shorten the output name if the cover must live on Hdd1.');
+            continue;
+          } catch (localErr) {
+            psxLog('Local cover "' + local.file.name + '" could not be decoded for "' + job.outName + '": ' + (localErr && localErr.message ? localErr.message : String(localErr)) + (onlineEnabled ? ' Trying the online lookup instead.' : ' The merge will continue without a cover.'));
+            if (!onlineEnabled) { job.coverStatus = 'error'; job.coverMessage = localErr && localErr.message ? localErr.message : String(localErr); continue; }
+          }
+        } else if (local && local.ambiguous) {
+          psxLog('More than one local cover matched "' + job.outName + '" equally well. Rename the desired image to the exact game name or serial; trying online lookup if enabled.');
+        }
+        if (!onlineEnabled) {
+          job.coverStatus = local && local.ambiguous ? 'missing' : 'missing-local';
+          if (!local || !local.ambiguous) psxLog('No local cover matched "' + job.outName + '" by game name or serial. The merge will continue without art.');
+          continue;
+        }
+        if (!detected.serial) {
+          detected = await psxDetectSerial(job);
+          job.coverSerial = detected.serial || '';
+        }
         if (!detected.serial) {
           job.coverStatus = 'no-serial';
           psxLog('Automatic cover skipped for "' + job.outName + '": no PS1 game serial could be read from the disc or file name. The merge will continue without a cover.');
@@ -4830,6 +4929,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           continue;
         }
         job.coverBlob = blob;
+        job.coverSource = 'online';
         job.coverStatus = 'ready';
         showPsxCoverPreview(job, state.psxOutputMode === 'ftp' ? 'Ready to upload after the game files' : 'Ready');
         psxLog('Cover ready for "' + job.outName + '": ' + psxCoverName(job) + ' (' + fmtBytes(blob.size) + ').');
@@ -4838,7 +4938,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         if (state.psxCancelRequested) throw psxAbortError();
         job.coverStatus = 'error';
         job.coverMessage = err && err.message ? err.message : String(err);
-        psxLog('Automatic cover skipped for "' + job.outName + '": ' + job.coverMessage + ' The merge will continue without a cover.');
+        psxLog('Cover lookup skipped for "' + job.outName + '": ' + job.coverMessage + ' The merge will continue without a cover.');
       }
     }
     renderPsxJobs();
@@ -4946,7 +5046,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!target) {
       for (const job of withCovers) job.coverStatus = 'no-target';
       state.psxCoverFtpSettings = null;
-      psxLog('Automatic covers were found, but the PCSXR360 covers FTP folder could not be worked out from the game destination. Set the game destination to the PCSXR360 roms folder or enter the covers FTP path explicitly. Covers will be skipped; the games are unaffected.');
+      psxLog('Cover art was found, but the PCSXR360 covers FTP folder could not be worked out from the game destination. Set the game destination to the PCSXR360 roms folder or enter the covers FTP path explicitly. Covers will be skipped; the games are unaffected.');
       renderPsxJobs();
       return;
     }
@@ -4969,8 +5069,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     // Do not connect to the emulator root yet: it (and its roms folder) may
     // legitimately be created by the game upload itself. The cover phase
     // reconnects after the games, and any failure there is Log-only.
-    els.psxResult.textContent = 'Automatic covers will upload after the game files…';
-    psxLog('Automatic covers will upload to ' + target.display + ' after the game files. That destination is checked then, after any missing game folders have been created; the covers folder itself will be created if needed.');
+    els.psxResult.textContent = 'Cover art will upload after the game files…';
+    psxLog('Cover art will upload to ' + target.display + ' after the game files. That destination is checked then, after any missing game folders have been created; the covers folder itself will be created if needed.');
     renderPsxJobs();
   }
   async function uploadPsxCoversFtp(successJobs) {
@@ -5241,6 +5341,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     clearPsxCoverPreview();
     state.psxJobs = [];
     state.psxGroupNameOverrides = {};
+    state.psxLocalCoverFiles = [];
+    els.psxCoverFilesInput.value = '';
+    refreshPsxLocalCoverStatus();
     state.psxAutoCoverRun = false;
     state.psxCoverFtpTarget = null;
     state.psxCoverFtpSettings = null;
@@ -5272,8 +5375,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     clearPsxFinishTimer();
     els.psxDownloadsBox.hidden = true;
     els.psxDownloadList.innerHTML = '';
-    const autoCover = !!els.psxAutoCover.checked;
-    state.psxAutoCoverRun = autoCover;
+    const onlineCovers = !!els.psxAutoCover.checked;
+    const coverWorkEnabled = onlineCovers || state.psxLocalCoverFiles.length > 0;
+    state.psxAutoCoverRun = coverWorkEnabled;
     state.psxCoverFtpTarget = null;
     state.psxCoverFtpSettings = null;
     state.psxCoverAbortController = null;
@@ -5282,7 +5386,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       revokePsxCoverPreviewUrl(job);
       job.coverBlob = null;
       job.coverSerial = '';
-      job.coverStatus = autoCover ? 'pending' : 'off';
+      job.coverStatus = coverWorkEnabled ? 'pending' : 'off';
       job.coverMessage = '';
       job.coverCounted = false;
     }
@@ -5294,7 +5398,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.psxCompletedBytes = 0;
     state.psxCurrentBytes = 0;
     state.psxTotalBytes = 0;
-    if (autoCover) {
+    if (coverWorkEnabled) {
       els.psxLive.hidden = false;
       els.psxLive.classList.remove('is-complete', 'is-finishing');
       els.psxMergeLive.hidden = state.psxFtpActive;
@@ -5305,7 +5409,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       renderPsxJobs();
       updatePsxOverallProgress('finding PCSXR360 covers');
       try {
-        await preparePsxCovers(ready);
+        await preparePsxCovers(ready, onlineCovers);
         if (state.psxOutputMode === 'ftp') await preparePsxCoverFtpTarget(ready);
         const firstCoverJob = ready.find(job => job.coverBlob);
         if (firstCoverJob) showPsxCoverPreview(firstCoverJob);
@@ -5330,7 +5434,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
     }
     for (const job of ready) {
-      job.coverCounted = !!(autoCover && job.coverBlob && job.coverStatus === 'ready' && (state.psxOutputMode !== 'ftp' || state.psxCoverFtpTarget));
+      job.coverCounted = !!(coverWorkEnabled && job.coverBlob && job.coverStatus === 'ready' && (state.psxOutputMode !== 'ftp' || state.psxCoverFtpTarget));
     }
     state.psxTotalBytes = ready.reduce((sum, j) => sum + psxJobOutputs(j).reduce((s, o) => s + o.size, 0) + (j.coverCounted && j.coverBlob ? j.coverBlob.size : 0), 0);
     els.psxLive.hidden = false;
@@ -5368,7 +5472,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             await writePsxJob(job, () => writer, psxFolderSegments(job));
             succeeded++;
             succeededJobs.push(job);
-            if (autoCover) await deliverPsxCoverToFolder(job, writer);
+            if (coverWorkEnabled) await deliverPsxCoverToFolder(job, writer);
           } catch (err) {
             if (err && err.name === 'AbortError') throw err;
             failed++;
@@ -5382,7 +5486,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           const job = ready[i];
           try {
             const baseSegments = psxFtpBaseSegments(job);
-            if (autoCover) {
+            if (coverWorkEnabled) {
               if (job.coverBlob) showPsxCoverPreview(job);
               else clearPsxCoverPreview();
             }
@@ -5396,7 +5500,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             psxLog('Failed on "' + job.outName + '": ' + err.message + ' Any unconfirmed partial file on the Xbox must not be used; remove it before retrying if necessary.');
           }
         }
-        if (autoCover) await uploadPsxCoversFtp(succeededJobs);
+        if (coverWorkEnabled) await uploadPsxCoversFtp(succeededJobs);
       } else {
         els.psxDownloadsBox.hidden = true;
         for (let i = 0; i < ready.length; i++) {
