@@ -333,8 +333,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     if entry["type"] != "file":
                         raise ValueError("Only selected files can be imported; open folders and select the files inside.")
                     max_bytes = 20 * 1024 * 1024 * 1024
+                    requested_limit = data.get("maxBytes")
+                    if requested_limit is not None:
+                        if isinstance(requested_limit, bool):
+                            raise ValueError("Invalid download size limit.")
+                        try:
+                            requested_limit = int(requested_limit)
+                        except (TypeError, ValueError):
+                            raise ValueError("Invalid download size limit.")
+                        if requested_limit < 1 or requested_limit > max_bytes:
+                            raise ValueError("Download size limit must be between 1 byte and 20 GiB.")
+                        max_bytes = requested_limit
                     if int(entry.get("size", 0) or 0) > max_bytes:
-                        raise ValueError("That file exceeds the 20 GiB import limit.")
+                        raise ValueError("That file exceeds the requested import size limit.")
                     # Stream the Xbox RETR response directly to the browser; no
                     # intermediate download copy is written to Mac system storage.
                     ftp.timeout = TRANSFER_IDLE_TIMEOUT
@@ -405,6 +416,42 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         except Exception:
                             raise
                     return send_json(self, 200, {"ok": True, "created": created, "name": name})
+                finally:
+                    try: ftp.quit()
+                    except Exception: pass
+
+            if parsed.path == "/api/fs/move":
+                data = json.loads(self._body().decode("utf-8"))
+                source = clean_segments(data.get("sourceSegments"))
+                destination = clean_segments(data.get("destinationSegments"))
+                if len(source) < 1 or len(destination) < 2:
+                    raise ValueError("Choose one remote file and a destination folder.")
+                source_parent, name = source[:-1], clean_name(source[-1])
+                destination_parent = destination[:-1]
+                if destination[-1] != name:
+                    raise ValueError("Moving files keeps the original filename unchanged.")
+                if len(destination_parent) <= len(source_parent) or destination_parent[:len(source_parent)] != source_parent:
+                    raise ValueError("Drag a remote file into a subfolder of its current folder to move it.")
+                target_subfolder = destination_parent[len(source_parent):]
+                if not target_subfolder:
+                    raise ValueError("Choose a destination subfolder.")
+                cfg = CONFIG
+                if not cfg:
+                    raise ValueError("Connect to the Xbox FTP server first.")
+                ftp = ftp_login(cfg)
+                try:
+                    ftp_cwd(ftp, cfg, source_parent)
+                    source_entry = next((item for item in ftp_list_entries(ftp) if item["name"] == name), None)
+                    if not source_entry or source_entry["type"] != "file":
+                        raise ValueError("Only a listed remote file can be moved; refresh and try again.")
+                    ftp_cwd(ftp, cfg, destination_parent)
+                    target_listing = ftp_list_entries(ftp)
+                    if any(item["name"].casefold() == name.casefold() for item in target_listing):
+                        raise ValueError("A same-named item already exists in the destination folder. It was not overwritten.")
+                    ftp_cwd(ftp, cfg, source_parent)
+                    new_path = "/".join(target_subfolder + [name])
+                    ftp.rename(name, new_path)
+                    return send_json(self, 200, {"ok": True, "name": name, "destinationSegments": destination})
                 finally:
                     try: ftp.quit()
                     except Exception: pass
