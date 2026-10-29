@@ -309,6 +309,73 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     try: ftp.quit()
                     except Exception: pass
 
+            if parsed.path == "/api/fs/download":
+                data = json.loads(self._body().decode("utf-8"))
+                segments = clean_segments(data.get("segments"))
+                parent, name = segments[:-1], clean_name(segments[-1])
+                cfg = CONFIG
+                if not cfg:
+                    raise ValueError("Connect to the Xbox FTP server first.")
+                ftp = ftp_login(cfg)
+                temp_path = None
+                try:
+                    ftp_cwd(ftp, cfg, parent)
+                    ftp.timeout = 12
+                    control = getattr(ftp, "sock", None)
+                    if control is not None:
+                        control.settimeout(12)
+                    entry = next((item for item in ftp_list_entries(ftp) if item["name"] == name), None)
+                    if not entry:
+                        raise ValueError("That remote item no longer exists; refresh the folder.")
+                    if entry["type"] != "file":
+                        raise ValueError("Only selected files can be imported; open folders and select the files inside.")
+                    max_bytes = 20 * 1024 * 1024 * 1024
+                    if int(entry.get("size", 0) or 0) > max_bytes:
+                        raise ValueError("That file exceeds the 20 GiB import limit.")
+                    # File imports may be large; restore the longer transfer-idle timeout.
+                    ftp.timeout = TRANSFER_IDLE_TIMEOUT
+                    control = getattr(ftp, "sock", None)
+                    if control is not None:
+                        control.settimeout(TRANSFER_IDLE_TIMEOUT)
+                    fd, temp_path = tempfile.mkstemp(prefix="nebula-download-", suffix=".part")
+                    downloaded = 0
+                    with os.fdopen(fd, "wb") as output:
+                        def write_download_block(block):
+                            nonlocal downloaded
+                            downloaded += len(block)
+                            if downloaded > max_bytes:
+                                raise ValueError("That file exceeds the 20 GiB import limit.")
+                            output.write(block)
+                        ftp.retrbinary("RETR " + name, write_download_block, blocksize=1024 * 1024)
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/octet-stream")
+                    self.send_header("Content-Length", str(downloaded))
+                    fallback_name = "".join(ch if ch.isascii() and 32 <= ord(ch) < 127 and ch not in ('"', '\\') else "_" for ch in name) or "download"
+                    encoded_name = urllib.parse.quote(name, safe="")
+                    self.send_header("Content-Disposition", f"attachment; filename=\"{fallback_name}\"; filename*=UTF-8''{encoded_name}")
+                    self.send_header("X-Content-Type-Options", "nosniff")
+                    self.send_header("Cache-Control", "no-store")
+                    self.end_headers()
+                    try:
+                        with open(temp_path, "rb") as source:
+                            while True:
+                                block = source.read(1024 * 1024)
+                                if not block:
+                                    break
+                                self.wfile.write(block)
+                        self.wfile.flush()
+                    except (BrokenPipeError, ConnectionResetError, OSError):
+                        # The browser canceled the download; the temporary copy is
+                        # still removed by the finally block below.
+                        pass
+                    return
+                finally:
+                    try: ftp.quit()
+                    except Exception: pass
+                    if temp_path:
+                        try: os.unlink(temp_path)
+                        except OSError: pass
+
             if parsed.path == "/api/fs/mkdir":
                 data = json.loads(self._body().decode("utf-8"))
                 segments = clean_segments(data.get("segments", []), allow_empty=True)
