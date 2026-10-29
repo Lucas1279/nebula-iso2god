@@ -276,7 +276,7 @@ footer a{color:#9edcff}
 .ufo-progress-lane{flex:none;contain:layout style}
 body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body.is-working .drop::before{animation-play-state:paused}
 @media (max-width:700px){#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText,#psxLiveText,#psxFtpLiveText,#psxOverallLiveText{min-height:2.9em}}
-.ftp-manager-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ftp-manager-toolbar{position:sticky;top:8px;z-index:30;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:10px;border:1px solid rgba(125,211,252,.22);border-radius:14px;background:linear-gradient(145deg,rgba(8,15,37,.97),rgba(8,12,31,.95));box-shadow:0 10px 30px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .ftp-manager-location{min-width:240px;flex:1 1 300px}
 .ftp-manager-actions{justify-content:flex-end;flex:1 1 360px}
 .ftp-manager-path-jump{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap;margin:10px 0 4px;padding:10px;border:1px solid rgba(130,155,255,.16);border-radius:12px;background:rgba(4,8,24,.35)}
@@ -316,7 +316,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-manager-table tr:hover td{background:rgba(110,140,220,.07)}
 .ftp-manager-table tr.selected td{background:rgba(56,189,248,.17);box-shadow:inset 0 1px rgba(125,211,252,.16),inset 0 -1px rgba(125,211,252,.16)}
 .ftp-manager-name{padding:0;border:0;background:transparent;color:#c8f7ff;text-align:left;cursor:pointer;font:inherit;overflow-wrap:anywhere}
-.ftp-manager-name.is-dir{font-weight:750}
+.ftp-manager-name.is-dir{font-weight:750}.ftp-manager-name.is-file{font-weight:700;color:#c8f7ff;text-decoration:underline;text-decoration-color:rgba(103,232,249,.55);text-underline-offset:3px}.ftp-manager-name:disabled{opacity:.55;cursor:wait}
 .ftp-manager-empty{padding:22px;text-align:center;color:var(--muted)}
 .ftp-manager-table input[type=checkbox]{width:17px;height:17px;accent-color:#38bdf8}
 .ftp-manager-modal[hidden],#ftpManagerPromptWrap[hidden],#ftpManagerEditorWrap[hidden]{display:none!important}
@@ -436,7 +436,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
     </div>
     <section class="card" data-workflow="ftp-manager" id="ftpManagerCard" aria-labelledby="ftpManagerHeading" hidden>
       <h2 id="ftpManagerHeading">🗂️ Xbox FTP file manager</h2>
-      <p class="muted small" style="line-height:1.6">Connect to Aurora/FreeStyle Dash FTP on your trusted home LAN. Browse the selected drive, create folders, upload any file type or folders from this computer, import selected Xbox files to your Mac, and delete remote items. This general-purpose manager does no content-specific filtering or conversion. Direct .zip and .7z archives are unpacked locally, then their files are uploaded unchanged. FTP is unencrypted; never expose it to the internet.</p>
+      <p class="muted small" style="line-height:1.6">Connect to Aurora/FreeStyle Dash FTP on your trusted home LAN. Browse the selected drive, create folders, upload any file type or folders from this computer, import selected Xbox files to your Mac, open/edit Aurora's launch.ini, and delete remote items. This general-purpose manager does no content-specific filtering or conversion. Direct .zip and .7z archives are unpacked locally, then their files are uploaded unchanged. FTP is unencrypted; never expose it to the internet.</p>
       <div class="setup" id="ftpManagerDownload" style="margin-top:12px"><strong>🍎 Updated one-tap Mac helper download</strong><p class="muted small" style="margin:5px 0 10px">Need the Apple/Mac FTP helper? Keep this download with you on the FTP page: download, unzip, then open <code>Nebula ISO2GOD.command</code>. Python 3 is required; leave Terminal open while FTP is running.</p><div class="btn-row"><a class="btn primary small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip" download="Nebula-ISO2GOD-One-File-Fixed.zip">⬇ Download Mac one-tap helper (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip" download="nebula-iso2god-timeout-fix.zip">Full helper bundle (.zip)</a></div><div class="muted tiny" style="margin-top:8px">FTP staging files are removed after upload success, cancel, or helper shutdown. If the helper quits unexpectedly, abandoned stages are cleared the next time it starts. The source/output files on your Mac and Xbox are not deleted.</div></div>
       <div class="setup" style="margin-top:12px"><strong>Connection</strong>
         <div class="muted small" style="margin-top:5px">Start the local helper on this Mac and use its local page. The browser cannot connect directly to raw FTP.</div>
@@ -453,7 +453,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
       <div class="setup ftp-manager-browser" id="ftpManagerBrowser" hidden style="margin-top:12px">
         <div class="ftp-manager-toolbar">
           <div class="ftp-manager-location"><strong>Remote location</strong><div id="ftpManagerLocation" class="muted small"></div><div id="ftpManagerBreadcrumbs" class="ftp-breadcrumbs" aria-label="Remote folder path"></div></div>
-          <div class="btn-row ftp-manager-actions">
+          <div class="btn-row ftp-manager-actions" role="toolbar" aria-label="Remote file actions">
             <button class="btn small" id="ftpManagerUpBtn" type="button">↑ Up</button>
             <button class="btn small" id="ftpManagerRefreshBtn" type="button">↻ Refresh</button>
             <button class="btn small" id="ftpManagerMkdirBtn" type="button">＋ New folder</button>
@@ -470,7 +470,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <button class="btn small" id="ftpManagerJumpBtn" type="button" disabled>Open folder</button>
           <span class="muted tiny" style="flex:1 1 100%">Use this if a folder (including an empty folder) is missing from the listing. After opening it, Upload files, Upload folder, and the drop area send items into that current folder.</span>
         </div>
-        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. To move remote files, drag a file row onto a destination folder row; selected file rows move together, and name collisions are never overwritten. Select files and choose <strong>Import selected to computer</strong> to save them in Downloads. For drag-out to Finder, select up to 64 MiB of files, choose <strong>Prepare drag-out</strong>, then drag the selected file row(s) out of Safari (external file-drag support varies by browser/OS); use Import as a fallback and for larger files. Select exactly <code>launch.ini</code> and choose <strong>Edit launch.ini</strong> to open and save it directly over FTP. Keep a backup before editing console configuration. Files stream through the helper without an extra disk copy during ordinary import; folder downloads aren’t supported.</div>
+        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. To move remote files, drag a file row onto a destination folder row; selected file rows move together, and name collisions are never overwritten. Select files and choose <strong>Import selected to computer</strong> to save them in Downloads. For drag-out to Finder, select up to 64 MiB of files, choose <strong>Prepare drag-out</strong>, then drag the selected file row(s) out of Safari (external file-drag support varies by browser/OS); use Import as a fallback and for larger files. Click the <code>launch.ini</code> filename to open it in the built-in text editor, or select it and choose <strong>Edit launch.ini</strong>; saving writes the text back over FTP after confirmation. Keep a backup before editing console configuration. Files stream through the helper without an extra disk copy during ordinary import; folder downloads aren’t supported.</div>
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
         <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
@@ -4932,7 +4932,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpManagerUseXblaBtn.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerUsePs1Btn.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerDropZone.setAttribute('aria-disabled', busy || !state.ftpManagerConnected ? 'true' : 'false');
-    els.ftpManagerTableBody.querySelectorAll('input[type="checkbox"]').forEach(input => { input.disabled = !!busy; });
+    els.ftpManagerTableBody.querySelectorAll('input[type="checkbox"],button').forEach(input => { input.disabled = !!busy; });
     managerUpdateHistoryControls();
     managerUpdateSelectionControls();
   }
@@ -5015,10 +5015,28 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const nameCell = document.createElement('td');
       if (entry.type === 'dir') {
         const open = document.createElement('button');
-        open.type = 'button'; open.className = 'ftp-manager-name is-dir'; open.textContent = '📁 ' + entry.name + '  ›';
+        open.type = 'button'; open.className = 'ftp-manager-name is-dir'; open.disabled = !!state.ftpManagerBusy; open.textContent = '📁 ' + entry.name + '  ›';
         open.title = 'Open folder (empty folders are openable too). You can also drop remote files here to move them.';
         open.setAttribute('aria-label', 'Open folder ' + entry.name);
         open.addEventListener('click', () => managerNavigate([...state.ftpManagerSegments, entry.name]));
+        nameCell.appendChild(open);
+      } else if (entry.type === 'file' && String(entry.name || '').toLocaleLowerCase() === 'launch.ini') {
+        const open = document.createElement('button');
+        open.type = 'button'; open.className = 'ftp-manager-name is-file'; open.disabled = !!state.ftpManagerBusy; open.textContent = '📄 ' + entry.name;
+        open.title = 'Open launch.ini in the built-in text editor';
+        open.setAttribute('aria-label', 'Open ' + entry.name + ' in the built-in text editor');
+        open.addEventListener('click', () => {
+          if (state.ftpManagerBusy) return;
+          managerClearPreparedDragFiles();
+          state.ftpManagerSelected.clear();
+          state.ftpManagerSelected.add(entry.name);
+          els.ftpManagerTableBody.querySelectorAll('tr').forEach(row => row.classList.remove('selected'));
+          els.ftpManagerTableBody.querySelectorAll('input[type="checkbox"]').forEach(input => { input.checked = false; });
+          check.checked = true;
+          tr.classList.add('selected');
+          managerUpdateSelectionControls();
+          managerEditLaunchIni();
+        });
         nameCell.appendChild(open);
       } else {
         const label = document.createElement('span'); label.textContent = (entry.type === 'file' ? '📄 ' : '🔒 ') + entry.name; nameCell.appendChild(label);
