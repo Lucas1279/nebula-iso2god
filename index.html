@@ -511,20 +511,20 @@ body.ftp-manager-dialog-open{overflow:hidden}
     <section class="card" data-workflow="iso" aria-labelledby="importH">
       <h2 id="importH">🚀 1 · Import your Xbox 360 ISO</h2>
       <p class="muted" style="margin:0;line-height:1.6">Your file never leaves this computer. It is read in small pieces directly from disk, so even an 8.5&nbsp;GB XGD3 image is not loaded into memory all at once.</p>
-      <div class="drop" id="dropZone" role="group" aria-label="Choose or drop an Xbox 360 ISO file or 7z archive">
+      <div class="drop" id="dropZone" role="group" aria-label="Choose or drop Xbox 360 ISO images and 7z archives">
         <div class="big" aria-hidden="true">💿</div>
-        <div class="t">Drag &amp; drop an .iso here — or import a .7z archive</div>
+        <div class="t">Drag &amp; drop multiple ISOs and/or .7z archives here</div>
         <div class="s">XGD2 · XGD3 · XGD1 · trimmed XISO/XSF images are detected automatically<br>(original Xbox <span class="kbd">default.xbe</span> images are converted as Xbox Original GODs too)<br>Select multiple ISOs to queue sequential FTP uploads at normal per-game speed.</div>
         <div class="btn-row" style="justify-content:center">
           <button class="btn primary" id="browseBtn" type="button">Browse for ISO(s)…</button>
-          <button class="btn" id="archiveBrowseBtn" type="button">Choose .7z archive…</button>
+          <button class="btn" id="archiveBrowseBtn" type="button">Choose .7z archive(s)…</button>
         </div>
       </div>
       <input id="fileInput" type="file" accept=".iso,.xiso,.xsf,.img,.bin,.7z,application/x-7z-compressed,application/octet-stream" multiple hidden>
-      <input id="archiveInput" type="file" accept=".7z,application/x-7z-compressed" hidden>
+      <input id="archiveInput" type="file" accept=".7z,application/x-7z-compressed" multiple hidden>
       <div class="setup" id="archiveImportPanel" style="margin-top:10px">
-        <strong>Import a .7z archive</strong>
-        <div class="muted small" style="margin-top:4px;line-height:1.55">The .7z is processed locally; nothing is uploaded during extraction. Only ISO/XISO/XSF/IMG/BIN images are extracted. Temporary images live in browser storage (not as Finder files) and are cleared automatically after a successful conversion/batch. If a job fails or is canceled, click Start over, choose a new import, or leave the page to clear them; while an FTP retry is pending, they stay available. The original archive is unchanged. Use recent Safari, Chrome, or Edge over HTTPS or the updated local helper at 127.0.0.1 (not file://), with free site storage roughly equal to the extracted image. Password-protected archives are not supported.</div>
+        <strong>Import ISO images from .7z archives</strong>
+        <div class="muted small" style="margin-top:4px;line-height:1.55">Drop or choose multiple .7z archives, loose ISOs, or a mix; supported images found in the archives join the same sequential FTP batch. Archives are processed locally; nothing is uploaded during extraction. Only ISO/XISO/XSF/IMG/BIN images are extracted. Temporary images live in browser storage (not as Finder files) and are cleared automatically after a successful conversion/batch. If a job fails or is canceled, click Start over or leave the page to clear them; while an FTP retry is pending, they stay available. Original archives are unchanged. Use recent Safari, Chrome, or Edge over HTTPS or the updated local helper at 127.0.0.1 (not file://), with free site storage roughly equal to the extracted images. Password-protected archives are not supported.</div>
         <div class="muted small" id="archiveStatus" role="status" aria-live="polite" hidden style="margin-top:9px"></div>
         <div class="bar-wrap thin" id="archiveProgressWrap" hidden style="margin-top:8px"><div class="bar thin" id="archiveProgressBar" style="width:0%"></div></div>
         <div class="btn-row" style="margin-top:8px"><button class="btn small danger" id="archiveCancelBtn" type="button" hidden>Cancel archive import</button></div>
@@ -2184,7 +2184,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
     lastOverall: 0, elapsedTimer: null, ftpActivity: '', ftpRetryPending: false, ftpRetryResolver: null,
-    archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], rawArchiveImportDirs: [], psxArchiveImportDirs: [], snesArchiveImportDirs: [],
+    archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], isoArchiveBatch: null, rawArchiveImportDirs: [], psxArchiveImportDirs: [], snesArchiveImportDirs: [],
     psxArchiveBatchActive: false, psxArchiveBatchQueue: [], psxArchiveBatchTotal: 0, psxArchiveBatchIndex: 0, psxArchiveBatchSuccess: 0, psxArchiveBatchFailures: 0, psxArchiveBatchCancelled: false, psxArchivePathPrefix: '',
     psxFtpConnected: false, psxBusy: false, psxFtpActive: false, psxCancelRequested: false, psxJobs: [],
     psxOutputMode: hasDirPicker ? 'folder' : 'files', psxDirHandle: null,
@@ -3709,8 +3709,25 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   const ARCHIVE_SESSION_KEY = 'nebula-iso2god-7z-opfs-dir';
   const PSX_ARCHIVE_SESSION_KEY = 'nebula-psx-7z-opfs-dirs';
   const SNES_ARCHIVE_SESSION_KEY = 'nebula-snes-7z-opfs-dirs';
+  function archiveSessionDirs() {
+    try {
+      const raw = sessionStorage.getItem(ARCHIVE_SESSION_KEY);
+      if (!raw) return [];
+      let names;
+      try { names = JSON.parse(raw); } catch (_) { names = [raw]; }
+      if (!Array.isArray(names)) names = [names];
+      return [...new Set(names.filter(name => typeof name === 'string' && /^nebula-7z-[a-z0-9-]+$/.test(name)))];
+    } catch (_) { return []; }
+  }
+  function saveArchiveSessionDirs(names) {
+    const valid = [...new Set((names || []).filter(name => typeof name === 'string' && /^nebula-7z-[a-z0-9-]+$/.test(name)))];
+    try { if (valid.length) sessionStorage.setItem(ARCHIVE_SESSION_KEY, JSON.stringify(valid)); else sessionStorage.removeItem(ARCHIVE_SESSION_KEY); } catch (_) {}
+  }
+  function rememberArchiveSessionDir(name) {
+    saveArchiveSessionDirs([...archiveSessionDirs(), name]);
+  }
   function forgetArchiveSessionDir(name) {
-    try { if (sessionStorage.getItem(ARCHIVE_SESSION_KEY) === name) sessionStorage.removeItem(ARCHIVE_SESSION_KEY); } catch (_) {}
+    saveArchiveSessionDirs(archiveSessionDirs().filter(item => item !== name));
   }
   async function removeArchiveOpfsDir(name) {
     if (!name) return true;
@@ -3797,9 +3814,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   let psxArchiveStartupCleanup = Promise.resolve(true);
   let snesArchiveStartupCleanup = Promise.resolve(true);
   try {
-    const previousDir = sessionStorage.getItem(ARCHIVE_SESSION_KEY);
-    if (previousDir && /^nebula-7z-[a-z0-9-]+$/.test(previousDir)) archiveStartupCleanup = removeArchiveOpfsDir(previousDir);
-    else if (previousDir) sessionStorage.removeItem(ARCHIVE_SESSION_KEY);
+    const previousDirs = archiveSessionDirs();
+    if (previousDirs.length) archiveStartupCleanup = Promise.all(previousDirs.map(removeArchiveOpfsDir)).then(results => results.every(Boolean));
+    else if (sessionStorage.getItem(ARCHIVE_SESSION_KEY)) sessionStorage.removeItem(ARCHIVE_SESSION_KEY);
     const psxDirsRaw = sessionStorage.getItem(PSX_ARCHIVE_SESSION_KEY);
     if (psxDirsRaw) {
       let psxDirs = JSON.parse(psxDirsRaw);
@@ -3904,6 +3921,38 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     return found;
   }
+  function continueIsoArchiveBatch() {
+    const batch = state.isoArchiveBatch;
+    if (!batch) return;
+    if (batch.nextIndex < batch.archives.length) {
+      const file = batch.archives[batch.nextIndex++];
+      els.archiveStatus.hidden = false;
+      els.archiveStatus.textContent = 'Unpacking archive ' + batch.nextIndex + ' of ' + batch.archives.length + ': ' + file.name + '. Supported images from all archives and loose files will be queued together.';
+      void startArchiveImport(file);
+      return;
+    }
+    const files = [...batch.looseImages, ...batch.images];
+    const skipped = batch.skipped;
+    const archiveCount = batch.archives.length;
+    const imageCount = batch.images.length;
+    state.isoArchiveBatch = null;
+    if (!files.length) {
+      els.archiveStatus.textContent = 'No supported ISO images were found in the selected archives or loose files.';
+      showError('No supported ISO/XISO/XSF image files were found. Choose .iso, .xiso, .xsf, .img, or .bin files.');
+      void cleanupArchiveImports();
+      return;
+    }
+    if (state.taskMode === 'mods' && files.length > 1) {
+      els.archiveStatus.textContent = 'The Mods tab accepts one game image at a time; extracted temporary images were cleared.';
+      showError('The Mods tab handles one game ISO at a time. Choose one image or switch to Convert an ISO for a multi-ISO FTP batch.');
+      void cleanupArchiveImports();
+      return;
+    }
+    els.archiveStatus.hidden = false;
+    els.archiveStatus.textContent = 'Unpacked ' + imageCount + ' supported image' + (imageCount === 1 ? '' : 's') + ' from ' + archiveCount + ' archive' + (archiveCount === 1 ? '' : 's') + '. Loose images were included in the same queue; temporary images remain available for conversion and FTP retry.';
+    log('Collected ' + imageCount + ' supported image(s) from ' + archiveCount + ' .7z archive(s); combining with ' + batch.looseImages.length + ' loose image(s) for one batch.');
+    selectIsoFiles(files, skipped);
+  }
   async function finishArchiveImport(id, tempDir, files, kind = 'iso') {
     if (id !== state.archiveRequestId) return;
     const ui = archiveUi(kind);
@@ -3982,8 +4031,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       log('Imported ' + state.rawFiles.length + ' XBLA/XBLIG content file(s) from .7z for Title ID(s) ' + ids.join(', ') + '.');
       return;
     }
-    if (!files.length) throw new Error('The archive did not yield any supported ISO images.');
+    if (!files.length && !(kind === 'iso' && state.isoArchiveBatch)) throw new Error('The archive did not yield any supported ISO images.');
     state.archiveImportDirs.push(tempDir);
+    if (state.archiveTempDir === tempDir) state.archiveTempDir = '';
+    if (state.isoArchiveBatch) {
+      state.isoArchiveBatch.images.push(...files);
+      state.isoArchiveBatch.extractedImages += files.length;
+      setArchiveBusy(false, kind);
+      ui.progressWrap.hidden = false;
+      ui.progressBar.classList.remove('indeterminate');
+      setBarProgress(ui.progressBar, 1, { snap: true });
+      ui.status.hidden = false;
+      ui.status.textContent = 'Finished archive ' + state.isoArchiveBatch.nextIndex + ' of ' + state.isoArchiveBatch.archives.length + ': found ' + files.length + ' supported image' + (files.length === 1 ? '' : 's') + '. Original archive unchanged.';
+      log('Extracted ' + files.length + ' supported image(s) from ' + state.isoArchiveBatch.archives[state.isoArchiveBatch.nextIndex - 1].name + '.');
+      continueIsoArchiveBatch();
+      return;
+    }
     setArchiveBusy(false, kind);
     $('progressH').textContent = '✨ Conversion progress';
     ui.progressWrap.hidden = false;
@@ -3997,6 +4060,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   async function failArchiveImport(id, tempDir, message, cancelled = false, kind = state.archiveKind) {
     if (id !== state.archiveRequestId) return;
+    const failedIsoBatch = kind === 'iso' ? state.isoArchiveBatch : null;
+    if (failedIsoBatch) state.isoArchiveBatch = null;
     if (state.archiveWorker) { state.archiveWorker.terminate(); state.archiveWorker = null; }
     state.archiveTempDir = '';
     const ui = archiveUi(kind);
@@ -4011,6 +4076,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.etaEl.textContent = ''; els.bytesEl.textContent = '—'; els.speedEl.textContent = '—';
     }
     const removed = await removeArchiveOpfsDir(tempDir);
+    if (failedIsoBatch) await cleanupArchiveImports();
     setArchiveBusy(false, kind);
     const rawMessage = String(message || 'Unknown 7z import error.');
     const writeFailure = /failed to write to file|quotaexceeded|no space|enospc/i.test(rawMessage);
@@ -4139,7 +4205,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       await failArchiveImport(id, '', 'The browser could not clear temporary data from an earlier .7z import. Close this page, reopen it, and retry.', false, kind);
       return;
     }
-    if (kind === 'iso') {
+    if (kind === 'iso' && !state.isoArchiveBatch) {
       const previousImportsCleared = await cleanupArchiveImports();
       if (id !== state.archiveRequestId || !state.archiveBusy) return;
       if (!previousImportsCleared) {
@@ -4153,7 +4219,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     const tempDir = 'nebula-7z-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
     state.archiveTempDir = tempDir;
-    try { sessionStorage.setItem(ARCHIVE_SESSION_KEY, tempDir); } catch (_) {}
+    rememberArchiveSessionDir(tempDir);
     let worker;
     try {
       worker = new Worker(new URL('vendor/un7z-opfs/worker/opfs-extractor.js', document.baseURI), { type: 'module' });
@@ -4259,17 +4325,33 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     try { worker.postMessage({ type: 'extract', id, archive: file, destPath: tempDir, kind }); }
     catch (err) { void failArchiveImport(id, tempDir, 'Could not pass the selected archive to the local worker: ' + (err.message || String(err)), false, kind); }
   }
+  async function startIsoArchiveBatch(archives, looseImages, skipped) {
+    const batch = { archives, nextIndex: 0, images: [], extractedImages: 0, looseImages, skipped };
+    state.isoArchiveBatch = batch;
+    setArchiveBusy(true, 'iso');
+    els.archiveCancelBtn.hidden = true;
+    els.archiveStatus.hidden = false;
+    els.archiveStatus.textContent = 'Preparing ' + archives.length + ' .7z archive' + (archives.length === 1 ? '' : 's') + ' for one ISO queue…';
+    const cleared = await cleanupArchiveImports();
+    if (state.isoArchiveBatch !== batch) return;
+    setArchiveBusy(false, 'iso');
+    if (!cleared) {
+      state.isoArchiveBatch = null;
+      showError('Could not clear temporary images from the previous archive import. Close and reopen the page, then retry.');
+      return;
+    }
+    continueIsoArchiveBatch();
+  }
   async function handleIsoImportSelection(fileList) {
     if (state.archiveBusy || state.converting || state.batchRunning) return;
     const incoming = Array.from(fileList || []);
     if (!incoming.length) return;
-    const archives = incoming.filter(f => /\.7z$/i.test(f.name));
+    const archives = incoming.filter(file => /\.7z$/i.test(file.name));
     if (archives.length) {
-      if (archives.length !== 1 || incoming.length !== 1) {
-        showError('Import one .7z archive at a time. Do not mix a .7z archive with separately selected ISO files.');
-        return;
-      }
-      await startArchiveImport(archives[0]);
+      const loose = incoming.filter(file => !/\.7z$/i.test(file.name));
+      const looseImages = loose.filter(file => /\.(?:iso|xiso|xsf|img|bin)$/i.test(file.name) || !/\.[^./]+$/.test(file.name));
+      const skipped = loose.length - looseImages.length;
+      await startIsoArchiveBatch(archives, looseImages, skipped);
       return;
     }
     await cleanupArchiveImports();
@@ -4278,8 +4360,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.browseBtn.addEventListener('click', (e) => { e.stopPropagation(); if (!state.archiveBusy) els.fileInput.click(); });
   els.archiveBrowseBtn.addEventListener('click', (e) => { e.stopPropagation(); if (!state.archiveBusy) els.archiveInput.click(); });
   els.archiveInput.addEventListener('change', () => {
-    const file = els.archiveInput.files && els.archiveInput.files[0];
-    if (file) startArchiveImport(file);
+    if (els.archiveInput.files && els.archiveInput.files.length) handleIsoImportSelection(els.archiveInput.files);
     els.archiveInput.value = '';
   });
   function cancelArchiveImport() {
@@ -4302,7 +4383,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     cancelArchiveImport();
   });
   els.drop.addEventListener('click', () => { if (!state.converting && !state.batchRunning && !state.archiveBusy) els.fileInput.click(); });
-  function selectIsoFiles(fileList) {
+  function selectIsoFiles(fileList, extraSkipped = 0) {
     if (state.converting || state.batchRunning || state.archiveBusy) return;
     const incoming = Array.from(fileList || []);
     if (state.taskMode === 'mods' && incoming.filter(f => /\.(?:iso|xiso|xsf|img|bin)$/i.test(f.name)).length > 1) {
@@ -4312,7 +4393,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!incoming.length) return;
     const files = incoming.filter(f => /\.(?:iso|xiso|xsf|img|bin)$/i.test(f.name) || !/\.[^./]+$/.test(f.name));
     state.batchFiles = files;
-    state.batchSkipped = incoming.length - files.length;
+    state.batchSkipped = incoming.length - files.length + Math.max(0, Number(extraSkipped) || 0);
     state.batchIndex = 0; state.batchCompleted = 0; state.batchRunning = false; state.batchFinished = false;
     state.batchStartTime = 0; state.batchEndTime = 0; state.analysis = null;
     if (!files.length) {
