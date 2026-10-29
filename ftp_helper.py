@@ -270,7 +270,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 port = int(data.get("port", 21))
                 user = str(data.get("user", ""))
                 password = str(data.get("password", ""))
-                base = str(data.get("basePath", "Hdd1:/")).strip()
+                base = str(data.get("basePath", "Hdd1:/"))
+                if not base.strip():
+                    base = "Hdd1:/"
                 if not host or len(host) > 253 or port < 1 or port > 65535 or not user:
                     raise ValueError("Enter a valid Xbox IP/host, port, and username.")
                 if any(c in value for value in (host, user, password, base) for c in ("\n", "\r", "\x00")):
