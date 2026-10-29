@@ -276,9 +276,16 @@ footer a{color:#9edcff}
 .ufo-progress-lane{flex:none;contain:layout style}
 body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body.is-working .drop::before{animation-play-state:paused}
 @media (max-width:700px){#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText,#psxLiveText,#psxFtpLiveText,#psxOverallLiveText{min-height:2.9em}}
-.ftp-manager-toolbar{position:sticky;top:8px;z-index:30;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:10px;border:1px solid rgba(125,211,252,.22);border-radius:14px;background:linear-gradient(145deg,rgba(8,15,37,.97),rgba(8,12,31,.95));box-shadow:0 10px 30px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.ftp-manager-location{min-width:240px;flex:1 1 300px}
-.ftp-manager-actions{justify-content:flex-end;flex:1 1 360px}
+.ftp-manager-browser{position:relative;overflow:visible}
+/* Sticky controls stay within this browser panel and release before the next FTP section. */
+.ftp-manager-toolbar{position:sticky;top:8px;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:6px 8px;border:1px solid rgba(125,211,252,.22);border-radius:12px;background:linear-gradient(145deg,rgba(8,15,37,.98),rgba(8,12,31,.97));box-shadow:0 7px 20px rgba(0,0,0,.32);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.ftp-manager-location{min-width:150px;flex:0 0 190px;line-height:1.25}
+.ftp-manager-location>strong{display:block;font-size:.84rem;letter-spacing:.02em}
+.ftp-manager-location #ftpManagerLocation{font-size:.8rem;overflow-wrap:anywhere}
+.ftp-manager-location .ftp-breadcrumbs{gap:4px;margin-top:4px}
+.ftp-manager-location .ftp-breadcrumbs button{padding:3px 7px;font-size:.74rem}
+.ftp-manager-actions{justify-content:flex-end;flex:1 1 700px;gap:6px;margin-top:0}
+.ftp-manager-actions .btn.small{padding:6px 9px;font-size:.78rem;line-height:1.1;white-space:nowrap;min-height:29px}
 .ftp-manager-path-jump{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap;margin:10px 0 4px;padding:10px;border:1px solid rgba(130,155,255,.16);border-radius:12px;background:rgba(4,8,24,.35)}
 .ftp-manager-path-jump label{font-weight:700;white-space:nowrap}
 .ftp-manager-path-jump input{flex:1 1 240px;min-width:170px;max-width:520px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(4,8,24,.8);color:var(--text);font-size:.95rem}
@@ -305,6 +312,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-breadcrumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
 .ftp-breadcrumbs button{padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:rgba(8,14,35,.78);color:var(--text);cursor:pointer}
 .ftp-breadcrumbs button:hover{border-color:rgba(103,232,249,.65);background:rgba(56,189,248,.12)}
+.ftp-breadcrumbs button:focus-visible,.ftp-manager-name:focus-visible{outline:2px solid #7dd3fc;outline-offset:2px;border-radius:5px}
 .ftp-manager-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:210px;margin-top:12px;padding:84px 20px 38px;border-radius:20px;text-align:center;color:var(--muted);cursor:default}
 .ftp-manager-drop strong{color:var(--text)}
 .ftp-manager-table tr.remote-drop-target{border-color:#34d399!important;background:rgba(52,211,153,.15)!important}.ftp-manager-table tr.dragging-remote-file{opacity:.48}
@@ -332,7 +340,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 #ftpManagerEditorText{display:block;min-height:min(55vh,620px);resize:vertical;margin-top:5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88rem;line-height:1.5;tab-size:4;white-space:pre;overflow:auto}
 #ftpManagerEditorHint{margin-top:7px}
 body.ftp-manager-dialog-open{overflow:hidden}
-@media(max-width:700px){.ftp-manager-actions{justify-content:flex-start}.ftp-manager-toolbar{display:block}.ftp-manager-actions{margin-top:10px}.ftp-manager-modal{padding:10px}.ftp-manager-modal-card{padding:17px;border-radius:16px}.ftp-manager-modal-card.is-wide{max-height:94vh}#ftpManagerEditorText{min-height:52vh}}
+@media(max-width:700px){.ftp-manager-actions{justify-content:flex-start}.ftp-manager-toolbar{display:block}.ftp-manager-actions{margin-top:6px;gap:5px}.ftp-manager-modal{padding:10px}.ftp-manager-modal-card{padding:17px;border-radius:16px}.ftp-manager-modal-card.is-wide{max-height:94vh}#ftpManagerEditorText{min-height:52vh}}
 
 @media (prefers-reduced-motion:reduce){.nebula,h1,.credit-gradient,.drop::before,#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate,#snesArchiveProgressBar.indeterminate,#ftpManagerArchiveProgressBar.indeterminate{animation:none!important}#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate,#snesArchiveProgressBar.indeterminate,#ftpManagerArchiveProgressBar.indeterminate{transform:none} html{scroll-behavior:auto}}
 </style>
@@ -454,15 +462,15 @@ body.ftp-manager-dialog-open{overflow:hidden}
         <div class="ftp-manager-toolbar">
           <div class="ftp-manager-location"><strong>Remote location</strong><div id="ftpManagerLocation" class="muted small"></div><div id="ftpManagerBreadcrumbs" class="ftp-breadcrumbs" aria-label="Remote folder path"></div></div>
           <div class="btn-row ftp-manager-actions" role="toolbar" aria-label="Remote file actions">
-            <button class="btn small" id="ftpManagerUpBtn" type="button">↑ Up</button>
-            <button class="btn small" id="ftpManagerRefreshBtn" type="button">↻ Refresh</button>
-            <button class="btn small" id="ftpManagerMkdirBtn" type="button">＋ New folder</button>
-            <button class="btn small" id="ftpManagerUploadBtn" type="button">⬆ Upload files</button>
-            <button class="btn small" id="ftpManagerUploadFolderBtn" type="button">⬆ Upload folder</button>
-            <button class="btn small" id="ftpManagerDownloadBtn" type="button" disabled>⬇ Import selected to computer</button>
-            <button class="btn small" id="ftpManagerPrepareDragBtn" type="button" disabled>↘ Prepare drag-out</button>
-            <button class="btn small" id="ftpManagerEditBtn" type="button" disabled>✎ Edit launch.ini</button>
-            <button class="btn small danger" id="ftpManagerDeleteBtn" type="button" disabled>🗑 Delete selected</button>
+            <button class="btn small" id="ftpManagerUpBtn" type="button" aria-label="Go up one folder" title="Go to the parent folder">↑ Up</button>
+            <button class="btn small" id="ftpManagerRefreshBtn" type="button" aria-label="Refresh remote listing" title="Refresh the current remote folder">↻ Refresh</button>
+            <button class="btn small" id="ftpManagerMkdirBtn" type="button" aria-label="Create a new remote folder" title="Create and open a folder here">＋ New folder</button>
+            <button class="btn small" id="ftpManagerUploadBtn" type="button" aria-label="Upload files to this folder" title="Upload files into the current Xbox folder">⬆ Upload files</button>
+            <button class="btn small" id="ftpManagerUploadFolderBtn" type="button" aria-label="Upload a folder to this folder" title="Upload a folder and its contents">⬆ Upload folder</button>
+            <button class="btn small" id="ftpManagerDownloadBtn" type="button" aria-label="Import selected Xbox files to this computer" disabled>⬇ Import</button>
+            <button class="btn small" id="ftpManagerPrepareDragBtn" type="button" aria-label="Prepare selected Xbox files for drag-out" disabled>↘ Prepare drag-out</button>
+            <button class="btn small" id="ftpManagerEditBtn" type="button" aria-label="Edit the selected launch.ini" disabled>✎ Edit launch.ini</button>
+            <button class="btn small danger" id="ftpManagerDeleteBtn" type="button" aria-label="Delete selected remote files or folders" disabled>🗑 Delete</button>
           </div>
         </div>
         <div class="ftp-manager-path-jump">
@@ -5114,18 +5122,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const onlyFiles = selected.length > 0 && selected.every(entry => entry.type === 'file');
     const deletable = selected.length > 0 && selected.every(entry => entry.type === 'file' || entry.type === 'dir');
     els.ftpManagerDownloadBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !onlyFiles;
-    els.ftpManagerDownloadBtn.textContent = selected.length ? '⬇ Import selected (' + selected.length + ')' : '⬇ Import selected to computer';
-    els.ftpManagerDownloadBtn.title = selected.length && !onlyFiles ? 'Open folders and select files to import them to your computer.' : 'Save selected Xbox files to your browser’s Downloads folder.';
+    els.ftpManagerDownloadBtn.textContent = selected.length ? '⬇ Import (' + selected.length + ')' : '⬇ Import';
+    els.ftpManagerDownloadBtn.title = selected.length && !onlyFiles ? 'Open folders and select files to import them to your computer.' : 'Import selected Xbox files to your computer’s Downloads folder.';
     const selectedBytes = onlyFiles ? selected.reduce((sum, entry) => sum + Math.max(0, Number(entry.size) || 0), 0) : 0;
     const allPreparedForDrag = onlyFiles && selected.every(entry => ftpManagerDragOutFiles.has(managerDragOutKey([...state.ftpManagerSegments, entry.name])));
     els.ftpManagerPrepareDragBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !onlyFiles || selectedBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES;
-    els.ftpManagerPrepareDragBtn.textContent = allPreparedForDrag ? '↘ Drag selected out' : '↘ Prepare drag-out';
+    els.ftpManagerPrepareDragBtn.textContent = allPreparedForDrag ? '↘ Drag out' : '↘ Prepare drag-out';
     els.ftpManagerPrepareDragBtn.title = selectedBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES ? 'Drag-out preparation is limited to 64 MiB total; use Import selected for larger files.' : 'Prepare selected remote files for dragging out of Safari to Finder (64 MiB total maximum).';
     const launchIniSelected = selected.length === 1 && selected[0].type === 'file' && selected[0].name.toLocaleLowerCase() === 'launch.ini';
     els.ftpManagerEditBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !launchIniSelected;
     els.ftpManagerEditBtn.title = launchIniSelected ? 'Open launch.ini in the themed text editor and save edits to Xbox over FTP.' : 'Select exactly one file named launch.ini to edit it.';
     els.ftpManagerDeleteBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !deletable;
-    els.ftpManagerDeleteBtn.textContent = selected.length ? '🗑 Delete selected (' + selected.length + ')' : '🗑 Delete selected';
+    els.ftpManagerDeleteBtn.textContent = selected.length ? '🗑 Delete (' + selected.length + ')' : '🗑 Delete';
     els.ftpManagerSelectAll.checked = visible.length > 0 && selectedVisible.length === visible.length;
     els.ftpManagerSelectAll.indeterminate = selectedVisible.length > 0 && selectedVisible.length < visible.length;
   }
