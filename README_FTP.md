@@ -18,6 +18,16 @@ Use a recent Safari, Chrome, or Edge browser on a secure origin (GitHub Pages HT
 
 When deploying the website, keep `vendor/un7z-opfs/` (including its worker, WASM binary, and license) next to `index.html`; the page loads these files locally. No npm install or network service is needed at runtime.
 
+## Browse and manage files on the Xbox
+
+Open **Xbox FTP file manager** at the top of the locally served app. Its **Download Mac one-tap helper** button stays visible whenever the FTP manager page is open; use it to download the updated fixed Mac launcher ZIP, unzip it, and open `Nebula ISO2GOD.command` (Python 3 is required). Connect with the console's FTP host, port, username, password, and a starting drive/path exposed by Aurora or FreeStyle Dash (for example `Hdd1:/` or `Usb0:/`). The manager lists the folders and files below that starting path; use the breadcrumbs and **Up** button to navigate. The static GitHub Pages site cannot browse FTP by itself—the local helper must be running and the page must be opened from its loopback address.
+
+Use **Upload files**, **Upload folder**, or drag PC files/folders into the dashed upload area. You can also drop onto an individual remote folder row to upload into that folder. Uploads preserve names and relative folder structure; a remote file with the same path may be replaced. **New folder** creates a directory at the current location. Select files/folders and choose **Delete selected** to remove them. Deleting a folder is recursive and permanent; the manager deliberately does not allow deleting the configured starting/root folder. The helper validates path segments and rejects links or unknown items during recursive deletion, but use care around saves and system files.
+
+The **Use for ISO → GOD / XBLA / PS1** shortcuts set the selected tool's FTP destination to the currently viewed folder and transfer the active helper connection to that tool. The ISO/XBLA tools create their normal `Content/…` structure below the chosen base; PS1 uploads go to that folder unless a subfolder is selected. Reconnect in the manager when returning to browse, because the helper uses one active FTP connection configuration at a time.
+
+FTP is usually unencrypted. Use this only on a trusted local network. Never forward the Xbox FTP port from your router or expose it to the internet. The helper itself remains loopback-only on the Mac; the FTP connection from the helper to the Xbox travels over your LAN.
+
 ## Convert and send an ISO
 
 Choose **Convert an ISO**, then choose **Upload to Xbox via FTP** in the output options, test the connection, and convert. Each generated GOD package file is staged on the computer and sent to the console. If FTP disconnects during a file, conversion pauses and offers **Retry file & continue**. Reconnect/check the Xbox and LAN, keep the page and helper open, then use that button; completed package files are kept and conversion continues after the failed file succeeds. FTP `STOR` retries the current file from its beginning (it is not byte-offset resume) and replaces any partial remote copy. If you cancel instead, remove the unconfirmed/partial file or package before starting over. Rescan the Content path in Aurora/FSD after the website reports a complete upload.
@@ -47,7 +57,7 @@ Each disc is merged locally first. The helper stages one finished file at a time
 ## Important safety and limitations
 
 - Use FTP only on a trusted home LAN. Xbox FTP is normally unencrypted. Do not enable router port forwarding or expose the console's FTP port to the public internet.
-- The helper binds only to `127.0.0.1` (your own computer), not to your LAN. The optional “Remember Xbox IP and username” checkbox stores only those two values in the browser’s local storage on this Mac; the FTP password is never saved. The checkboxes on all three task tabs share the same saved values.
+- The helper binds only to `127.0.0.1` (your own computer), not to your LAN. The optional “Remember Xbox IP and username” checkbox stores only those two values in the browser’s local storage on this Mac; the FTP password is never saved. The checkboxes on the ISO, XBLA, PS1, and FTP manager panels share the same saved values.
 - For ISO conversion, the ISO itself is never uploaded; only generated package files are sent to the Xbox.
 - The helper stages one file at a time. Ensure temporary disk space is available for the largest file being sent (raw files may be much larger than a single GOD data part). A failed FTP file remains staged while Retry is available; success, cancel, or normal helper shutdown removes it, and the next helper launch sweeps abandoned staging files from a prior crash.
 - The helper allows up to 180 seconds without FTP data before a transfer times out. Wired Ethernet and a stable USB/HDD connection can reduce stalls.

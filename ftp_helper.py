@@ -48,9 +48,9 @@ def ftp_login(cfg):
     return ftp
 
 
-def clean_segments(segments):
-    if not isinstance(segments, list) or not segments or len(segments) > 16:
-        raise ValueError("Invalid package path.")
+def clean_segments(segments, allow_empty=False):
+    if not isinstance(segments, list) or (not allow_empty and not segments) or len(segments) > 64:
+        raise ValueError("Invalid remote path.")
     result = []
     for seg in segments:
         name = str(seg)
@@ -58,6 +58,115 @@ def clean_segments(segments):
             raise ValueError("Unsafe path segment.")
         result.append(name)
     return result
+
+
+def clean_name(value):
+    name = str(value or "")
+    if not name or name in (".", "..") or "/" in name or "\\" in name or any(ord(ch) < 32 or ord(ch) == 127 for ch in name):
+        raise ValueError("Invalid file or folder name.")
+    if len(name.encode("utf-8")) > 255:
+        raise ValueError("File or folder name is too long.")
+    return name
+
+
+def ftp_cwd(ftp, cfg, segments):
+    ftp.cwd(cfg["basePath"])
+    for segment in segments:
+        ftp.cwd(segment)
+    return ftp.pwd()
+
+
+def parse_ftp_list_line(line):
+    """Return a normalized entry from common UNIX/DOS FTP LIST formats."""
+    import re
+    line = str(line or "").rstrip("\r\n")
+    if not line:
+        return None
+    unix = re.match(r"^([bcdlps-][rwxStTs-]{9})\s+\d+\s+\S+\s+\S+\s+(\d+)\s+\w{3}\s+\d+\s+[\d:]+\s+(.+)$", line)
+    if unix:
+        mode, size, name = unix.groups()
+        if name in (".", ".."):
+            return None
+        return {"name": name, "type": "dir" if mode[0] == "d" else "link" if mode[0] == "l" else "file",
+                "size": int(size), "modified": ""}
+    dos = re.match(r"^(\d{2,4}[-/]\d{1,2}[-/]\d{1,4})\s+(\d{1,2}:\d{2}(?:AM|PM)?)\s+(<DIR>|\d+)\s+(.+)$", line, re.I)
+    if dos:
+        date, tm, size, name = dos.groups()
+        if name in (".", ".."):
+            return None
+        return {"name": name, "type": "dir" if size.upper() == "<DIR>" else "file",
+                "size": 0 if size.upper() == "<DIR>" else int(size), "modified": (date + " " + tm).strip()}
+    return None
+
+
+def ftp_list_entries(ftp):
+    entries = []
+    # MLSD is structured and preferred, but many Xbox dashboard FTP servers
+    # only implement LIST/NLST.
+    try:
+        for name, facts in ftp.mlsd():
+            if name in (".", ".."):
+                continue
+            typ = facts.get("type", "file").lower()
+            entries.append({"name": name, "type": "dir" if typ in ("dir", "cdir", "pdir") else "link" if typ == "slink" else "file",
+                            "size": int(facts.get("size", 0) or 0), "modified": facts.get("modify", "")})
+        return entries
+    except (AttributeError, ftplib.error_perm, OSError, EOFError):
+        pass
+    lines = []
+    try:
+        ftp.dir(lines.append)
+    except (ftplib.error_perm, OSError, EOFError):
+        lines = []
+    for line in lines:
+        entry = parse_ftp_list_line(line)
+        if entry:
+            entries.append(entry)
+    if entries:
+        return entries
+    # Last-resort listing for minimal servers: probe each name by cwd/size.
+    try:
+        names = ftp.nlst()
+    except (ftplib.error_perm, OSError, EOFError) as exc:
+        raise RuntimeError("This Xbox FTP server did not provide a readable directory listing: " + str(exc))
+    current = ftp.pwd()
+    seen = set()
+    for raw_name in names:
+        name = str(raw_name).rstrip("/").rsplit("/", 1)[-1]
+        if not name or name in (".", "..") or name in seen:
+            continue
+        seen.add(name)
+        typ, size = "file", 0
+        try:
+            ftp.cwd(name)
+            ftp.cwd(current)
+            typ = "dir"
+        except (ftplib.error_perm, OSError):
+            try:
+                value = ftp.size(name)
+                size = int(value or 0)
+            except (ftplib.error_perm, OSError, ValueError):
+                pass
+        entries.append({"name": name, "type": typ, "size": size, "modified": ""})
+    return entries
+
+
+def ftp_remove_tree(ftp, name, depth=0):
+    if depth > 64:
+        raise ValueError("Folder nesting is too deep to delete safely.")
+    parent = ftp.pwd()
+    ftp.cwd(name)
+    children = ftp_list_entries(ftp)
+    for child in children:
+        child_name = clean_name(child["name"])
+        if child["type"] == "dir":
+            ftp_remove_tree(ftp, child_name, depth + 1)
+        elif child["type"] == "file":
+            ftp.delete(child_name)
+        else:
+            raise ValueError("Folder contains a link or unrecognized item; it was not recursively deleted.")
+    ftp.cwd(parent)
+    ftp.rmd(name)
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -173,7 +282,81 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     CONFIG = trial
                 return send_json(self, 200, {"ok": True, "cwd": pwd})
 
+            if parsed.path == "/api/fs/list":
+                data = json.loads(self._body().decode("utf-8"))
+                segments = clean_segments(data.get("segments", []), allow_empty=True)
+                cfg = CONFIG
+                if not cfg:
+                    raise ValueError("Connect to the Xbox FTP server first.")
+                ftp = ftp_login(cfg)
+                try:
+                    cwd = ftp_cwd(ftp, cfg, segments)
+                    entries = ftp_list_entries(ftp)
+                    entries.sort(key=lambda item: (item["type"] != "dir", item["name"].casefold()))
+                    return send_json(self, 200, {"ok": True, "cwd": cwd, "segments": segments, "entries": entries})
+                finally:
+                    try: ftp.quit()
+                    except Exception: pass
+
+            if parsed.path == "/api/fs/mkdir":
+                data = json.loads(self._body().decode("utf-8"))
+                segments = clean_segments(data.get("segments", []), allow_empty=True)
+                name = clean_name(data.get("name"))
+                cfg = CONFIG
+                if not cfg:
+                    raise ValueError("Connect to the Xbox FTP server first.")
+                ftp = ftp_login(cfg)
+                try:
+                    ftp_cwd(ftp, cfg, segments)
+                    try:
+                        ftp.mkd(name)
+                        created = True
+                    except ftplib.error_perm:
+                        # Treat an existing directory as success, but never silently
+                        # accept an existing file with the same name.
+                        try:
+                            ftp.cwd(name)
+                            ftp.cwd("..")
+                            created = False
+                        except Exception:
+                            raise
+                    return send_json(self, 200, {"ok": True, "created": created, "name": name})
+                finally:
+                    try: ftp.quit()
+                    except Exception: pass
+
+            if parsed.path == "/api/fs/delete":
+                data = json.loads(self._body().decode("utf-8"))
+                segments = clean_segments(data.get("segments"))
+                recursive = data.get("recursive", False) is True
+                cfg = CONFIG
+                if not cfg:
+                    raise ValueError("Connect to the Xbox FTP server first.")
+                parent = segments[:-1]
+                name = clean_name(segments[-1])
+                ftp = ftp_login(cfg)
+                try:
+                    ftp_cwd(ftp, cfg, parent)
+                    listing = ftp_list_entries(ftp)
+                    entry = next((item for item in listing if item["name"] == name), None)
+                    if not entry:
+                        raise ValueError("That remote item no longer exists; refresh the folder.")
+                    if entry["type"] == "dir":
+                        if recursive:
+                            ftp_remove_tree(ftp, name)
+                        else:
+                            ftp.rmd(name)
+                    elif entry["type"] == "file":
+                        ftp.delete(name)
+                    else:
+                        raise ValueError("Links or unrecognized remote items cannot be removed by this file manager.")
+                    return send_json(self, 200, {"ok": True, "deleted": name, "type": entry["type"]})
+                finally:
+                    try: ftp.quit()
+                    except Exception: pass
+
             if parsed.path == "/api/disconnect":
+
                 with LOCK:
                     CONFIG = None
                 return send_json(self, 200, {"ok": True})
