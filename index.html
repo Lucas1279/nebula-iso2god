@@ -607,6 +607,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
 
       <label class="f" for="gameTitle">Dashboard display name</label>
       <input id="gameTitle" type="text" maxlength="63" autocomplete="off" spellcheck="false">
+      <label class="muted small" for="labelDiscNumbers" style="display:flex;align-items:flex-start;gap:7px;margin-top:8px;cursor:pointer"><input id="labelDiscNumbers" type="checkbox" checked style="margin:2px 0 0;flex:none"><span>In multi-ISO FTP batches, add “Disc X of Y” to each Aurora title so it’s easy to tell which entry is Disc 1.</span></label>
       <div class="muted small" id="titleSource" style="margin-top:6px"></div>
 
       <div id="paddingOptions">
@@ -3017,10 +3018,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   /* ---------------- details / estimates ---------------- */
   function currentOptions() {
+    let gameTitle = els.titleInput.value.trim();
+    const discLabel = $('labelDiscNumbers');
+    const executionInfo = state.analysis && state.analysis.executionInfo;
+    if (state.batchRunning && state.batchFiles.length > 1 && discLabel && discLabel.checked && executionInfo) {
+      const discNumber = executionInfo.discNumber || 1;
+      const discCount = executionInfo.discCount || 1;
+      if (discCount > 1) {
+        const suffix = ' (Disc ' + discNumber + ' of ' + discCount + ')';
+        gameTitle = gameTitle.slice(0, Math.max(0, 63 - suffix.length)).trimEnd() + suffix;
+      }
+    }
     return {
       trimMode: els.trimNone.checked ? 'none' : 'end',
       includeContentPrefix: els.contentPrefix.checked,
-      gameTitle: els.titleInput.value.trim(),
+      gameTitle,
     };
   }
   function refreshPlanAndTree() {
