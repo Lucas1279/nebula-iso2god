@@ -8,7 +8,7 @@ This build includes a local Python helper for FTP because a browser on GitHub Pa
 2. Keep `index.html` and `ftp_helper.py` together in the same folder.
 3. Run `python3 ftp_helper.py` (Windows may use `py ftp_helper.py`). Keep the terminal open. The helper opens its local page automatically; otherwise visit `http://127.0.0.1:8765/`.
 4. On the Xbox 360, enable the FTP server in Aurora or FreeStyle Dash and note the console's LAN IP, FTP port, username, and password.
-5. In the app, enter the FTP details and test the connection. Use the HDD/USB root exposed by your dashboard. `Usb1` is an example that worked on one setup; names vary by console/dashboard.
+5. In the ISO FTP setup, the primary destination preset is the confirmed USB1 Content folder (`Usb1:/Content/0000000000000000/`, shown by the dashboard as `/Usb1/Content/0000000000000000/`). Selecting it writes game packages directly under the existing Content root without duplicating `Content/0000000000000000`. The HDD1/USB0/USB1 root presets instead build the full Content path automatically; choose a custom path if your dashboard exposes a different drive name. Then test the FTP connection.
 
 ## Import a .7z archive locally
 

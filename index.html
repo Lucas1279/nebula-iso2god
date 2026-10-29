@@ -674,7 +674,8 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <div><label class="f" for="ftpPort">FTP port</label><input id="ftpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
           <div><label class="f" for="ftpUser">FTP username</label><input id="ftpUser" type="text" placeholder="Check your dash FTP settings" autocomplete="off"></div>
           <div><label class="f" for="ftpPassword">FTP password</label><input id="ftpPassword" type="password" autocomplete="off"></div>
-          <div style="grid-column:1/-1"><label class="f" for="ftpPath">Xbox FTP base path</label><input id="ftpPath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Usually the HDD root exposed by your dashboard; confirm the path in Aurora/FSD if connection testing fails.</div></div>
+          <div style="grid-column:1/-1"><label class="f" for="ftpPathPreset">FTP destination preset</label><select id="ftpPathPreset" style="width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:rgba(4,8,24,.8);color:var(--text);font-size:1rem"><option value="Usb1:/Content/0000000000000000/" selected>PRIMARY — USB1 Content folder (/Usb1/Content/0000000000000000/)</option><option value="Hdd1:/">HDD1 root</option><option value="Usb0:/">USB0 root</option><option value="Usb1:/">USB1 root</option><option value="Hdd1:/Content/0000000000000000/">HDD1 Content folder</option><option value="Usb0:/Content/0000000000000000/">USB0 Content folder</option><option value="custom">Custom path (edit the field below)</option></select><div class="muted tiny" style="margin-top:5px">Primary preset matches the USB1 Content location shown in your screenshot. It writes directly inside <code>Content/0000000000000000</code>, so the site automatically avoids adding that path twice. Drive-root presets build the full Content path for you.</div></div>
+          <div style="grid-column:1/-1"><label class="f" for="ftpPath">Xbox FTP base path</label><input id="ftpPath" type="text" value="Usb1:/Content/0000000000000000/" autocomplete="off"><div class="muted tiny">The connection status may show the same confirmed location with a leading slash, like <code>/Usb1/Content/0000000000000000/</code>. You can edit this field for a custom dashboard path.</div></div>
         </div>
         <label class="check small"><input id="rememberFtpIso" type="checkbox"><span>Remember Xbox IP and username on this Mac/browser. The FTP password is never saved.</span></label>
         <div class="btn-row"><button class="btn" id="ftpConnectBtn" type="button" disabled>Test connection</button><span class="muted" id="ftpStatus">Start ftp_helper.py locally to enable FTP upload.</span></div>
@@ -1951,6 +1952,7 @@ const Iso2GodEngine = (() => {
       if (isCancelled()) { const e = new Error('GTA V install-content extraction cancelled.'); e.name = 'AbortError'; throw e; }
     };
     const base = payload.pathSegments.slice();
+    if (callbacks.stripContentPrefix && base[0] === 'Content' && base[1] === '0000000000000000') base.splice(0, 2);
     const chunkSize = 4 * 1024 * 1024;
     let completed = 0;
     try {
@@ -2124,7 +2126,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     trimEnd: $('trimEnd'), trimNone: $('trimNone'), contentPrefix: $('contentPrefix'),
     modeFolder: $('modeFolder'), modeGameFolder: $('modeGameFolder'), modeZip: $('modeZip'), modeFiles: $('modeFiles'), modeFtp: $('modeFtp'),
     folderSetup: $('folderSetup'), gameFolderSetup: $('gameFolderSetup'), zipSetup: $('zipSetup'), filesSetup: $('filesSetup'), ftpSetup: $('ftpSetup'),
-    ftpHost: $('ftpHost'), ftpPort: $('ftpPort'), ftpUser: $('ftpUser'), ftpPassword: $('ftpPassword'), ftpPath: $('ftpPath'),
+    ftpHost: $('ftpHost'), ftpPort: $('ftpPort'), ftpUser: $('ftpUser'), ftpPassword: $('ftpPassword'), ftpPathPreset: $('ftpPathPreset'), ftpPath: $('ftpPath'),
     ftpConnectBtn: $('ftpConnectBtn'), ftpStatus: $('ftpStatus'), rememberFtpIso: $('rememberFtpIso'), rememberFtpRaw: $('rememberFtpRaw'),
     rawFtpHost: $('rawFtpHost'), rawFtpPort: $('rawFtpPort'), rawFtpUser: $('rawFtpUser'), rawFtpPassword: $('rawFtpPassword'), rawFtpPath: $('rawFtpPath'),
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
@@ -2923,7 +2925,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       return;
     }
     $('outputDestinationHeading').textContent = '💾 3 · Where should the GOD package go?';
-    if (state.analysis && state.taskMode === 'mods') refreshPlanAndTree();
+    if (state.analysis) refreshPlanAndTree();
     if (installMode) {
       $('modeFolderDesc').textContent = 'Writes original Disc 1 install files into their required Content path in the folder you choose.';
       $('modeZipDesc').textContent = 'A ZIP of the untouched install files at their exact Xbox Content path.';
@@ -3017,6 +3019,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
 
   /* ---------------- details / estimates ---------------- */
+  function ftpBaseIsContentRoot(path) {
+    const normalized = String(path || '').replace(/\\/g, '/').replace(/\/+$/g, '').toLowerCase();
+    return /(?:^|\/)content\/0000000000000000$/.test(normalized);
+  }
+  function syncFtpPathPresetFromInput() {
+    if (!els.ftpPathPreset) return;
+    const path = els.ftpPath.value.trim();
+    const match = Array.from(els.ftpPathPreset.options).find(option => option.value !== 'custom' && option.value === path);
+    els.ftpPathPreset.value = match ? match.value : 'custom';
+  }
+  function ftpInstallPayloadTargetPath(payload) {
+    const configuredBase = els.ftpPath.value.trim() || 'Hdd1:/';
+    const relativeSegments = ftpBaseIsContentRoot(configuredBase) ? payload.pathSegments.slice(2) : payload.pathSegments;
+    return configuredBase.replace(/[\\/]+$/g, '') + '/' + relativeSegments.join('/');
+  }
   function currentOptions() {
     let gameTitle = els.titleInput.value.trim();
     const discLabel = $('labelDiscNumbers');
@@ -3031,7 +3048,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     return {
       trimMode: els.trimNone.checked ? 'none' : 'end',
-      includeContentPrefix: els.contentPrefix.checked,
+      includeContentPrefix: state.outputMode === 'ftp' && ftpBaseIsContentRoot(els.ftpPath.value) ? false : els.contentPrefix.checked,
       gameTitle,
     };
   }
@@ -3048,7 +3065,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         : '<strong>GTA V Disc 1 install content detected.</strong> This is not the playable GOD disc. The ISO workflow will extract the original <code>Content/0000000000000000/545408A7/00000002</code> files unchanged into their required console path. Convert Disc 2 separately as GOD. For FTP batch, select both ISOs together; for folder output, use the same destination for both discs. For ZIP output, make separate ZIPs, then extract and merge their Content folders.';
     }
     $('paddingOptions').hidden = installPayloadDetected;
-    $('contentPrefixOption').hidden = installPayloadDetected;
+    const ftpBaseAlreadyHasContentPath = state.outputMode === 'ftp' && ftpBaseIsContentRoot(els.ftpPath.value);
+    $('contentPrefixOption').hidden = installPayloadDetected || ftpBaseAlreadyHasContentPath;
     $('godEstimates').hidden = installPayloadDetected;
     $('outputDestinationHeading').textContent = installMode ? '💾 3 · Save or upload GTA V install content' : '💾 3 · Where should the GOD package go?';
     if (installMode) {
@@ -3060,7 +3078,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.outputTree.textContent = lines.join('\n');
       state.zipSuggestedName = 'GTA V Disc 1 install content.zip';
       if (state.outputMode === 'files') $('filesSetupText').textContent = 'No setup needed. Download each extracted install-content file below and recreate the exact Content path shown beside it. Merge the Content folder onto the console drive.';
-      if (state.outputMode === 'ftp') $('ftpSetupIntro').textContent = 'Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. The helper will place the untouched Disc 1 install files directly under Hdd1:/Content/0000000000000000/545408A7/00000002. This ISO is not sent to the Xbox.';
+      if (state.outputMode === 'ftp') $('ftpSetupIntro').textContent = 'Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. The helper will place the untouched Disc 1 install files directly under ' + ftpInstallPayloadTargetPath(payload) + '. This ISO is not sent to the Xbox.';
       updateConvertEnabled();
       return { plan: null, layout, options: o, installPayload: payload };
     }
@@ -3078,7 +3096,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       updateConvertEnabled();
       return { plan: null, layout: null, options: o, installPayload: null };
     }
-    $('paddingOptions').hidden = false; $('contentPrefixOption').hidden = false; $('godEstimates').hidden = false;
+    $('paddingOptions').hidden = false;
+    $('contentPrefixOption').hidden = state.outputMode === 'ftp' && ftpBaseIsContentRoot(els.ftpPath.value);
+    $('godEstimates').hidden = false;
     const plan = E.calculatePlan(state.analysis, o.trimMode);
     const layout = E.buildLayout(state.analysis, o.includeContentPrefix);
     $('estGodSize').textContent = fmtBytes(plan.totalGodSize);
@@ -4628,14 +4648,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       updateConvertEnabled();
     }
   });
+  els.ftpPathPreset.addEventListener('change', () => {
+    const presetPath = els.ftpPathPreset.value;
+    if (presetPath === 'custom') return;
+    els.ftpPath.value = presetPath;
+    els.ftpPath.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   for (const el of [els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath]) {
     el.addEventListener('input', () => {
       state.ftpConnected = false;
       setFtpStatus(els.ftpStatus, 'Settings changed; test the FTP connection again.');
       if (el === els.ftpHost || el === els.ftpUser) persistIdentityOnInput('iso');
+      if (el === els.ftpPath) { syncFtpPathPresetFromInput(); refreshPlanAndTree(); }
       updateConvertEnabled();
     });
   }
+  syncFtpPathPresetFromInput();
   els.rawFtpConnectBtn.addEventListener('click', async () => {
     els.rawFtpConnectBtn.disabled = true;
     setFtpStatus(els.rawFtpStatus, 'Testing FTP connection…');
@@ -5772,7 +5800,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     fields[0].value = els.ftpManagerHost.value.trim(); fields[1].value = els.ftpManagerPort.value || '21'; fields[2].value = els.ftpManagerUser.value; fields[3].value = els.ftpManagerPassword.value; fields[4].value = basePath;
     const mode = tool === 'iso' ? 'iso' : tool === 'xbla' ? 'raw' : 'psx';
     await bridgeRequest('/api/connect', { host: fields[0].value, port: Number(fields[1].value || 21), user: fields[2].value, password: fields[3].value, basePath });
-    if (tool === 'iso') state.outputMode = 'ftp';
+    if (tool === 'iso') { state.outputMode = 'ftp'; syncFtpPathPresetFromInput(); }
     invalidateFtpManager('FTP connection handed to the selected game tool. Reconnect here when you return to browse files.');
     state.ftpConnected = tool === 'iso'; state.rawFtpConnected = tool === 'xbla'; state.psxFtpConnected = tool === 'ps1';
     const statusEl = tool === 'iso' ? els.ftpStatus : tool === 'xbla' ? els.rawFtpStatus : els.psxFtpStatus;
@@ -7983,7 +8011,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const gameFolderMode = state.taskMode === 'mods' && state.outputMode === 'game-folder';
     if (!options.gameTitle) options.gameTitle = layout ? layout.titleHex : E.hex32(state.analysis.executionInfo.titleId);
     const conversionReader = state.taskMode === 'mods' ? makeModsOverlayReader() : state.reader;
-    if (installPayloadMode && state.outputMode === 'ftp' && !window.confirm('Upload GTA V Disc 1 install content directly into Hdd1:/Content/0000000000000000/545408A7/00000002? Existing files at matching paths may be overwritten. Continue?')) {
+    if (installPayloadMode && state.outputMode === 'ftp' && !window.confirm('Upload GTA V Disc 1 install content directly into ' + ftpInstallPayloadTargetPath(installPayload) + '? Existing files at matching paths may be overwritten. Continue?')) {
       log('GTA V install-content upload canceled before FTP output; existing Xbox files were not touched.');
       return;
     }
@@ -8090,7 +8118,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!state.batchRunning) await requestWakeLock();
 
     try {
-      const callbacks = { onLog: log, onProgress, isCancelled: () => state.cancelRequested };
+      const callbacks = { onLog: log, onProgress, isCancelled: () => state.cancelRequested,
+        stripContentPrefix: installPayloadMode && state.outputMode === 'ftp' && ftpBaseIsContentRoot(els.ftpPath.value) };
       const result = installPayloadMode
         ? await E.extractGtaVInstallPayload(state.reader, state.analysis, writer, callbacks)
         : gameFolderMode
@@ -8213,7 +8242,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function setInputsEnabled(enabled) {
     for (const el of [els.titleInput, els.trimEnd, els.trimNone, els.contentPrefix,
       els.modeFolder, els.modeGameFolder, els.modeZip, els.modeFiles, els.modeFtp, els.chooseFolderBtn, els.chooseGameFolderBtn, els.chooseZipBtn,
-      els.archiveBrowseBtn, els.archiveInput, els.archiveCancelBtn, els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPath, els.ftpConnectBtn, els.rememberFtpIso, els.rememberFtpRaw, els.browseBtn, els.fileInput, els.resetBtn, els.modsFilesInput, els.modsFolderInput, els.modsChooseFilesBtn, els.modsChooseFolderBtn, els.modsClearBtn]) {
+      els.archiveBrowseBtn, els.archiveInput, els.archiveCancelBtn, els.ftpHost, els.ftpPort, els.ftpUser, els.ftpPassword, els.ftpPathPreset, els.ftpPath, els.ftpConnectBtn, els.rememberFtpIso, els.rememberFtpRaw, els.browseBtn, els.fileInput, els.resetBtn, els.modsFilesInput, els.modsFolderInput, els.modsChooseFilesBtn, els.modsChooseFolderBtn, els.modsClearBtn]) {
       if (el) el.disabled = !enabled || ((el === els.modeFolder || el === els.modeGameFolder) && !hasDirPicker);
     }
   }
