@@ -377,7 +377,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.6 · build 2026-10-29</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.7 · build 2026-10-29</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -908,7 +908,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
           <div class="muted small" id="snesFtpLiveText" aria-live="polite" style="margin-top:8px;overflow-wrap:anywhere"></div>
           <div class="btn-row ftp-retry-actions" id="snesFtpRetryActions" hidden><button class="btn small primary ftp-retry-btn" id="snesFtpRetryBtn" type="button">Retry file &amp; continue</button><button class="btn small danger" id="snesFtpCancelBtn" type="button">Cancel this upload</button></div>
         </div>
-        <div class="muted tiny" style="margin-top:8px">SNES360 scans ROMs in its configured ROM folder. If you choose a non-standard drive/path, make sure the console can access it (some v0.32 setups use <code>MappedDrive</code> entries in <code>settings.xml</code>). Names longer than the Xbox FATX 42-character limit are automatically shortened for the Xbox copy; the original local filename and ROM bytes are preserved.</div>
+        <div class="muted tiny" style="margin-top:8px">SNES360 scans ROMs in its configured ROM folder. If you choose a non-standard drive/path, make sure the console can access it (some v0.32 setups use <code>MappedDrive</code> entries in <code>settings.xml</code>). Xbox filenames are made FATX-safe: unsupported characters become hyphens, and names over the 42-character limit are shortened. The original local filename and ROM bytes are preserved.</div>
       </div>
     </section>
     <details class="faq">
@@ -971,7 +971,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.6 · build 2026-10-29</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.7 · build 2026-10-29</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -3344,8 +3344,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   let snesRomSeq = 0;
   const SNES_FATX_MAX_FILENAME = 42;
+  const SNES_FATX_ALLOWED_CHARS = new Set(Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&'()-.@[]^_`{}~ "));
   function snesRomNameSafe(name) {
-    return !!name && name !== '.' && name !== '..' && !/[<>:"\/\\|?*\x00-\x1f]/.test(name) && !/[ .]$/.test(name);
+    return !!name && name !== '.' && name !== '..' && !/[\/\\\x00-\x1f\x7f]/.test(name) && !/[ .]$/.test(name);
+  }
+  function snesMakeFatxSafeFilename(name) {
+    const safe = Array.from(name, ch => SNES_FATX_ALLOWED_CHARS.has(ch) ? ch : '-').join('').replace(/[ .]+$/g, '');
+    return safe || '_';
   }
   function snesTakeFilenameUnits(text, maxUnits) {
     let out = '', used = 0;
@@ -3368,13 +3373,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     return shortStem + trailingTag + suffix + ext;
   }
   function snesPlanXboxNames(items) {
-    const reserved = new Set(items.filter(item => item.file.name.length <= SNES_FATX_MAX_FILENAME).map(item => item.file.name.toLocaleLowerCase()));
+    const safeNames = new Map(items.map(item => [item.id, snesMakeFatxSafeFilename(item.file.name)]));
+    const reserved = new Set(items.filter(item => safeNames.get(item.id) === item.file.name && item.file.name.length <= SNES_FATX_MAX_FILENAME).map(item => item.file.name.toLocaleLowerCase()));
     const used = new Set(reserved), result = new Map();
     for (const item of items) {
       const original = item.file.name;
-      if (original.length <= SNES_FATX_MAX_FILENAME) { result.set(item.id, original); continue; }
-      let remote = snesTrimXboxFilename(original), serial = 2;
-      while (used.has(remote.toLocaleLowerCase())) remote = snesTrimXboxFilename(original, ' (' + serial++ + ')');
+      const safe = safeNames.get(item.id);
+      if (safe === original && safe.length <= SNES_FATX_MAX_FILENAME) { result.set(item.id, safe); continue; }
+      let remote = safe.length <= SNES_FATX_MAX_FILENAME ? safe : snesTrimXboxFilename(safe), serial = 2;
+      while (used.has(remote.toLocaleLowerCase())) remote = snesTrimXboxFilename(safe, ' (' + serial++ + ')');
       used.add(remote.toLocaleLowerCase());
       result.set(item.id, remote);
     }
@@ -3395,7 +3402,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const name = document.createElement('strong'); name.textContent = item.file.name;
       const meta = document.createElement('span'); meta.className = 'muted tiny';
       const xboxName = xboxNames.get(item.id) || item.file.name;
-      meta.textContent = fmtBytes(item.file.size) + (xboxName !== item.file.name ? ' · Xbox copy name: ' + xboxName + ' (auto-shortened to FATX’s 42-character limit; local name unchanged)' : '') + (item.archiveDir ? ' · extracted locally from .7z' : '');
+      meta.textContent = fmtBytes(item.file.size) + (xboxName !== item.file.name ? ' · FATX-safe Xbox name: ' + xboxName + ' (local name unchanged)' : '') + (item.archiveDir ? ' · extracted locally from .7z' : '');
       detail.append(name, meta);
       const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn small'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', 'Remove ' + item.file.name);
       remove.disabled = state.snesBusy || state.archiveBusy;
@@ -3443,8 +3450,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (duplicateNames.length) notices.push('duplicate destination name(s) skipped: ' + duplicateNames.join(', '));
     if (badNames.length) notices.push('invalid Xbox filename(s) skipped: ' + badNames.join(', '));
     const plannedXboxNames = snesPlanXboxNames(state.snesRoms);
-    const shortenedCount = accepted.filter(item => (plannedXboxNames.get(item.id) || item.file.name) !== item.file.name).length;
-    if (shortenedCount) notices.push(shortenedCount + ' filename(s) will be shortened automatically to fit the Xbox FATX 42-character limit; source filenames and ROM bytes stay unchanged');
+    const adjustedCount = accepted.filter(item => (plannedXboxNames.get(item.id) || item.file.name) !== item.file.name).length;
+    if (adjustedCount) notices.push(adjustedCount + ' Xbox filename(s) will be made FATX-safe: unsupported characters become hyphens and names over 42 characters are shortened; local names and ROM bytes stay unchanged');
     els.snesArchiveStatus.hidden = false;
     els.snesArchiveStatus.textContent = accepted.length
       ? 'Added ' + accepted.length + ' ROM file' + (accepted.length === 1 ? '' : 's') + (notices.length ? '; ' + notices.join('; ') + '.' : '.') + ' ROM bytes will be copied unchanged, one file at a time in the numbered list order.'
@@ -3560,9 +3567,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
       const doneWriter = new FTPWriter(state.ftpToken);
       await doneWriter.finish();
-      const shortenedCount = originals.filter(item => (xboxNames.get(item.id) || item.file.name) !== item.file.name).length;
-      setFtpLive('All SNES360 ROM data uploaded to ' + destination + '/.' + (shortenedCount ? ' ' + shortenedCount + ' Xbox filename(s) shortened to the FATX limit.' : ''), 1);
-      els.snesArchiveStatus.textContent = 'Upload complete: ' + originals.length + ' ROM file' + (originals.length === 1 ? '' : 's') + ' copied byte-for-byte to ' + destination + '/ in numbered list order. ' + (shortenedCount ? shortenedCount + ' Xbox filename(s) were shortened to fit FATX; the Mac source names were left unchanged. ' : '') + 'The selected ROM list was cleared.';
+      const adjustedCount = originals.filter(item => (xboxNames.get(item.id) || item.file.name) !== item.file.name).length;
+      setFtpLive('All SNES360 ROM data uploaded to ' + destination + '/.' + (adjustedCount ? ' ' + adjustedCount + ' Xbox filename(s) adjusted for FATX.' : ''), 1);
+      els.snesArchiveStatus.textContent = 'Upload complete: ' + originals.length + ' ROM file' + (originals.length === 1 ? '' : 's') + ' copied byte-for-byte to ' + destination + '/ in numbered list order. ' + (adjustedCount ? adjustedCount + ' Xbox filename(s) were adjusted for FATX; Mac source names were left unchanged. ' : '') + 'The selected ROM list was cleared.';
       state.snesRoms = [];
       renderSnesRoms();
       const cleaned = await cleanupSnesArchiveDirs();
@@ -4695,7 +4702,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.ftpRetryPending = true;
     const failureText = failure && failure.message ? failure.message : String(failure);
     const fatxHint = state.snesFtpActive && /550.*(?:create file|file unavailable)/i.test(failureText)
-      ? ' The SNES360 uploader already shortened this Xbox filename to fit FATX; if the error persists, check that the selected folder is writable and the USB drive has free space.'
+      ? ' The SNES360 uploader already made this name FATX-safe (allowed characters and 42-character limit); if the error persists, check that the selected folder is writable and the USB drive has free space.'
       : '';
     const message = 'FTP connection failed during ' + shortName + ': ' + failureText + '.' + fatxHint +
       ' Its complete staged copy is still on this computer. Restore the Xbox/LAN connection, keep this page and the helper open, then retry this file. FTP will resend this file from the beginning (not continue at a byte offset), replace any partial Xbox copy, and continue the conversion or upload.';
