@@ -317,7 +317,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if not cfg:
                     raise ValueError("Connect to the Xbox FTP server first.")
                 ftp = ftp_login(cfg)
-                temp_path = None
+                data_sock = None
+                headers_sent = False
                 try:
                     ftp_cwd(ftp, cfg, parent)
                     ftp.timeout = 12
@@ -332,49 +333,52 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     max_bytes = 20 * 1024 * 1024 * 1024
                     if int(entry.get("size", 0) or 0) > max_bytes:
                         raise ValueError("That file exceeds the 20 GiB import limit.")
-                    # File imports may be large; restore the longer transfer-idle timeout.
+                    # Stream the Xbox RETR response directly to the browser; no
+                    # intermediate download copy is written to Mac system storage.
                     ftp.timeout = TRANSFER_IDLE_TIMEOUT
-                    control = getattr(ftp, "sock", None)
                     if control is not None:
                         control.settimeout(TRANSFER_IDLE_TIMEOUT)
-                    fd, temp_path = tempfile.mkstemp(prefix="nebula-download-", suffix=".part")
-                    downloaded = 0
-                    with os.fdopen(fd, "wb") as output:
-                        def write_download_block(block):
-                            nonlocal downloaded
-                            downloaded += len(block)
-                            if downloaded > max_bytes:
-                                raise ValueError("That file exceeds the 20 GiB import limit.")
-                            output.write(block)
-                        ftp.retrbinary("RETR " + name, write_download_block, blocksize=1024 * 1024)
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/octet-stream")
-                    self.send_header("Content-Length", str(downloaded))
+                    data_sock = ftp.transfercmd("RETR " + name)
                     fallback_name = "".join(ch if ch.isascii() and 32 <= ord(ch) < 127 and ch not in ('"', '\\') else "_" for ch in name) or "download"
                     encoded_name = urllib.parse.quote(name, safe="")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/octet-stream")
+                    self.send_header("Transfer-Encoding", "chunked")
                     self.send_header("Content-Disposition", f"attachment; filename=\"{fallback_name}\"; filename*=UTF-8''{encoded_name}")
                     self.send_header("X-Content-Type-Options", "nosniff")
                     self.send_header("Cache-Control", "no-store")
                     self.end_headers()
-                    try:
-                        with open(temp_path, "rb") as source:
-                            while True:
-                                block = source.read(1024 * 1024)
-                                if not block:
-                                    break
-                                self.wfile.write(block)
+                    headers_sent = True
+                    downloaded = 0
+                    while True:
+                        block = data_sock.recv(1024 * 1024)
+                        if not block:
+                            break
+                        downloaded += len(block)
+                        if downloaded > max_bytes:
+                            raise ValueError("That file exceeds the 20 GiB import limit.")
+                        self.wfile.write((format(len(block), "X") + "\r\n").encode("ascii"))
+                        self.wfile.write(block)
+                        self.wfile.write(b"\r\n")
                         self.wfile.flush()
-                    except (BrokenPipeError, ConnectionResetError, OSError):
-                        # The browser canceled the download; the temporary copy is
-                        # still removed by the finally block below.
-                        pass
+                    data_sock.close()
+                    data_sock = None
+                    ftp.voidresp()
+                    self.wfile.write(b"0\r\n\r\n")
+                    self.wfile.flush()
                     return
+                except Exception:
+                    if headers_sent:
+                        # The browser will reject a truncated chunked response.
+                        self.close_connection = True
+                        return
+                    raise
                 finally:
+                    if data_sock is not None:
+                        try: data_sock.close()
+                        except Exception: pass
                     try: ftp.quit()
                     except Exception: pass
-                    if temp_path:
-                        try: os.unlink(temp_path)
-                        except OSError: pass
 
             if parsed.path == "/api/fs/mkdir":
                 data = json.loads(self._body().decode("utf-8"))
@@ -570,16 +574,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 def cleanup_stale_staging_files():
-    """Remove abandoned Nebula FTP temp files after this helper claims its port."""
+    """Remove abandoned upload/download temp files after this helper claims its port."""
     removed = 0
     try:
-        for path in Path(tempfile.gettempdir()).glob("nebula-ftp-*.part"):
-            try:
-                if path.is_file():
-                    path.unlink()
-                    removed += 1
-            except OSError:
-                pass
+        temp_root = Path(tempfile.gettempdir())
+        for pattern in ("nebula-ftp-*.part", "nebula-download-*.part"):
+            for path in temp_root.glob(pattern):
+                try:
+                    if path.is_file():
+                        path.unlink()
+                        removed += 1
+                except OSError:
+                    pass
     except OSError:
         pass
     if removed:

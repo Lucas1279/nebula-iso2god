@@ -262,6 +262,10 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-manager-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .ftp-manager-location{min-width:240px;flex:1 1 300px}
 .ftp-manager-actions{justify-content:flex-end;flex:1 1 360px}
+.ftp-manager-list-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:10px 0 4px}
+.ftp-manager-list-nav .btn-row{margin:0}
+.ftp-manager-list-nav #ftpManagerActivity{margin:0;min-height:1.4em}
+
 .ftp-breadcrumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
 .ftp-breadcrumbs button{padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:rgba(8,14,35,.78);color:var(--text);cursor:pointer}
 .ftp-breadcrumbs button:hover{border-color:rgba(103,232,249,.65);background:rgba(56,189,248,.12)}
@@ -336,7 +340,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage files on your Xbox 360 over your home-network FTP connection. Upload files or folders from your PC, create folders, and remove remote items. ISO, XBLA, and PS1 workflows remain available and can send their outputs over FTP.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.7.0 · build 2026-10-28</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.8.0 · build 2026-10-28</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -402,13 +406,16 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
             <button class="btn small danger" id="ftpManagerDeleteBtn" type="button" disabled>🗑 Delete selected</button>
           </div>
         </div>
-        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; open a folder to see its files. Select files and choose <strong>Import selected to computer</strong> to save them in your browser’s Downloads folder. Folder downloads aren’t supported.</div>
+        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; open a folder to see its files. Select files and choose <strong>Import selected to computer</strong> to save them in your browser’s Downloads folder. Files stream through the helper without an extra disk copy; folder downloads aren’t supported.</div>
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
         <div class="ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
           <strong>Drop PC files or folders here</strong><span>Files upload into the current Xbox folder. Drop onto a listed folder to upload there instead. Existing same-named files may be replaced.</span>
         </div>
-        <div class="muted small" id="ftpManagerActivity" role="status" aria-live="polite" style="margin:9px 0"></div>
+        <div class="ftp-manager-list-nav">
+          <div class="btn-row" aria-label="Folder history"><button class="btn small" id="ftpManagerBackBtn" type="button" disabled>← Back</button><button class="btn small" id="ftpManagerForwardBtn" type="button" disabled>Forward →</button></div>
+          <div class="muted small" id="ftpManagerActivity" role="status" aria-live="polite">Connect to view folder contents.</div>
+        </div>
         <div class="table-wrap ftp-manager-table-wrap">
           <table class="ftp-manager-table"><thead><tr><th><input type="checkbox" id="ftpManagerSelectAll" aria-label="Select all listed items"></th><th>Name</th><th>Kind</th><th>Size</th><th>Modified</th></tr></thead><tbody id="ftpManagerTableBody"></tbody></table>
           <div id="ftpManagerEmpty" class="ftp-manager-empty" hidden>This folder is empty.</div>
@@ -855,7 +862,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.7.0 · build 2026-10-28</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.8.0 · build 2026-10-28</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -1979,7 +1986,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
     rawArchiveInput: $('rawArchiveInput'), rawArchiveBrowseBtn: $('rawArchiveBrowseBtn'), rawArchiveStatus: $('rawArchiveStatus'), rawArchiveProgressWrap: $('rawArchiveProgressWrap'), rawArchiveProgressBar: $('rawArchiveProgressBar'), rawArchiveCancelBtn: $('rawArchiveCancelBtn'),
     taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), taskPsxMode: $('taskPsxMode'), taskModsMode: $('taskModsMode'), taskFtpMode: $('taskFtpMode'), heroIsoIntro: $('heroIsoIntro'), heroPsxIntro: $('heroPsxIntro'), heroModsIntro: $('heroModsIntro'), heroFtpIntro: $('heroFtpIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), psxSteps: $('psxSteps'), modsSteps: $('modsSteps'), ftpManagerSteps: $('ftpManagerSteps'), supportBadges: $('supportBadges'), appBuildLabel: $('appBuildLabel'), footerBuildLabel: $('footerBuildLabel'),
-    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'),
+    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'),
     rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawOverallLiveText: $('rawOverallLiveText'), rawOverallLiveBar: $('rawOverallLiveBar'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
     modsPanel: $('modsPanel'), modsChooseFilesBtn: $('modsChooseFilesBtn'), modsChooseFolderBtn: $('modsChooseFolderBtn'), modsClearBtn: $('modsClearBtn'), modsFilesInput: $('modsFilesInput'), modsFolderInput: $('modsFolderInput'), modsDropZone: $('modsDropZone'), modsStatus: $('modsStatus'), modsResultsWrap: $('modsResultsWrap'), modsResultsSummary: $('modsResultsSummary'), modsResultsBody: $('modsResultsBody'), modsWarning: $('modsWarning'),
     chooseFolderBtn: $('chooseFolderBtn'), folderName: $('folderName'), chooseGameFolderBtn: $('chooseGameFolderBtn'), gameFolderName: $('gameFolderName'),
@@ -2014,7 +2021,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.7.0';
+  const APP_VERSION = '1.8.0';
   const APP_BUILD = '2026-10-28';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -2024,7 +2031,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     file: null, reader: null, analysis: null,
     outputMode: hasDirPicker ? 'folder' : 'zip',
     dirHandle: null, gameDirHandle: null, gameOutputName: '', zipHandle: null, zipSuggestedName: '',
-    ftpToken: null, ftpConnected: false, rawFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpManagerBasePath: 'Hdd1:/', ftpManagerCwd: '', rawUploading: false, rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
+    ftpToken: null, ftpConnected: false, rawFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerHistory: [[]], ftpManagerHistoryIndex: 0, ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpManagerBasePath: 'Hdd1:/', ftpManagerCwd: '', rawUploading: false, rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
     modsFiles: [], modsReplacements: [], modsReady: false, modsTargetIndex: new Map(),
     converting: false, cancelRequested: false,
     batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0,
@@ -4272,7 +4279,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function managerSetBusy(busy) {
     state.ftpManagerBusy = !!busy;
     for (const el of [els.ftpManagerHost, els.ftpManagerPort, els.ftpManagerUser, els.ftpManagerPassword, els.ftpManagerBasePath, els.ftpManagerRemember]) el.disabled = !!busy;
-    for (const el of [els.ftpManagerUpBtn, els.ftpManagerRefreshBtn, els.ftpManagerMkdirBtn, els.ftpManagerUploadBtn, els.ftpManagerUploadFolderBtn, els.ftpManagerDownloadBtn, els.ftpManagerDeleteBtn, els.ftpManagerFilesInput, els.ftpManagerFolderInput, els.ftpManagerSelectAll]) el.disabled = !!busy || !state.ftpManagerConnected;
+    for (const el of [els.ftpManagerUpBtn, els.ftpManagerRefreshBtn, els.ftpManagerBackBtn, els.ftpManagerForwardBtn, els.ftpManagerMkdirBtn, els.ftpManagerUploadBtn, els.ftpManagerUploadFolderBtn, els.ftpManagerDownloadBtn, els.ftpManagerDeleteBtn, els.ftpManagerFilesInput, els.ftpManagerFolderInput, els.ftpManagerSelectAll]) el.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerConnectBtn.disabled = !!busy || !state.ftpToken;
     for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskFtpMode]) el.disabled = !!busy;
     els.ftpManagerUseIsoBtn.disabled = !!busy || !state.ftpManagerConnected;
@@ -4280,6 +4287,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpManagerUsePs1Btn.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerDropZone.setAttribute('aria-disabled', busy || !state.ftpManagerConnected ? 'true' : 'false');
     els.ftpManagerTableBody.querySelectorAll('input[type="checkbox"]').forEach(input => { input.disabled = !!busy; });
+    managerUpdateHistoryControls();
+  }
+  function managerUpdateHistoryControls() {
+    const history = state.ftpManagerHistory || [];
+    const index = Number(state.ftpManagerHistoryIndex) || 0;
+    els.ftpManagerBackBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || index <= 0;
+    els.ftpManagerForwardBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || index >= history.length - 1;
+  }
+  function managerRecordNavigation(segments) {
+    const next = segments.slice();
+    const current = state.ftpManagerHistory[state.ftpManagerHistoryIndex] || [];
+    if (managerPathKey(current) === managerPathKey(next)) return;
+    state.ftpManagerHistory = state.ftpManagerHistory.slice(0, state.ftpManagerHistoryIndex + 1);
+    state.ftpManagerHistory.push(next);
+    state.ftpManagerHistoryIndex = state.ftpManagerHistory.length - 1;
+    managerUpdateHistoryControls();
   }
   function managerSafeRelativePath(raw) {
     const parts = String(raw || '').replace(/\\/g, '/').split('/').filter(Boolean);
@@ -4370,8 +4393,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     managerRenderEntries();
     managerSetActivity(state.ftpManagerEntries.length + ' item(s) in this folder.');
   }
-  async function managerNavigate(segments) {
+  async function managerNavigate(segments, recordHistory = true) {
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
+    if (recordHistory) managerRecordNavigation(segments);
     state.ftpManagerSegments = segments.slice();
     managerSetBusy(true);
     managerSetActivity('Reading remote folder…');
@@ -4379,9 +4403,19 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     catch (err) { managerSetActivity('Could not read folder: ' + (err.message || String(err)), true); }
     finally { managerSetBusy(false); managerUpdateSelectionControls(); }
   }
+  async function managerNavigateHistory(delta) {
+    if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
+    const index = state.ftpManagerHistoryIndex + delta;
+    if (index < 0 || index >= state.ftpManagerHistory.length) return;
+    state.ftpManagerHistoryIndex = index;
+    managerUpdateHistoryControls();
+    await managerNavigate(state.ftpManagerHistory[index], false);
+  }
   function invalidateFtpManager(reason) {
     state.ftpManagerConnected = false;
     state.ftpManagerSegments = [];
+    state.ftpManagerHistory = [[]];
+    state.ftpManagerHistoryIndex = 0;
     state.ftpManagerEntries = [];
     state.ftpManagerSelected.clear();
     state.ftpManagerCwd = '';
@@ -4400,6 +4434,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       });
       state.ftpManagerBasePath = basePath;
       state.ftpManagerSegments = [];
+      state.ftpManagerHistory = [[]];
+      state.ftpManagerHistoryIndex = 0;
       state.ftpManagerCwd = result.cwd || basePath;
       state.ftpManagerConnected = true;
       state.ftpConnected = false; state.rawFtpConnected = false; state.psxFtpConnected = false;
@@ -4584,6 +4620,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     });
   }
   els.ftpManagerUpBtn.addEventListener('click', () => managerNavigate(state.ftpManagerSegments.slice(0, -1)));
+  els.ftpManagerBackBtn.addEventListener('click', () => managerNavigateHistory(-1));
+  els.ftpManagerForwardBtn.addEventListener('click', () => managerNavigateHistory(1));
   els.ftpManagerRefreshBtn.addEventListener('click', async () => {
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
     managerSetBusy(true);
