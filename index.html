@@ -269,9 +269,9 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-breadcrumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
 .ftp-breadcrumbs button{padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:rgba(8,14,35,.78);color:var(--text);cursor:pointer}
 .ftp-breadcrumbs button:hover{border-color:rgba(103,232,249,.65);background:rgba(56,189,248,.12)}
-.ftp-manager-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:86px;margin-top:12px;padding:16px;border:2px dashed rgba(140,170,255,.42);border-radius:14px;text-align:center;color:var(--muted);transition:.15s}
+.ftp-manager-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:96px;margin-top:12px;padding:18px 20px;border-radius:20px;text-align:center;color:var(--muted);cursor:default}
 .ftp-manager-drop strong{color:var(--text)}
-.ftp-manager-drop.drag-active,.ftp-manager-table tr.remote-drop-target{border-color:#34d399!important;background:rgba(52,211,153,.15)!important}
+.ftp-manager-table tr.remote-drop-target{border-color:#34d399!important;background:rgba(52,211,153,.15)!important}
 .ftp-manager-table-wrap{max-height:min(56vh,620px);overflow:auto;border:1px solid var(--line);border-radius:12px}
 .ftp-manager-table{width:100%;border-collapse:collapse;min-width:570px}
 .ftp-manager-table th,.ftp-manager-table td{padding:9px 10px;border-bottom:1px solid rgba(145,170,255,.12);text-align:left;vertical-align:middle;font-size:.84rem}
@@ -388,7 +388,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
           <div><label class="f" for="ftpManagerPort">FTP port</label><input id="ftpManagerPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
           <div><label class="f" for="ftpManagerUser">FTP username</label><input id="ftpManagerUser" type="text" placeholder="Check Aurora/FreeStyle FTP settings" autocomplete="off"></div>
           <div><label class="f" for="ftpManagerPassword">FTP password</label><input id="ftpManagerPassword" type="password" autocomplete="off"></div>
-          <div style="grid-column:1/-1"><label class="f" for="ftpManagerBasePath">Starting drive / FTP path</label><input id="ftpManagerBasePath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Start at a dashboard-exposed drive such as <code>Hdd1:/</code> or <code>Usb0:/</code>. Browsing and actions stay below this starting path.</div></div>
+          <div style="grid-column:1/-1"><label class="f" for="ftpManagerBasePath">Starting drive / FTP path</label><input id="ftpManagerBasePath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Start at a dashboard-exposed drive such as <code>Hdd1:/</code> or <code>Usb0:/</code>; a bare <code>usb0</code> is normalized automatically. Browsing and actions stay below this starting path. Press Enter in any connection field to try the connection.</div></div>
         </div>
         <label class="check small"><input id="ftpManagerRemember" type="checkbox"><span>Remember Xbox IP and username on this Mac/browser. The password is never saved.</span></label>
         <div class="btn-row"><button class="btn primary" id="ftpManagerConnectBtn" type="button" disabled>Connect &amp; browse</button><span class="muted" id="ftpManagerStatus" role="status" aria-live="polite">Start ftp_helper.py locally to enable the file manager.</span></div>
@@ -409,7 +409,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
         <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; open a folder to see its files. Select files and choose <strong>Import selected to computer</strong> to save them in your browser’s Downloads folder. Files stream through the helper without an extra disk copy; folder downloads aren’t supported.</div>
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
-        <div class="ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
+        <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
           <strong>Drop PC files or folders here</strong><span>Files upload into the current Xbox folder. Drop onto a listed folder to upload there instead. Existing same-named files may be replaced.</span>
         </div>
         <div class="ftp-manager-list-nav">
@@ -4269,7 +4269,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpManagerActivity.textContent = message || '';
     els.ftpManagerActivity.style.color = isError ? '#fecaca' : '';
   }
-  function managerBasePathValue() { return els.ftpManagerBasePath.value.trim() || 'Hdd1:/'; }
+  function managerBasePathValue() {
+    const raw = els.ftpManagerBasePath.value.trim() || 'Hdd1:/';
+    const drive = raw.match(/^(usb|hdd)(\d+)(?::)?\/?$/i);
+    if (drive) return drive[1].toLowerCase() === 'usb' ? 'Usb' + drive[2] + ':/' : 'Hdd' + drive[2] + ':/';
+    return raw;
+  }
   function managerCurrentPath() {
     const base = managerBasePathValue();
     if (!state.ftpManagerSegments.length) return base;
@@ -4438,10 +4443,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     managerSetBusy(false);
   }
   async function ftpManagerConnect() {
-    managerSetActivity('Connecting…');
+    if (state.ftpManagerBusy || !state.ftpToken) return;
+    managerSetActivity('Connecting to Xbox FTP…');
     els.ftpManagerConnectBtn.disabled = true;
     try {
       const basePath = managerBasePathValue();
+      els.ftpManagerBasePath.value = basePath;
+      els.ftpManagerStatus.textContent = 'Trying to connect to Xbox FTP at ' + basePath + '…';
+      els.ftpManagerStatus.classList.remove('is-connected');
       const result = await bridgeRequest('/api/connect', {
         host: els.ftpManagerHost.value.trim(), port: Number(els.ftpManagerPort.value || 21),
         user: els.ftpManagerUser.value, password: els.ftpManagerPassword.value, basePath
@@ -4628,6 +4637,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   els.ftpManagerConnectBtn.addEventListener('click', ftpManagerConnect);
   for (const el of [els.ftpManagerHost, els.ftpManagerPort, els.ftpManagerUser, els.ftpManagerPassword, els.ftpManagerBasePath]) {
+    el.addEventListener('keydown', ev => {
+      if (ev.key !== 'Enter') return;
+      ev.preventDefault();
+      if (!els.ftpManagerConnectBtn.disabled) ftpManagerConnect();
+    });
     el.addEventListener('input', () => {
       if (el === els.ftpManagerHost || el === els.ftpManagerUser) persistIdentityOnInput('manager');
       invalidateFtpManager('Connection settings changed; reconnect to refresh the remote directory.');
@@ -4662,10 +4676,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     managerUploadItems(items).catch(err => managerSetActivity('Upload failed: ' + (err.message || String(err)), true));
     els.ftpManagerFolderInput.value = '';
   });
-  for (const evName of ['dragenter', 'dragover']) els.ftpManagerDropZone.addEventListener(evName, ev => { ev.preventDefault(); if (state.ftpManagerConnected && !state.ftpManagerBusy) els.ftpManagerDropZone.classList.add('drag-active'); });
-  for (const evName of ['dragleave', 'dragend']) els.ftpManagerDropZone.addEventListener(evName, () => els.ftpManagerDropZone.classList.remove('drag-active'));
+  for (const evName of ['dragenter', 'dragover']) els.ftpManagerDropZone.addEventListener(evName, ev => { ev.preventDefault(); if (state.ftpManagerConnected && !state.ftpManagerBusy) els.ftpManagerDropZone.classList.add('dragover'); });
+  for (const evName of ['dragleave', 'dragend']) els.ftpManagerDropZone.addEventListener(evName, () => els.ftpManagerDropZone.classList.remove('dragover'));
   els.ftpManagerDropZone.addEventListener('drop', async ev => {
-    ev.preventDefault(); els.ftpManagerDropZone.classList.remove('drag-active');
+    ev.preventDefault(); els.ftpManagerDropZone.classList.remove('dragover');
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
     try { await managerUploadDataTransfer(ev.dataTransfer, state.ftpManagerSegments); }
     catch (err) { managerSetActivity('Upload failed: ' + (err.message || String(err)), true); }
