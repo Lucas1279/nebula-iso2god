@@ -11,6 +11,7 @@ import socket
 import sys
 import tempfile
 import threading
+import time
 import urllib.parse
 import webbrowser
 from pathlib import Path
@@ -23,6 +24,9 @@ TOKEN = secrets.token_urlsafe(32)
 LOCK = threading.Lock()
 CONFIG = None
 ACTIVE = {}
+DRAG_EXPORTS = {}
+DRAG_EXPORT_MAX_BYTES = 64 * 1024 * 1024
+DRAG_EXPORT_TTL_SECONDS = 15 * 60
 
 
 def send_json(handler, status, obj):
@@ -67,6 +71,27 @@ def clean_name(value):
     if len(name.encode("utf-8")) > 255:
         raise ValueError("File or folder name is too long.")
     return name
+
+
+def cleanup_expired_drag_exports():
+    now = time.time()
+    expired = []
+    with LOCK:
+        for ident, item in list(DRAG_EXPORTS.items()):
+            if item.get("expires", 0) <= now:
+                expired.append(DRAG_EXPORTS.pop(ident))
+    for item in expired:
+        try: os.unlink(item["tmp"])
+        except OSError: pass
+
+
+def remove_drag_export(ident):
+    with LOCK:
+        item = DRAG_EXPORTS.pop(str(ident), None)
+    if item:
+        try: os.unlink(item["tmp"])
+        except OSError: pass
+    return item
 
 
 def ftp_cwd(ftp, cfg, segments):
@@ -182,7 +207,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
         # Avoid flooding Terminal with the live progress polling and 4 MiB data chunks.
-        if self.path.startswith("/api/file/chunk?") or self.path.startswith("/api/file/status?"):
+        if (self.path.startswith("/api/file/chunk?") or self.path.startswith("/api/file/status?")
+                or self.path.startswith("/api/drag-export/chunk?") or self.path.startswith("/api/drag-export/file/")):
             return
         # Never log request bodies or FTP credentials.
         print("[bridge] " + (fmt % args))
@@ -226,6 +252,30 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path.startswith("/api/drag-export/file/"):
+            cleanup_expired_drag_exports()
+            ident = urllib.parse.unquote(parsed.path.rsplit("/", 1)[-1])
+            with LOCK:
+                item = DRAG_EXPORTS.get(ident)
+                item = dict(item) if item and item.get("state") == "ready" else None
+            if not item or not os.path.isfile(item["tmp"]):
+                return send_json(self, 404, {"error": "This prepared drag-out file expired or no longer exists. Prepare it again."})
+            name = item["name"]
+            fallback_name = "".join(ch if ch.isascii() and 32 <= ord(ch) < 127 and ch not in ('"', '\\') else "_" for ch in name) or "download"
+            encoded_name = urllib.parse.quote(name, safe="")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Length", str(item["size"]))
+            self.send_header("Content-Disposition", f"attachment; filename=\"{fallback_name}\"; filename*=UTF-8''{encoded_name}")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            with open(item["tmp"], "rb") as source:
+                while True:
+                    block = source.read(1024 * 1024)
+                    if not block: break
+                    self.wfile.write(block)
+            return
         if parsed.path.startswith("/vendor/"):
             return self._serve_vendor_asset(parsed.path)
         if parsed.path == "/api/token":
@@ -258,12 +308,93 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self.wfile.write(data)
         return send_json(self, 404, {"error": "Not found."})
 
+    def do_HEAD(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if not parsed.path.startswith("/api/drag-export/file/"):
+            return self.send_error(405, "Method not allowed")
+        cleanup_expired_drag_exports()
+        ident = urllib.parse.unquote(parsed.path.rsplit("/", 1)[-1])
+        with LOCK:
+            item = DRAG_EXPORTS.get(ident)
+            item = dict(item) if item and item.get("state") == "ready" else None
+        if not item or not os.path.isfile(item["tmp"]):
+            self.send_response(404)
+            self.send_header("Content-Length", "0")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return
+        fallback_name = "".join(ch if ch.isascii() and 32 <= ord(ch) < 127 and ch not in ('"', '\\') else "_" for ch in item["name"]) or "download"
+        encoded_name = urllib.parse.quote(item["name"], safe="")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/octet-stream")
+        self.send_header("Content-Length", str(item["size"]))
+        self.send_header("Content-Disposition", "attachment; filename=" + chr(34) + fallback_name + chr(34) + "; filename*=UTF-8''" + encoded_name)
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+
     def do_POST(self):
         global CONFIG
         if not self._authorized():
             return
         parsed = urllib.parse.urlparse(self.path)
         try:
+            if parsed.path == "/api/drag-export/begin":
+                cleanup_expired_drag_exports()
+                data = json.loads(self._body().decode("utf-8"))
+                name = clean_name(data.get("name"))
+                size = int(data.get("size", -1))
+                if size < 0 or size > DRAG_EXPORT_MAX_BYTES:
+                    raise ValueError("Drag-out exports are limited to 64 MiB per file.")
+                with LOCK:
+                    active_bytes = sum(int(item.get("size", 0)) for item in DRAG_EXPORTS.values())
+                    if len(DRAG_EXPORTS) >= 8 or active_bytes + size > 2 * DRAG_EXPORT_MAX_BYTES:
+                        raise ValueError("Too many prepared drag-out files are pending. Drag or clear the current selection, then retry.")
+                fd, tmp = tempfile.mkstemp(prefix="nebula-drag-export-", suffix=".part")
+                os.close(fd)
+                ident = secrets.token_urlsafe(32)
+                with LOCK:
+                    DRAG_EXPORTS[ident] = {"tmp": tmp, "name": name, "size": size, "written": 0,
+                                           "state": "staging", "expires": time.time() + DRAG_EXPORT_TTL_SECONDS}
+                return send_json(self, 200, {"id": ident})
+
+            if parsed.path == "/api/drag-export/chunk":
+                ident = urllib.parse.parse_qs(parsed.query).get("id", [""])[0]
+                body = self._body()
+                with LOCK:
+                    item = DRAG_EXPORTS.get(ident)
+                    if not item or item.get("state") != "staging":
+                        raise ValueError("No active drag-out export is being staged.")
+                    if item["written"] + len(body) > item["size"]:
+                        raise ValueError("Received more bytes than expected for this drag-out file.")
+                    with open(item["tmp"], "ab") as output:
+                        output.write(body)
+                    item["written"] += len(body)
+                    written = item["written"]
+                return send_json(self, 200, {"written": written})
+
+            if parsed.path == "/api/drag-export/finish":
+                data = json.loads(self._body().decode("utf-8"))
+                ident = str(data.get("id", ""))
+                with LOCK:
+                    item = DRAG_EXPORTS.get(ident)
+                    if not item:
+                        raise ValueError("No active drag-out export exists.")
+                    if item.get("state") == "ready":
+                        return send_json(self, 200, {"ok": True, "url": "/api/drag-export/file/" + ident,
+                                                    "expiresIn": DRAG_EXPORT_TTL_SECONDS})
+                    if item.get("state") != "staging" or item["written"] != item["size"]:
+                        raise ValueError("The drag-out file is incomplete; prepare it again.")
+                    item["state"] = "ready"
+                    item["expires"] = time.time() + DRAG_EXPORT_TTL_SECONDS
+                return send_json(self, 200, {"ok": True, "url": "/api/drag-export/file/" + ident,
+                                            "expiresIn": DRAG_EXPORT_TTL_SECONDS})
+
+            if parsed.path == "/api/drag-export/abort":
+                data = json.loads(self._body().decode("utf-8"))
+                remove_drag_export(data.get("id", ""))
+                return send_json(self, 200, {"ok": True})
+
             if parsed.path == "/api/connect":
                 data = json.loads(self._body().decode("utf-8"))
                 host = str(data.get("host", "")).strip()
@@ -627,7 +758,7 @@ def cleanup_stale_staging_files():
     removed = 0
     try:
         temp_root = Path(tempfile.gettempdir())
-        for pattern in ("nebula-ftp-*.part", "nebula-download-*.part"):
+        for pattern in ("nebula-ftp-*.part", "nebula-download-*.part", "nebula-drag-export-*.part"):
             for path in temp_root.glob(pattern):
                 try:
                     if path.is_file():
@@ -641,11 +772,19 @@ def cleanup_stale_staging_files():
         print(f"Removed {removed} stale temporary FTP staging file(s).")
 
 
+def drag_export_cleanup_loop():
+    while True:
+        time.sleep(60)
+        cleanup_expired_drag_exports()
+
+
 def main():
     # Binding succeeds only when another helper is not already using this port,
     # so any matching staging files here belong to an earlier stopped/crashed run.
     httpd = http.server.ThreadingHTTPServer((HOST, PORT), Handler)
     cleanup_stale_staging_files()
+    cleanup_thread = threading.Thread(target=drag_export_cleanup_loop, name="drag-export-cleanup", daemon=True)
+    cleanup_thread.start()
     print(f"Nebula ISO2GOD FTP helper is running at http://{HOST}:{PORT}/")
     print("Loopback-only: this service is not exposed to your network or the internet.")
     print("Keep this window open. Press Ctrl+C to stop it.")
@@ -658,6 +797,12 @@ def main():
     finally:
         httpd.server_close()
         for item in list(ACTIVE.values()):
+            try: os.unlink(item["tmp"])
+            except OSError: pass
+        with LOCK:
+            drag_exports = list(DRAG_EXPORTS.values())
+            DRAG_EXPORTS.clear()
+        for item in drag_exports:
             try: os.unlink(item["tmp"])
             except OSError: pass
         print("Stopped.")

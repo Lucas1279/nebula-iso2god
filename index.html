@@ -478,11 +478,11 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <button class="btn small" id="ftpManagerJumpBtn" type="button" disabled>Open folder</button>
           <span class="muted tiny" style="flex:1 1 100%">Use this if a folder (including an empty folder) is missing from the listing. After opening it, Upload files, Upload folder, and the drop area send items into that current folder.</span>
         </div>
-        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. To move remote files, drag a file row onto a destination folder row; selected file rows move together, and name collisions are never overwritten. Select files and choose <strong>Import selected to computer</strong> to save them in Downloads. For drag-out to Finder, select up to 64 MiB of files, choose <strong>Prepare drag-out</strong>, then drag the selected file row(s) out of Safari (external file-drag support varies by browser/OS); use Import as a fallback and for larger files. Click the <code>launch.ini</code> filename to open it in the built-in text editor, or select it and choose <strong>Edit launch.ini</strong>; saving writes the text back over FTP after confirmation. Keep a backup before editing console configuration. Files stream through the helper without an extra disk copy during ordinary import; folder downloads aren’t supported.</div>
+        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. To move remote files, drag a file row onto a destination folder row; selected file rows move together, and name collisions are never overwritten. Select files and choose <strong>Import selected to computer</strong> to save them in Downloads. For real desktop drag-out in Chrome/Edge, select one file up to 64 MiB, choose <strong>Prepare drag-out</strong>, then drag that row out within 15 minutes. Safari/Firefox cannot reliably export a file by page drag; use <strong>Import</strong> there and for larger files or batches. Click the <code>launch.ini</code> filename to open it in the built-in text editor, or select it and choose <strong>Edit launch.ini</strong>; saving writes the text back over FTP after confirmation. Keep a backup before editing console configuration. Files stream through the helper without an extra disk copy during ordinary import; folder downloads aren’t supported.</div>
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
         <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
-          <div class="big" aria-hidden="true">📂</div><div class="t">Drop multiple files or a folder here</div><div class="s">Any file type uploads byte-for-byte with the selected name into the current Xbox folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within Xbox FTP, or prepare selected small files to drag out to Finder. The manager does not rewrite names; the Xbox filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.</div>
+          <div class="big" aria-hidden="true">📂</div><div class="t">Drop multiple files or a folder here</div><div class="s">Any file type uploads byte-for-byte with the selected name into the current Xbox folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within Xbox FTP, or prepare one small file for a real desktop drag-out in supported browsers. The manager does not rewrite names; the Xbox filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.</div>
         </div>
         <div class="setup" id="ftpManagerArchiveProgressWrap" hidden style="margin-top:10px">
           <div class="bar-wrap thin"><div class="bar thin" id="ftpManagerArchiveProgressBar" style="width:0%"></div></div>
@@ -4901,7 +4901,26 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   const FTP_MANAGER_DRAG_OUT_MAX_BYTES = 64 * 1024 * 1024;
   const ftpManagerDragOutFiles = new Map();
   function managerDragOutKey(segments) { return JSON.stringify(segments || []); }
-  function managerClearPreparedDragFiles() { ftpManagerDragOutFiles.clear(); }
+  function managerSupportsExternalFileDrag() {
+    const ua = navigator.userAgent || '';
+    return /(?:Chrome|Chromium|Edg|OPR)\//.test(ua) && !/(?:CriOS|FxiOS|EdgiOS|OPiOS)/.test(ua);
+  }
+  function managerGetPreparedDrag(segments) {
+    const key = managerDragOutKey(segments);
+    const prepared = ftpManagerDragOutFiles.get(key);
+    if (!prepared) return null;
+    if (prepared.expiresAt <= Date.now()) {
+      ftpManagerDragOutFiles.delete(key);
+      if (state.ftpToken) bridgeRequest('/api/drag-export/abort', { id: prepared.id }).catch(() => {});
+      return null;
+    }
+    return prepared;
+  }
+  function managerClearPreparedDragFiles() {
+    const staged = Array.from(ftpManagerDragOutFiles.values());
+    ftpManagerDragOutFiles.clear();
+    if (state.ftpToken) staged.forEach(item => bridgeRequest('/api/drag-export/abort', { id: item.id }).catch(() => {}));
+  }
   function managerIsRemoteDrag(dataTransfer) {
     return !!(dataTransfer && Array.from(dataTransfer.types || []).includes('application/x-nebula-ftp-move'));
   }
@@ -5061,20 +5080,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           if (!dragged.length) { ev.preventDefault(); return; }
           const payload = { sourceSegments: state.ftpManagerSegments.slice(), names: dragged.map(item => item.name) };
           try { ev.dataTransfer.setData('application/x-nebula-ftp-move', JSON.stringify(payload)); } catch (_) {}
-          try { ev.dataTransfer.setData('text/plain', dragged.map(item => item.name).join('\\n')); } catch (_) {}
-          const prepared = dragged.map(item => ftpManagerDragOutFiles.get(managerDragOutKey([...state.ftpManagerSegments, item.name])));
-          const allPrepared = prepared.every(Boolean);
+          const prepared = dragged.map(item => managerGetPreparedDrag([...state.ftpManagerSegments, item.name]));
+          const allPrepared = prepared.length === 1 && !!prepared[0];
           ev.dataTransfer.effectAllowed = allPrepared ? 'copyMove' : 'move';
-          if (allPrepared) {
-            for (const file of prepared) { try { ev.dataTransfer.items.add(file); } catch (_) {} }
-            if (prepared.length === 1) {
-              try {
-                const file = prepared[0];
-                const url = URL.createObjectURL(file);
-                ev.dataTransfer.setData('DownloadURL', (file.type || 'application/octet-stream') + ':' + file.name + ':' + url);
-                window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
-              } catch (_) {}
-            }
+          if (allPrepared && managerSupportsExternalFileDrag()) {
+            try {
+              const exportFile = prepared[0];
+              ev.dataTransfer.setData('DownloadURL', 'application/octet-stream:' + exportFile.name + ':' + exportFile.url);
+            } catch (_) {}
           }
           tr.classList.add('dragging-remote-file');
         });
@@ -5124,11 +5137,17 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpManagerDownloadBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !onlyFiles;
     els.ftpManagerDownloadBtn.textContent = selected.length ? '⬇ Import (' + selected.length + ')' : '⬇ Import';
     els.ftpManagerDownloadBtn.title = selected.length && !onlyFiles ? 'Open folders and select files to import them to your computer.' : 'Import selected Xbox files to your computer’s Downloads folder.';
-    const selectedBytes = onlyFiles ? selected.reduce((sum, entry) => sum + Math.max(0, Number(entry.size) || 0), 0) : 0;
-    const allPreparedForDrag = onlyFiles && selected.every(entry => ftpManagerDragOutFiles.has(managerDragOutKey([...state.ftpManagerSegments, entry.name])));
-    els.ftpManagerPrepareDragBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !onlyFiles || selectedBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES;
-    els.ftpManagerPrepareDragBtn.textContent = allPreparedForDrag ? '↘ Drag out' : '↘ Prepare drag-out';
-    els.ftpManagerPrepareDragBtn.title = selectedBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES ? 'Drag-out preparation is limited to 64 MiB total; use Import selected for larger files.' : 'Prepare selected remote files for dragging out of Safari to Finder (64 MiB total maximum).';
+    const oneFileSelected = selected.length === 1 && selected[0].type === 'file';
+    const selectedBytes = oneFileSelected ? Math.max(0, Number(selected[0].size) || 0) : 0;
+    const preparedForDrag = oneFileSelected && !!managerGetPreparedDrag([...state.ftpManagerSegments, selected[0].name]);
+    const externalDragSupported = managerSupportsExternalFileDrag();
+    els.ftpManagerPrepareDragBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !oneFileSelected || selectedBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES || !externalDragSupported;
+    els.ftpManagerPrepareDragBtn.textContent = preparedForDrag ? '↘ Drag out' : '↘ Prepare drag-out';
+    els.ftpManagerPrepareDragBtn.title = !externalDragSupported
+      ? 'Your browser cannot reliably export a real file by dragging it to the desktop. Use Import selected to computer instead.'
+      : selected.length > 1 ? 'Prepare drag-out handles one file at a time; use Import for multiple files.'
+      : selectedBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES ? 'Drag-out preparation is limited to 64 MiB per file; use Import selected for larger files.'
+      : 'Stage one selected file with its real bytes for desktop drag-out (64 MiB maximum, expires after 15 minutes).';
     const launchIniSelected = selected.length === 1 && selected[0].type === 'file' && selected[0].name.toLocaleLowerCase() === 'launch.ini';
     els.ftpManagerEditBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !launchIniSelected;
     els.ftpManagerEditBtn.title = launchIniSelected ? 'Open launch.ini in the themed text editor and save edits to Xbox over FTP.' : 'Select exactly one file named launch.ini to edit it.';
@@ -5462,39 +5481,55 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   async function managerPrepareDragOut() {
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
     const selected = state.ftpManagerEntries.filter(entry => state.ftpManagerSelected.has(entry.name));
-    if (!selected.length || selected.some(entry => entry.type !== 'file')) {
-      managerSetActivity('Select one or more files before preparing drag-out.', true);
+    if (!managerSupportsExternalFileDrag()) {
+      managerSetActivity('This browser cannot reliably export a real file by desktop drag-out. Use Import selected to computer instead.', true);
       return;
     }
-    const expectedBytes = selected.reduce((sum, entry) => sum + Math.max(0, Number(entry.size) || 0), 0);
-    if (selected.every(entry => ftpManagerDragOutFiles.has(managerDragOutKey([...state.ftpManagerSegments, entry.name]))) && selected.length) {
-      managerSetActivity('These file(s) are already prepared. Drag the selected row(s) out of Safari to Finder.');
+    if (selected.length !== 1 || selected[0].type !== 'file') {
+      managerSetActivity('Select exactly one remote file for drag-out. Use Import selected to computer for batches.', true);
       return;
     }
-    if (expectedBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES) {
-      managerSetActivity('Drag-out preparation is limited to 64 MiB total. Use Import selected to computer for larger files.', true);
+    const entry = selected[0];
+    const key = managerDragOutKey([...state.ftpManagerSegments, entry.name]);
+    if (managerGetPreparedDrag([...state.ftpManagerSegments, entry.name])) {
+      managerSetActivity('The real file bytes are staged locally. Drag the selected row to the desktop within 15 minutes.');
+      return;
+    }
+    if (Number(entry.size) > FTP_MANAGER_DRAG_OUT_MAX_BYTES) {
+      managerSetActivity('Drag-out preparation is limited to 64 MiB per file. Use Import selected to computer for larger files.', true);
       return;
     }
     const folder = state.ftpManagerSegments.slice();
     managerClearPreparedDragFiles();
     managerSetBusy(true);
-    let readyBytes = 0;
+    let exportId = null;
     try {
-      for (let i = 0; i < selected.length; i++) {
-        const entry = selected[i];
-        managerSetActivity('Preparing drag-out ' + (i + 1) + '/' + selected.length + ': ' + entry.name);
-        const remainingBytes = FTP_MANAGER_DRAG_OUT_MAX_BYTES - readyBytes;
-        if (remainingBytes < 1) throw new Error('The selection exceeds the 64 MiB drag-out memory limit; use Import selected instead.');
-        const blob = await bridgeDownload('/api/fs/download', { segments: [...folder, entry.name], maxBytes: remainingBytes });
-        readyBytes += blob.size;
-        if (readyBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES) throw new Error('The downloaded selection exceeds the 64 MiB drag-out memory limit; use Import selected instead.');
-        const file = new File([blob], entry.name, { type: blob.type || 'application/octet-stream' });
-        ftpManagerDragOutFiles.set(managerDragOutKey([...folder, entry.name]), file);
+      managerSetActivity('Downloading ' + entry.name + ' from Xbox for drag-out…');
+      const blob = await bridgeDownload('/api/fs/download', { segments: [...folder, entry.name], maxBytes: FTP_MANAGER_DRAG_OUT_MAX_BYTES });
+      if (blob.size > FTP_MANAGER_DRAG_OUT_MAX_BYTES) throw new Error('The file exceeds the 64 MiB drag-out limit; use Import selected instead.');
+      managerSetActivity('Staging the actual file bytes locally for desktop drag-out…');
+      const begun = await bridgeRequest('/api/drag-export/begin', { name: entry.name, size: blob.size });
+      exportId = begun.id;
+      const chunkSize = 4 * 1024 * 1024;
+      for (let offset = 0; offset < blob.size; offset += chunkSize) {
+        const chunk = blob.slice(offset, Math.min(blob.size, offset + chunkSize));
+        await bridgeRequest('/api/drag-export/chunk?id=' + encodeURIComponent(exportId), chunk, true);
+        managerSetActivity('Staging ' + entry.name + ': ' + fmtBytes(Math.min(blob.size, offset + chunk.size)) + ' of ' + fmtBytes(blob.size));
       }
-      managerSetActivity('Prepared ' + selected.length + ' file(s). Drag the selected row(s) out of Safari to Finder, or drop them onto a remote folder to move them.');
+      const ready = await bridgeRequest('/api/drag-export/finish', { id: exportId });
+      const expiresIn = Math.max(1, Number(ready.expiresIn) || 900);
+      ftpManagerDragOutFiles.set(key, {
+        id: exportId,
+        name: entry.name,
+        url: new URL(ready.url, window.location.href).href,
+        expiresAt: Date.now() + expiresIn * 1000
+      });
+      exportId = null;
+      managerSetActivity('Prepared with the full file data. Drag the selected row out of the browser within 15 minutes.');
     } catch (err) {
+      if (exportId) { try { await bridgeRequest('/api/drag-export/abort', { id: exportId }); } catch (_) {} }
       managerClearPreparedDragFiles();
-      managerSetActivity('Could not prepare drag-out: ' + (err.message || String(err)), true);
+      managerSetActivity('Could not prepare a complete drag-out file: ' + (err.message || String(err)) + ' Nothing was exported; use Import selected to computer or retry.', true);
     } finally {
       managerSetBusy(false);
       managerUpdateSelectionControls();
