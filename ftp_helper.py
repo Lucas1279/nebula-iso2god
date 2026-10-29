@@ -100,9 +100,23 @@ def parse_ftp_list_line(line):
 
 
 def ftp_list_entries(ftp):
+    # Xbox dashboard servers commonly support LIST but not MLSD, so try the
+    # traditional command first and prefer it when its output is recognizable.
+    lines = []
+    try:
+        ftp.dir(lines.append)
+    except (AttributeError, ftplib.Error, OSError, EOFError):
+        lines = []
     entries = []
-    # MLSD is structured and preferred, but many Xbox dashboard FTP servers
-    # only implement LIST/NLST.
+    for line in lines:
+        entry = parse_ftp_list_line(line)
+        if entry:
+            entries.append(entry)
+    if entries:
+        return entries
+
+    # Some newer servers expose structured MLSD facts; use them when LIST is
+    # unsupported, empty, or emitted an unfamiliar format.
     try:
         for name, facts in ftp.mlsd():
             if name in (".", ".."):
@@ -110,20 +124,11 @@ def ftp_list_entries(ftp):
             typ = facts.get("type", "file").lower()
             entries.append({"name": name, "type": "dir" if typ in ("dir", "cdir", "pdir") else "link" if typ == "slink" else "file",
                             "size": int(facts.get("size", 0) or 0), "modified": facts.get("modify", "")})
-        return entries
-    except (AttributeError, ftplib.error_perm, OSError, EOFError):
+        if entries:
+            return entries
+    except (AttributeError, ftplib.Error, OSError, EOFError):
         pass
-    lines = []
-    try:
-        ftp.dir(lines.append)
-    except (ftplib.error_perm, OSError, EOFError):
-        lines = []
-    for line in lines:
-        entry = parse_ftp_list_line(line)
-        if entry:
-            entries.append(entry)
-    if entries:
-        return entries
+
     # Last-resort listing for minimal servers: probe each name by cwd/size.
     try:
         names = ftp.nlst()
@@ -291,6 +296,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 ftp = ftp_login(cfg)
                 try:
                     cwd = ftp_cwd(ftp, cfg, segments)
+                    # Browsing should fail fast rather than leave the page stuck if
+                    # an Xbox dashboard's directory-list command stalls.
+                    ftp.timeout = 12
+                    control = getattr(ftp, "sock", None)
+                    if control is not None:
+                        control.settimeout(12)
                     entries = ftp_list_entries(ftp)
                     entries.sort(key=lambda item: (item["type"] != "dir", item["name"].casefold()))
                     return send_json(self, 200, {"ok": True, "cwd": cwd, "segments": segments, "entries": entries})

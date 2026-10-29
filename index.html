@@ -4390,7 +4390,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.ftpManagerStatus.classList.add('is-connected');
       els.ftpManagerBrowser.hidden = false;
       managerSetBusy(true);
-      await managerRefresh();
+      managerSetActivity('Connected; reading remote folder…');
+      try { await managerRefresh(); }
+      catch (err) { managerSetActivity('Connected, but could not list this folder: ' + (err.message || String(err)) + ' Try Refresh; if this continues, check FTP directory-list support in the dashboard.', true); }
     } catch (err) {
       state.ftpManagerConnected = false;
       els.ftpManagerStatus.textContent = 'Not connected: ' + (err.message || String(err));
@@ -4536,6 +4538,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.ftpManagerRefreshBtn.addEventListener('click', async () => {
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
     managerSetBusy(true);
+    managerSetActivity('Refreshing remote folder…');
     try { await managerRefresh(); } catch (err) { managerSetActivity('Refresh failed: ' + err.message, true); }
     finally { managerSetBusy(false); managerUpdateSelectionControls(); }
   });
