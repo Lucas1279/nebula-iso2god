@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nebula ISO2GOD — Xbox 360 ISO → GOD converter (in your browser)</title>
-<meta name="description" content="Convert Xbox 360 ISO disc images to Games on Demand (GOD) packages for JTAG/RGH consoles, upload existing XBLA/XBLIG content, and merge multi-track PS1 .bin/.cue game folders into a single .bin + .cue for PCSXR360. Local browser conversion with optional LAN FTP upload to a modded Xbox 360.">
+<meta name="description" content="Convert Xbox 360 ISO disc images to Games on Demand (GOD) packages, upload existing XBLA/XBLIG and SNES360 ROM files unchanged, merge PS1 BIN/CUE games for PCSXR360, and manage Xbox 360 files over local-network FTP.">
 <meta name="theme-color" content="#070b24">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='30%25' r='80%25'%3E%3Cstop offset='0' stop-color='%23bcd7ff'/%3E%3Cstop offset='.55' stop-color='%236f8dff'/%3E%3Cstop offset='1' stop-color='%23252a7a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%23050a24'/%3E%3Ccircle cx='32' cy='32' r='16' fill='url(%23g)'/%3E%3Cellipse cx='32' cy='35' rx='26' ry='7' fill='none' stroke='%23c4b5fd' stroke-width='3' transform='rotate(-14 32 35)'/%3E%3Ccircle cx='13' cy='13' r='1.7' fill='%23fff'/%3E%3Ccircle cx='51' cy='16' r='1.3' fill='%237dd3fc'/%3E%3Ccircle cx='47' cy='50' r='1.5' fill='%23f0abfc'/%3E%3C/svg%3E">
 <style>
@@ -130,19 +130,27 @@ input[type=text]:focus,input[type=password]:focus{outline:2px solid rgba(110,231
 .raw-drop-zone[data-disabled="true"]{opacity:.7;cursor:not-allowed}
 .raw-drop-zone.drag-active{border-color:transparent;background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
 .raw-drop-zone:focus-visible{outline:2px solid rgba(110,231,255,.7);outline-offset:3px}
-#ftpStatus,#rawFtpStatus,#ftpManagerStatus,#rawFtpUploadResult,#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText{min-width:0;overflow-wrap:anywhere}
+.snes-rom-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(130,155,255,.14)}
+.snes-rom-detail{min-width:0;display:flex;flex-direction:column;gap:3px;overflow-wrap:anywhere}
+.snes-rom-detail strong{color:var(--text);font-size:.91rem}
+#snesFtpStatus.is-error{display:inline-flex;max-width:100%;padding:8px 12px;border:1px solid rgba(248,113,113,.55);border-radius:11px;background:rgba(127,29,29,.14);color:#fecaca;font-weight:700;overflow-wrap:anywhere}
+#snesFtpLive.is-complete{padding:10px;border:1px solid rgba(52,211,153,.46);border-radius:12px;background:rgba(52,211,153,.08)}
+#snesFtpLive.is-complete #snesFtpLiveText{color:#c8ffe6;font-weight:800}
+#snesFtpLive.is-error{padding:10px;border:1px solid rgba(248,113,113,.55);border-radius:12px;background:rgba(127,29,29,.14)}
+#snesFtpLive.is-error #snesFtpLiveText{color:#fecaca}
+#ftpStatus,#rawFtpStatus,#ftpManagerStatus,#snesFtpStatus,#rawFtpUploadResult,#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText,#snesFtpLiveText{min-width:0;overflow-wrap:anywhere}
 #rawSelectedFiles{max-width:100%;overflow-wrap:anywhere}
 #ftpLive.is-retry-needed,#rawFtpLive.is-retry-needed{padding:12px;border:1px solid rgba(251,191,36,.65);border-radius:12px;background:rgba(120,80,0,.15)}
 .ftp-retry-btn{margin-top:10px;min-height:40px}
 #rawFtpRetryActions[hidden]{display:none}
 #modsResultsWrap th,#modsResultsWrap td{padding:9px 10px;border-bottom:1px solid rgba(145,170,255,.14);text-align:left;vertical-align:top;font-size:.82rem}
 #modsResultsWrap th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
-#ftpStatus.is-connected,#rawFtpStatus.is-connected,#ftpManagerStatus.is-connected{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-size:1rem;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12);overflow-wrap:anywhere}
-#ftpStatus.is-connected::before,#rawFtpStatus.is-connected::before,#ftpManagerStatus.is-connected::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251f;font-size:.9rem;font-weight:900;line-height:1}
+#ftpStatus.is-connected,#rawFtpStatus.is-connected,#ftpManagerStatus.is-connected,#snesFtpStatus.is-connected{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-size:1rem;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12);overflow-wrap:anywhere}
+#ftpStatus.is-connected::before,#rawFtpStatus.is-connected::before,#ftpManagerStatus.is-connected::before,#snesFtpStatus.is-connected::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251f;font-size:.9rem;font-weight:900;line-height:1}
 .workflow-mode-hidden{display:none!important}
 .workflow-switch{margin:0 0 18px}
 .workflow-switch .mode-btn:hover:not(:disabled){transform:translateY(-2px)}
-#rawContentUploadCard:not([hidden]),#psxContentCard:not([hidden]){animation:panel-in .24s ease-out}
+#rawContentUploadCard:not([hidden]),#psxContentCard:not([hidden]),#snesContentCard:not([hidden]){animation:panel-in .24s ease-out}
 @keyframes panel-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .estimates{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:12px}
 .estimates[hidden]{display:none !important}
@@ -170,7 +178,7 @@ pre.tree{margin:12px 0 0; padding:15px; border-radius:14px; overflow:auto; backg
 .raw-overall-wrap{margin-top:5px}
 .bar.raw-overall-bar{background:linear-gradient(90deg,#34d399,#818cf8,#e879f9);box-shadow:0 0 18px rgba(129,140,248,.42)}
 #archiveProgressBar,#rawArchiveProgressBar{transition:none;will-change:width,transform}
-#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.25s linear infinite}
+#archiveProgressBar.indeterminate,#rawArchiveProgressBar.indeterminate,#snesArchiveProgressBar.indeterminate{width:34%!important;background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);animation:archive-progress-sweep 1.25s linear infinite}
 @keyframes archive-progress-sweep{0%{transform:translateX(-110%);opacity:0}12%{opacity:1}88%{opacity:1}100%{transform:translateX(305%);opacity:0}}
 .bar-wrap.thin{height:8px; margin-top:9px}
 .ufo-progress-lane>.bar-wrap.thin{height:15px;margin-top:0}
@@ -262,6 +270,10 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-manager-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .ftp-manager-location{min-width:240px;flex:1 1 300px}
 .ftp-manager-actions{justify-content:flex-end;flex:1 1 360px}
+.ftp-manager-path-jump{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap;margin:10px 0 4px;padding:10px;border:1px solid rgba(130,155,255,.16);border-radius:12px;background:rgba(4,8,24,.35)}
+.ftp-manager-path-jump label{font-weight:700;white-space:nowrap}
+.ftp-manager-path-jump input{flex:1 1 240px;min-width:170px;max-width:520px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(4,8,24,.8);color:var(--text);font-size:.95rem}
+.ftp-manager-path-jump input:focus{outline:2px solid rgba(110,231,255,.6);outline-offset:1px}
 .ftp-manager-search-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:11px 0 4px}
 .ftp-manager-search-row label{font-weight:700;white-space:nowrap}
 .ftp-manager-search-input{flex:1 1 240px;min-width:170px;max-width:460px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(4,8,24,.8);color:var(--text);font-size:.95rem}
@@ -352,10 +364,11 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
     <p id="heroPsxIntro" class="workflow-mode-hidden">Merge a <strong>PS1 game folder</strong> full of <strong>(Track N).bin</strong> files into
        <strong>one .bin + .cue pair</strong> for <strong>PCSXR360 2.1.1b</strong> on a modded JTAG/RGH Xbox 360 —
        locally in your browser, then save it to a folder, download it, or FTP it to the console.</p>
+    <p id="heroSnesIntro" class="workflow-mode-hidden">Send your own <strong>Super Nintendo ROMs</strong> to <strong>SNES360</strong> on an Xbox 360. Supported ROM files are copied unchanged; optional <code>.7z</code> archives are unpacked locally and unrelated entries are skipped.</p>
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage files on your Xbox 360 over your home-network FTP connection. Upload files or folders from your PC, create folders, and remove remote items. ISO, XBLA, and PS1 workflows remain available and can send their outputs over FTP.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.8.0 · build 2026-10-28</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.0 · build 2026-10-29</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -371,6 +384,11 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
       <span class="raw-step"><span class="n">1</span> Choose game folder</span><span class="raw-step-sep" aria-hidden="true">›</span>
       <span class="raw-step"><span class="n">2</span> Merge tracks</span><span class="raw-step-sep" aria-hidden="true">›</span>
       <span class="raw-step"><span class="n">3</span> Save or FTP</span>
+    </div>
+    <div class="raw-steps workflow-mode-hidden" id="snesSteps" aria-label="SNES360 ROM upload steps">
+      <span class="raw-step"><span class="n">1</span> Choose ROMs</span><span class="raw-step-sep" aria-hidden="true">›</span>
+      <span class="raw-step"><span class="n">2</span> Connect over FTP</span><span class="raw-step-sep" aria-hidden="true">›</span>
+      <span class="raw-step"><span class="n">3</span> Copy to ROM folder</span>
     </div>
     <div class="raw-steps workflow-mode-hidden" id="modsSteps" aria-label="Mod workflow steps">
       <span class="raw-step"><span class="n">1</span> Choose ISO</span><span class="raw-step-sep" aria-hidden="true">›</span>
@@ -389,6 +407,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
       <button class="mode-btn active" id="taskIsoMode" type="button" aria-pressed="true"><b>🎮 Convert an ISO</b><span>Create a GOD package from an Xbox 360 disc image.</span></button>
       <button class="mode-btn" id="taskRawMode" type="button" aria-pressed="false"><b>📦 Upload existing XBLA/XBLIG file(s)</b><span>Send ready-made content files to the Xbox without converting them.</span></button>
       <button class="mode-btn" id="taskPsxMode" type="button" aria-pressed="false"><b>💿 PS1 BIN merger for PCSXR360</b><span>Combine a multi-track .bin/.cue PS1 game folder into one .bin + .cue that PCSXR360 2.1.1b can load.</span></button>
+      <button class="mode-btn" id="taskSnesMode" type="button" aria-pressed="false"><b>🕹️ SNES360 ROM uploader</b><span>Copy supported .sfc/.smc ROMs to the Xbox over FTP, unchanged.</span></button>
       <button class="mode-btn" id="taskModsMode" type="button" aria-pressed="false" hidden><b>🧩 Inspect / apply game mods</b><span>Legacy hidden workflow.</span></button>
       <button class="mode-btn" id="taskFtpMode" type="button" aria-pressed="false"><b>🗂️ Xbox FTP file manager</b><span>View, add, and remove files on the console.</span></button>
     </div>
@@ -421,7 +440,12 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
             <button class="btn small danger" id="ftpManagerDeleteBtn" type="button" disabled>🗑 Delete selected</button>
           </div>
         </div>
-        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; open a folder to see its files. Select files and choose <strong>Import selected to computer</strong> to save them in your browser’s Downloads folder. Files stream through the helper without an extra disk copy; folder downloads aren’t supported.</div>
+        <div class="ftp-manager-path-jump">
+          <div style="flex:1 1 300px"><label class="small" for="ftpManagerJumpPath">Open folder path under the starting folder</label><input id="ftpManagerJumpPath" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Emus/Snes360/Roms"></div>
+          <button class="btn small" id="ftpManagerJumpBtn" type="button" disabled>Open folder</button>
+          <span class="muted tiny" style="flex:1 1 100%">Use this if a folder (including an empty ROMs folder) is missing from the listing. After opening it, Upload files, Upload folder, and the drop area send items into that current folder.</span>
+        </div>
+        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. Select files and choose <strong>Import selected to computer</strong> to save them in your browser’s Downloads folder. Files stream through the helper without an extra disk copy; folder downloads aren’t supported.</div>
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
         <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
@@ -822,6 +846,57 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
       </ol>
     </section>
 
+
+    <section class="card" id="snesContentCard" data-workflow="snes" aria-labelledby="snesHeading" hidden>
+      <h2 id="snesHeading">🕹️ Upload Super Nintendo ROMs to SNES360</h2>
+      <p class="muted small" style="line-height:1.6">Select or drop SNES ROMs and send them unchanged to the Xbox over FTP. <code>.sfc</code>, <code>.smc</code>, <code>.swc</code>, and <code>.fig</code> are supported. Drop a folder to scan it recursively: only supported ROM files are added, flattened into the chosen ROM folder, and uploaded in the order shown in the list. Other files and folder names are not copied. A <code>.7z</code> archive is unpacked locally; only supported ROM files are extracted, unrelated files are skipped, and the original archive is left unchanged.</p>
+      <input id="snesRomInput" type="file" accept=".sfc,.smc,.swc,.fig" multiple hidden>
+      <input id="snesArchiveInput" type="file" accept=".7z,application/x-7z-compressed" hidden>
+      <div class="drop-zone raw-drop-zone" id="snesDropZone" tabindex="0" role="button" aria-label="Choose or drop SNES ROM files, a folder, or one 7z archive">
+        <div style="font-size:2.4rem;margin-bottom:8px">🕹️</div><strong>Drop SNES ROM files, a folder, or one .7z archive here</strong>
+        <span class="muted small" style="margin-top:6px">ROM bytes are sent unchanged. Archive extraction stays in this browser until upload succeeds or you clear the list.</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" id="snesChooseRomsBtn" type="button">Choose ROM files</button>
+        <button class="btn" id="snesChooseArchiveBtn" type="button">Choose .7z archive</button>
+        <button class="btn small danger" id="snesClearRomsBtn" type="button" disabled>Clear ROM list</button>
+      </div>
+      <div class="setup" id="snesArchiveProgressWrap" hidden>
+        <div class="bar-wrap thin"><div class="bar" id="snesArchiveProgressBar" style="width:0%"></div></div>
+        <div class="btn-row"><button class="btn small danger" id="snesArchiveCancelBtn" type="button" hidden>Cancel extraction</button></div>
+      </div>
+      <div class="muted small" id="snesArchiveStatus" aria-live="polite" hidden style="margin-top:10px;line-height:1.5"></div>
+      <div class="setup" style="margin-top:12px">
+        <strong>Selected ROMs</strong><div class="muted small" id="snesRomSummary" style="margin:5px 0 8px">No ROMs selected.</div>
+        <div id="snesRomList" class="file-list" aria-live="polite"></div>
+      </div>
+      <div class="setup" style="margin-top:12px"><strong>🍎 Mac FTP helper &amp; one-command launcher</strong>
+        <p class="muted small" style="margin:5px 0 10px;line-height:1.55">FTP needs the local Mac helper running; the public page cannot connect directly to FTP. Download and unzip, then open <code>Nebula ISO2GOD.command</code>. Python 3 is required; keep Terminal open during transfer. The fixed ZIP includes the launcher’s execute permission.</p>
+        <div class="btn-row"><a class="btn primary small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip" download="Nebula-ISO2GOD-One-File-Fixed.zip">⬇ Download fixed Mac one-command helper (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip" download="nebula-iso2god-timeout-fix.zip">Full helper bundle (.zip)</a></div>
+        <div class="muted tiny" style="margin-top:8px">Temporary FTP staging files are removed after success, cancel, or helper shutdown. A failed file is retained only while Retry is available. FTP is unencrypted—use only on your trusted home network.</div>
+      </div>
+      <div class="setup" style="margin-top:12px"><strong>Xbox FTP destination</strong>
+        <p class="muted small" style="margin:5px 0 10px;line-height:1.55">For SNES360 v0.32, HDD installs normally use <code>Hdd1:/Emus/Snes360/Roms/</code>; USB0 installs can use <code>Usb0:/Roms/</code>. Choose the matching preset or edit both fields. Older v0.21 USB setups commonly used <code>Usb0:/_Emus/Snes360/Roms/</code>. The base path connects first; the ROM folder is created beneath it if missing. A same-named ROM in that destination may be replaced.</p>
+        <div class="grid2">
+          <div><label class="f" for="snesFtpPreset">Destination preset</label><select id="snesFtpPreset"><option value="hdd">SNES360 v0.32 — HDD</option><option value="usb0">SNES360 v0.32 — USB0</option><option value="usb1">SNES360 v0.32 — USB1</option><option value="usb0legacy">Older SNES360 — USB0 legacy folder</option><option value="custom">Custom</option></select></div>
+          <div><label class="f" for="snesFtpPath">FTP base path (Xbox drive/folder)</label><input id="snesFtpPath" type="text" value="Hdd1:/" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+          <div><label class="f" for="snesFtpRomDir">ROM folder relative to base path</label><input id="snesFtpRomDir" type="text" value="Emus/Snes360/Roms" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+          <div><label class="f" for="snesFtpHost">Xbox IP address</label><input id="snesFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
+          <div><label class="f" for="snesFtpPort">FTP port</label><input id="snesFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
+          <div><label class="f" for="snesFtpUser">FTP username</label><input id="snesFtpUser" type="text" placeholder="Check Aurora/FreeStyle FTP settings" autocomplete="off"></div>
+          <div><label class="f" for="snesFtpPassword">FTP password</label><input id="snesFtpPassword" type="password" autocomplete="off"></div>
+        </div>
+        <label class="check" style="margin-top:10px"><input id="rememberFtpSnes" type="checkbox"><span>Remember Xbox IP and FTP username on this device (password is not saved)</span></label>
+        <div class="btn-row"><button class="btn" id="snesFtpConnectBtn" type="button">Test Xbox FTP connection</button><button class="btn primary" id="snesUploadBtn" type="button" disabled>Upload ROMs unchanged</button></div>
+        <div id="snesFtpStatus" class="muted small" aria-live="polite" style="margin-top:9px"></div>
+        <div id="snesFtpLive" hidden>
+          <div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="snesFtpLiveBar" style="width:0%"></div></div>
+          <div class="muted small" id="snesFtpLiveText" aria-live="polite" style="margin-top:8px;overflow-wrap:anywhere"></div>
+          <div class="btn-row ftp-retry-actions" id="snesFtpRetryActions" hidden><button class="btn small primary ftp-retry-btn" id="snesFtpRetryBtn" type="button">Retry file &amp; continue</button><button class="btn small danger" id="snesFtpCancelBtn" type="button">Cancel this upload</button></div>
+        </div>
+        <div class="muted tiny" style="margin-top:8px">SNES360 scans ROMs in its configured ROM folder. If you choose a non-standard drive/path, make sure the console can access it (some v0.32 setups use <code>MappedDrive</code> entries in <code>settings.xml</code>).</div>
+      </div>
+    </section>
     <details class="faq">
         <summary>🔭 How it works, compatibility &amp; troubleshooting</summary>
         <div class="faq-body">
@@ -882,7 +957,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.8.0 · build 2026-10-28</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.0 · build 2026-10-29</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -2005,8 +2080,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     rawFtpHost: $('rawFtpHost'), rawFtpPort: $('rawFtpPort'), rawFtpUser: $('rawFtpUser'), rawFtpPassword: $('rawFtpPassword'), rawFtpPath: $('rawFtpPath'),
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
     rawArchiveInput: $('rawArchiveInput'), rawArchiveBrowseBtn: $('rawArchiveBrowseBtn'), rawArchiveStatus: $('rawArchiveStatus'), rawArchiveProgressWrap: $('rawArchiveProgressWrap'), rawArchiveProgressBar: $('rawArchiveProgressBar'), rawArchiveCancelBtn: $('rawArchiveCancelBtn'),
-    taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), taskPsxMode: $('taskPsxMode'), taskModsMode: $('taskModsMode'), taskFtpMode: $('taskFtpMode'), heroIsoIntro: $('heroIsoIntro'), heroPsxIntro: $('heroPsxIntro'), heroModsIntro: $('heroModsIntro'), heroFtpIntro: $('heroFtpIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), psxSteps: $('psxSteps'), modsSteps: $('modsSteps'), ftpManagerSteps: $('ftpManagerSteps'), supportBadges: $('supportBadges'), appBuildLabel: $('appBuildLabel'), footerBuildLabel: $('footerBuildLabel'),
-    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'),
+    taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), taskPsxMode: $('taskPsxMode'), taskSnesMode: $('taskSnesMode'), taskModsMode: $('taskModsMode'), taskFtpMode: $('taskFtpMode'), heroIsoIntro: $('heroIsoIntro'), heroPsxIntro: $('heroPsxIntro'), heroSnesIntro: $('heroSnesIntro'), heroModsIntro: $('heroModsIntro'), heroFtpIntro: $('heroFtpIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), psxSteps: $('psxSteps'), snesSteps: $('snesSteps'), modsSteps: $('modsSteps'), ftpManagerSteps: $('ftpManagerSteps'), supportBadges: $('supportBadges'), appBuildLabel: $('appBuildLabel'), footerBuildLabel: $('footerBuildLabel'),
+    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerJumpPath: $('ftpManagerJumpPath'), ftpManagerJumpBtn: $('ftpManagerJumpBtn'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'),
+    snesContentCard: $('snesContentCard'), snesDropZone: $('snesDropZone'), snesRomInput: $('snesRomInput'), snesArchiveInput: $('snesArchiveInput'), snesChooseRomsBtn: $('snesChooseRomsBtn'), snesChooseArchiveBtn: $('snesChooseArchiveBtn'), snesClearRomsBtn: $('snesClearRomsBtn'), snesRomSummary: $('snesRomSummary'), snesRomList: $('snesRomList'), snesArchiveStatus: $('snesArchiveStatus'), snesArchiveProgressWrap: $('snesArchiveProgressWrap'), snesArchiveProgressBar: $('snesArchiveProgressBar'), snesArchiveCancelBtn: $('snesArchiveCancelBtn'), snesFtpPreset: $('snesFtpPreset'), snesFtpPath: $('snesFtpPath'), snesFtpRomDir: $('snesFtpRomDir'), snesFtpHost: $('snesFtpHost'), snesFtpPort: $('snesFtpPort'), snesFtpUser: $('snesFtpUser'), snesFtpPassword: $('snesFtpPassword'), rememberFtpSnes: $('rememberFtpSnes'), snesFtpConnectBtn: $('snesFtpConnectBtn'), snesFtpStatus: $('snesFtpStatus'), snesUploadBtn: $('snesUploadBtn'), snesFtpLive: $('snesFtpLive'), snesFtpLiveBar: $('snesFtpLiveBar'), snesFtpLiveText: $('snesFtpLiveText'), snesFtpRetryActions: $('snesFtpRetryActions'), snesFtpRetryBtn: $('snesFtpRetryBtn'), snesFtpCancelBtn: $('snesFtpCancelBtn'),
     rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawOverallLiveText: $('rawOverallLiveText'), rawOverallLiveBar: $('rawOverallLiveBar'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
     modsPanel: $('modsPanel'), modsChooseFilesBtn: $('modsChooseFilesBtn'), modsChooseFolderBtn: $('modsChooseFolderBtn'), modsClearBtn: $('modsClearBtn'), modsFilesInput: $('modsFilesInput'), modsFolderInput: $('modsFolderInput'), modsDropZone: $('modsDropZone'), modsStatus: $('modsStatus'), modsResultsWrap: $('modsResultsWrap'), modsResultsSummary: $('modsResultsSummary'), modsResultsBody: $('modsResultsBody'), modsWarning: $('modsWarning'),
     chooseFolderBtn: $('chooseFolderBtn'), folderName: $('folderName'), chooseGameFolderBtn: $('chooseGameFolderBtn'), gameFolderName: $('gameFolderName'),
@@ -2041,8 +2117,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.8.0';
-  const APP_BUILD = '2026-10-28';
+  const APP_VERSION = '1.9.0';
+  const APP_BUILD = '2026-10-29';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
   if (els.footerBuildLabel) els.footerBuildLabel.textContent = APP_BUILD_LABEL;
@@ -2051,7 +2127,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     file: null, reader: null, analysis: null,
     outputMode: hasDirPicker ? 'folder' : 'zip',
     dirHandle: null, gameDirHandle: null, gameOutputName: '', zipHandle: null, zipSuggestedName: '',
-    ftpToken: null, ftpConnected: false, rawFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerHistory: [[]], ftpManagerHistoryIndex: 0, ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpManagerBasePath: 'Hdd1:/', ftpManagerCwd: '', rawUploading: false, rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
+    ftpToken: null, ftpConnected: false, rawFtpConnected: false, snesFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerHistory: [[]], ftpManagerHistoryIndex: 0, ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpManagerBasePath: 'Hdd1:/', ftpManagerCwd: '', rawUploading: false, snesBusy: false, snesFtpActive: false, snesRoms: [], rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
     modsFiles: [], modsReplacements: [], modsReady: false, modsTargetIndex: new Map(),
     converting: false, cancelRequested: false,
     batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0,
@@ -2059,7 +2135,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
     lastOverall: 0, elapsedTimer: null, ftpActivity: '', ftpRetryPending: false, ftpRetryResolver: null,
-    archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], rawArchiveImportDirs: [], psxArchiveImportDirs: [],
+    archiveWorker: null, archiveBusy: false, archiveKind: 'iso', archiveRequestId: 0, archiveTempDir: '', archiveImportDirs: [], rawArchiveImportDirs: [], psxArchiveImportDirs: [], snesArchiveImportDirs: [],
     psxArchiveBatchActive: false, psxArchiveBatchQueue: [], psxArchiveBatchTotal: 0, psxArchiveBatchIndex: 0, psxArchiveBatchSuccess: 0, psxArchiveBatchFailures: 0, psxArchiveBatchCancelled: false, psxArchivePathPrefix: '',
     psxFtpConnected: false, psxBusy: false, psxFtpActive: false, psxCancelRequested: false, psxJobs: [],
     psxOutputMode: hasDirPicker ? 'folder' : 'files', psxDirHandle: null,
@@ -2077,7 +2153,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (el && el.textContent !== text) el.textContent = text;
   }
   function syncWorkingMotionState() {
-    const working = !!(state.converting || state.batchRunning || state.archiveBusy || state.rawUploading || state.psxBusy);
+    const working = !!(state.converting || state.batchRunning || state.archiveBusy || state.rawUploading || state.psxBusy || state.snesBusy);
     document.body.classList.toggle('is-working', working);
     return working;
   }
@@ -2128,6 +2204,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     rawFtpLiveBar: 'Current raw content FTP file progress',
     psxLiveBar: 'Current PS1 disc merge progress',
     psxFtpLiveBar: 'Current PS1 FTP file progress',
+    snesArchiveProgressBar: 'SNES360 ROM archive extraction progress',
+    snesFtpLiveBar: 'Current SNES360 ROM FTP file progress',
   };
   function syncProgressBarSemantics(item) {
     if (!item || !item.semanticEl) return;
@@ -2543,6 +2621,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const FTP_IDENTITY_KEY = 'nebula-iso2god-ftp-identity-v1';
   function identityFields(source) {
+    if (source === 'snes') return [els.snesFtpHost, els.snesFtpUser];
     if (source === 'raw') return [els.rawFtpHost, els.rawFtpUser];
     if (source === 'psx') return [els.psxFtpHost, els.psxFtpUser];
     if (source === 'manager') return [els.ftpManagerHost, els.ftpManagerUser];
@@ -2552,27 +2631,31 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.rememberFtpIso.checked = checked;
     els.rememberFtpRaw.checked = checked;
     els.rememberFtpPsx.checked = checked;
+    els.rememberFtpSnes.checked = checked;
     els.ftpManagerRemember.checked = checked;
   }
   function saveFtpIdentity(source, invalidateConnections) {
     const [hostField, userField] = identityFields(source);
     const host = hostField.value.trim();
     const user = userField.value;
-    for (const [h, u] of [[els.ftpHost, els.ftpUser], [els.rawFtpHost, els.rawFtpUser], [els.psxFtpHost, els.psxFtpUser], [els.ftpManagerHost, els.ftpManagerUser]]) { h.value = host; u.value = user; }
+    for (const [h, u] of [[els.ftpHost, els.ftpUser], [els.rawFtpHost, els.rawFtpUser], [els.psxFtpHost, els.psxFtpUser], [els.snesFtpHost, els.snesFtpUser], [els.ftpManagerHost, els.ftpManagerUser]]) { h.value = host; u.value = user; }
     try { localStorage.setItem(FTP_IDENTITY_KEY, JSON.stringify({ host, user })); } catch (_) {}
     if (invalidateConnections) {
       state.ftpConnected = false;
       state.rawFtpConnected = false;
       state.psxFtpConnected = false;
+      state.snesFtpConnected = false;
       invalidateFtpManager('Saved FTP settings changed; reconnect to browse files.');
       setFtpStatus(els.ftpStatus, 'Saved settings changed; test the FTP connection again.');
       setFtpStatus(els.rawFtpStatus, 'Saved settings changed; test the FTP connection again.');
       setFtpStatus(els.psxFtpStatus, 'Saved settings changed; test the FTP connection again.');
+      setFtpStatus(els.snesFtpStatus, 'Saved settings changed; test the SNES360 FTP connection again.');
       updateConvertEnabled();
+      updateSnesEnabled();
     }
   }
   function changeRememberFtp(source) {
-    const field = source === 'raw' ? els.rememberFtpRaw : source === 'psx' ? els.rememberFtpPsx : source === 'manager' ? els.ftpManagerRemember : els.rememberFtpIso;
+    const field = source === 'raw' ? els.rememberFtpRaw : source === 'psx' ? els.rememberFtpPsx : source === 'snes' ? els.rememberFtpSnes : source === 'manager' ? els.ftpManagerRemember : els.rememberFtpIso;
     if (!field.checked) {
       setRememberCheckboxes(false);
       try { localStorage.removeItem(FTP_IDENTITY_KEY); } catch (_) {}
@@ -2585,17 +2668,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     try {
       const saved = JSON.parse(localStorage.getItem(FTP_IDENTITY_KEY) || 'null');
       if (saved && typeof saved.host === 'string' && typeof saved.user === 'string') {
-        for (const [h, u] of [[els.ftpHost, els.ftpUser], [els.rawFtpHost, els.rawFtpUser], [els.psxFtpHost, els.psxFtpUser], [els.ftpManagerHost, els.ftpManagerUser]]) { h.value = saved.host; u.value = saved.user; }
+        for (const [h, u] of [[els.ftpHost, els.ftpUser], [els.rawFtpHost, els.rawFtpUser], [els.psxFtpHost, els.psxFtpUser], [els.snesFtpHost, els.snesFtpUser], [els.ftpManagerHost, els.ftpManagerUser]]) { h.value = saved.host; u.value = saved.user; }
         setRememberCheckboxes(true);
       }
     } catch (_) {}
   }
   function persistIdentityOnInput(source) {
-    if (els.rememberFtpIso.checked || els.rememberFtpRaw.checked || els.rememberFtpPsx.checked || els.ftpManagerRemember.checked) saveFtpIdentity(source, true);
+    if (els.rememberFtpIso.checked || els.rememberFtpRaw.checked || els.rememberFtpPsx.checked || els.rememberFtpSnes.checked || els.ftpManagerRemember.checked) saveFtpIdentity(source, true);
   }
   els.rememberFtpIso.addEventListener('change', () => changeRememberFtp('iso'));
   els.rememberFtpRaw.addEventListener('change', () => changeRememberFtp('raw'));
   els.rememberFtpPsx.addEventListener('change', () => changeRememberFtp('psx'));
+  els.rememberFtpSnes.addEventListener('change', () => changeRememberFtp('snes'));
   els.ftpManagerRemember.addEventListener('change', () => changeRememberFtp('manager'));
   restoreFtpIdentity();
 
@@ -2697,25 +2781,29 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   /* ---------------- top-level workflow tabs ---------------- */
   function setTaskMode(mode) {
-    if ((state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive) && mode !== state.taskMode) return;
-    state.taskMode = (mode === 'raw' || mode === 'psx' || mode === 'ftp') ? mode : 'iso';
+    if ((state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.snesBusy || state.ftpManagerBusy || state.archiveBusy || state.psxArchiveBatchActive) && mode !== state.taskMode) return;
+    state.taskMode = (mode === 'raw' || mode === 'psx' || mode === 'snes' || mode === 'ftp') ? mode : 'iso';
     const iso = state.taskMode === 'iso';
     const raw = state.taskMode === 'raw';
     const psx = state.taskMode === 'psx';
+    const snes = state.taskMode === 'snes';
     const mods = state.taskMode === 'mods';
     const ftpManager = state.taskMode === 'ftp';
     document.querySelectorAll('[data-workflow="iso"]').forEach(el => el.classList.toggle('workflow-mode-hidden', !(iso || mods)));
     els.rawContentUploadCard.hidden = !raw;
     els.psxContentCard.hidden = !psx;
+    els.snesContentCard.hidden = !snes;
     els.psxDoneCard.hidden = !psx || !state.psxDoneReady;
     els.ftpManagerCard.hidden = !ftpManager;
     els.heroIsoIntro.classList.toggle('workflow-mode-hidden', !iso);
     els.heroPsxIntro.classList.toggle('workflow-mode-hidden', !psx);
+    els.heroSnesIntro.classList.toggle('workflow-mode-hidden', !snes);
     els.heroModsIntro.classList.toggle('workflow-mode-hidden', !mods);
     els.heroFtpIntro.classList.toggle('workflow-mode-hidden', !ftpManager);
     els.isoSteps.classList.toggle('workflow-mode-hidden', !iso);
     els.rawSteps.classList.toggle('workflow-mode-hidden', !raw);
     els.psxSteps.classList.toggle('workflow-mode-hidden', !psx);
+    els.snesSteps.classList.toggle('workflow-mode-hidden', !snes);
     els.modsSteps.classList.toggle('workflow-mode-hidden', !mods);
     els.ftpManagerSteps.classList.toggle('workflow-mode-hidden', !ftpManager);
     els.modsPanel.classList.toggle('workflow-mode-hidden', !mods);
@@ -2723,23 +2811,27 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.taskIsoMode.classList.toggle('active', iso);
     els.taskRawMode.classList.toggle('active', raw);
     els.taskPsxMode.classList.toggle('active', psx);
+    els.taskSnesMode.classList.toggle('active', snes);
     els.taskModsMode.classList.toggle('active', mods);
     els.taskFtpMode.classList.toggle('active', ftpManager);
     els.taskIsoMode.setAttribute('aria-pressed', iso ? 'true' : 'false');
     els.taskRawMode.setAttribute('aria-pressed', raw ? 'true' : 'false');
     els.taskPsxMode.setAttribute('aria-pressed', psx ? 'true' : 'false');
+    els.taskSnesMode.setAttribute('aria-pressed', snes ? 'true' : 'false');
     els.taskModsMode.setAttribute('aria-pressed', mods ? 'true' : 'false');
     els.taskFtpMode.setAttribute('aria-pressed', ftpManager ? 'true' : 'false');
     if (mods) els.convertBtn.textContent = state.outputMode === 'game-folder' ? 'Build extracted modded game folder' : 'Build modded GOD';
     else if (!state.converting && !state.batchRunning) els.convertBtn.textContent = state.batchFiles.length > 1 ? 'Convert & upload ' + state.batchFiles.length + ' ISOs' : 'Convert ISO → GOD';
-    if (state.analysis && !ftpManager) refreshPlanAndTree();
+    if (state.analysis && (iso || mods)) refreshPlanAndTree();
     if (!mods && state.outputMode === 'game-folder') state.outputMode = hasDirPicker ? 'folder' : 'zip';
     setMode(state.outputMode);
     updateConvertEnabled();
+    updateSnesEnabled();
   }
   els.taskIsoMode.addEventListener('click', () => setTaskMode('iso'));
   els.taskRawMode.addEventListener('click', () => setTaskMode('raw'));
   els.taskPsxMode.addEventListener('click', () => setTaskMode('psx'));
+  els.taskSnesMode.addEventListener('click', () => setTaskMode('snes'));
   els.taskModsMode.addEventListener('click', () => setTaskMode('mods'));
   els.taskFtpMode.addEventListener('click', () => setTaskMode('ftp'));
 
@@ -2823,7 +2915,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function updateRawUploadEnabled() {
     const filesOk = !!state.rawFiles.length;
-    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && filesOk && !state.rawUploading && !state.psxBusy && !state.archiveBusy && !state.converting && !state.batchRunning);
+    els.rawFtpUploadBtn.disabled = !(state.ftpToken && state.rawFtpConnected && filesOk && !state.rawUploading && !state.psxBusy && !state.snesBusy && !state.archiveBusy && !state.converting && !state.batchRunning);
     updateRawSelectionEnabled();
   }
   function updateBatchHint() {
@@ -2856,7 +2948,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function updateConvertEnabled() {
     syncWorkingMotionState();
     const batchCount = state.batchFiles.length;
-    let ok = !!state.analysis && !state.converting && !state.batchRunning && (state.taskMode === 'mods' || !state.batchFinished) && !state.rawUploading && !state.psxBusy && !state.archiveBusy;
+    let ok = !!state.analysis && !state.converting && !state.batchRunning && (state.taskMode === 'mods' || !state.batchFinished) && !state.rawUploading && !state.psxBusy && !state.snesBusy && !state.archiveBusy;
     let hint = state.archiveBusy ? 'Extracting .7z archive…' : '';
     if (ok && state.taskMode !== 'mods' && batchCount > 1 && state.outputMode !== 'ftp') { ok = false; hint = 'Choose FTP for a multi-ISO batch.'; }
     if (ok && state.outputMode === 'folder' && !state.dirHandle) { ok = false; hint = 'Choose an output folder first.'; }
@@ -3235,8 +3327,270 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   });
 
+  let snesRomSeq = 0;
+  function snesRomNameSafe(name) {
+    return !!name && name !== '.' && name !== '..' && !/[<>:"\/\\|?*\x00-\x1f]/.test(name) && !/[ .]$/.test(name);
+  }
+  function renderSnesRoms() {
+    const files = state.snesRoms;
+    els.snesRomSummary.textContent = files.length
+      ? files.length + ' ROM file' + (files.length === 1 ? '' : 's') + ' · ' + fmtBytes(files.reduce((sum, item) => sum + item.file.size, 0)) + ' · numbered FTP upload order · uploaded unchanged'
+      : 'No ROMs selected.';
+    els.snesRomList.replaceChildren();
+    for (let index = 0; index < files.length; index++) {
+      const item = files[index];
+      const row = document.createElement('div'); row.className = 'snes-rom-row';
+      const order = document.createElement('span'); order.className = 'muted tiny'; order.textContent = String(index + 1) + '.'; order.setAttribute('aria-label', 'Upload order ' + (index + 1));
+      const detail = document.createElement('div'); detail.className = 'snes-rom-detail';
+      const name = document.createElement('strong'); name.textContent = item.file.name;
+      const meta = document.createElement('span'); meta.className = 'muted tiny';
+      meta.textContent = fmtBytes(item.file.size) + (item.file.name.length > 42 ? ' · long name may not fit on Xbox HDD (FATX)' : '') + (item.archiveDir ? ' · extracted locally from .7z' : '');
+      detail.append(name, meta);
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn small'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', 'Remove ' + item.file.name);
+      remove.disabled = state.snesBusy || state.archiveBusy;
+      remove.addEventListener('click', () => { void removeSnesRom(item.id); });
+      row.append(order, detail, remove); els.snesRomList.appendChild(row);
+    }
+    els.snesClearRomsBtn.disabled = !files.length || state.snesBusy || state.archiveBusy;
+    updateSnesEnabled();
+  }
+  async function removeSnesRom(id) {
+    if (state.snesBusy || state.archiveBusy) return;
+    state.snesRoms = state.snesRoms.filter(item => item.id !== id);
+    const stillUsed = new Set(state.snesRoms.map(item => item.archiveDir).filter(Boolean));
+    const orphaned = state.snesArchiveImportDirs.filter(name => !stillUsed.has(name));
+    if (orphaned.length) await cleanupSnesArchiveDirs(orphaned);
+    renderSnesRoms();
+  }
+  async function clearSnesRoms() {
+    if (state.snesBusy || state.archiveBusy) return;
+    state.snesRoms = [];
+    renderSnesRoms();
+    const removed = await cleanupSnesArchiveDirs();
+    els.snesArchiveStatus.hidden = false;
+    els.snesArchiveStatus.textContent = removed ? 'ROM list cleared. Temporary .7z extraction data was removed.' : 'ROM list cleared, but the browser could not confirm all temporary .7z data was removed. Close and reopen the page to retry cleanup.';
+    els.snesFtpLive.hidden = true;
+    els.snesFtpLive.classList.remove('is-complete', 'is-error', 'is-retry-needed');
+  }
+  async function addSnesRoms(inputs, archiveDir = '') {
+    const incoming = (inputs || []).filter(item => item && item.file && SNES_ROM_EXT.test(item.file.name) && item.file.size > 0 && item.file.name !== '.DS_Store' && !item.file.name.startsWith('._'));
+    const seen = new Set(state.snesRoms.map(item => item.file.name.toLocaleLowerCase()));
+    const accepted = [], duplicateNames = [], badNames = [];
+    for (const item of incoming) {
+      const name = item.file.name;
+      if (!snesRomNameSafe(name)) { badNames.push(name); continue; }
+      const key = name.toLocaleLowerCase();
+      if (seen.has(key)) { duplicateNames.push(name); continue; }
+      seen.add(key);
+      accepted.push({ id: ++snesRomSeq, file: item.file, archiveDir: archiveDir || '' });
+    }
+    state.snesRoms.push(...accepted);
+    renderSnesRoms();
+    const skippedUnsupported = (inputs || []).length - incoming.length;
+    const notices = [];
+    if (skippedUnsupported) notices.push(skippedUnsupported + ' unsupported, empty, or Mac metadata file(s) skipped');
+    if (duplicateNames.length) notices.push('duplicate destination name(s) skipped: ' + duplicateNames.join(', '));
+    if (badNames.length) notices.push('invalid Xbox filename(s) skipped: ' + badNames.join(', '));
+    els.snesArchiveStatus.hidden = false;
+    els.snesArchiveStatus.textContent = accepted.length
+      ? 'Added ' + accepted.length + ' ROM file' + (accepted.length === 1 ? '' : 's') + (notices.length ? '; ' + notices.join('; ') + '.' : '.') + ' ROM bytes will be copied unchanged, one file at a time in the numbered list order.'
+      : (incoming.length ? 'No new ROMs added. ' + (notices.join('; ') || 'The files are already listed.') + '.' : 'No supported ROM files found. Choose .sfc, .smc, .swc, or .fig files.');
+    return accepted.length;
+  }
+  function snesPresetValues(preset) {
+    return ({
+      hdd: ['Hdd1:/', 'Emus/Snes360/Roms'],
+      usb0: ['Usb0:/', 'Roms'],
+      usb1: ['Usb1:/', 'Roms'],
+      usb0legacy: ['Usb0:/', '_Emus/Snes360/Roms'],
+    })[preset] || null;
+  }
+  function snesApplyPreset() {
+    const values = snesPresetValues(els.snesFtpPreset.value);
+    if (!values) { els.snesFtpPath.focus(); return; }
+    els.snesFtpPath.value = values[0];
+    els.snesFtpRomDir.value = values[1];
+    els.snesFtpPath.dispatchEvent(new Event('input', { bubbles: true }));
+    els.snesFtpRomDir.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function snesRomDirectorySegments() {
+    const raw = els.snesFtpRomDir.value.trim();
+    const parts = raw.split(/[\\/]+/).filter(Boolean);
+    if (!raw || !parts.length || parts.some(part => part === '.' || part === '..' || part.includes(':') || /[\x00-\x1f]/.test(part))) {
+      throw new Error('Enter a safe ROM folder relative to the FTP base path, such as Emus/Snes360/Roms or Roms. Do not use . or .. path segments.');
+    }
+    return parts;
+  }
+  async function snesEnsureRemoteDirectory(segments) {
+    for (let i = 0; i < segments.length; i++) {
+      await bridgeRequest('/api/fs/mkdir', { segments: segments.slice(0, i), name: segments[i] });
+    }
+  }
+  function updateSnesEnabled() {
+    const blocked = state.snesBusy || state.archiveBusy || state.psxArchiveBatchActive;
+    const ready = state.snesRoms.length > 0;
+    const ftpReady = !!(state.ftpToken && state.snesFtpConnected);
+    els.snesChooseRomsBtn.disabled = blocked;
+    els.snesChooseArchiveBtn.disabled = blocked;
+    els.snesRomInput.disabled = blocked;
+    els.snesArchiveInput.disabled = blocked;
+    els.snesFtpConnectBtn.disabled = !state.ftpToken || state.snesBusy || state.archiveBusy;
+    els.snesUploadBtn.disabled = !ready || !ftpReady || blocked;
+    els.snesUploadBtn.textContent = state.snesBusy ? 'Uploading ROMs…' : 'Upload ' + (state.snesRoms.length || '') + (state.snesRoms.length ? ' ROM' + (state.snesRoms.length === 1 ? '' : 's') + ' unchanged' : ' ROMs unchanged');
+    els.snesDropZone.setAttribute('data-disabled', blocked ? 'true' : 'false');
+    for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskModsMode, els.taskFtpMode]) el.disabled = blocked;
+    for (const el of [els.snesFtpHost, els.snesFtpPort, els.snesFtpUser, els.snesFtpPassword, els.snesFtpPath, els.snesFtpRomDir, els.snesFtpPreset]) el.disabled = state.snesBusy;
+  }
+  async function handleSnesImport(fileList) {
+    if (state.snesBusy || state.archiveBusy) return;
+    const inputs = Array.from(fileList || []).filter(Boolean);
+    if (!inputs.length) return;
+    const archives = inputs.filter(file => /\.7z$/i.test(file.name));
+    if (archives.length) {
+      if (archives.length !== 1 || inputs.length !== 1) {
+        els.snesArchiveStatus.hidden = false;
+        els.snesArchiveStatus.textContent = 'Choose one .7z archive at a time; do not mix an archive with separate ROM files.';
+        return;
+      }
+      void startArchiveImport(archives[0], 'snes');
+      return;
+    }
+    await addSnesRoms(inputs.map(file => ({ file, path: file.webkitRelativePath || file.name })));
+  }
+  async function uploadSnesRoms() {
+    if (state.snesBusy || state.archiveBusy || !state.snesRoms.length || !state.snesFtpConnected || !state.ftpToken) return;
+    let romDirs;
+    try { romDirs = snesRomDirectorySegments(); }
+    catch (err) { els.snesArchiveStatus.hidden = false; els.snesArchiveStatus.textContent = err.message; return; }
+    state.snesBusy = true; state.snesFtpActive = true;
+    els.snesFtpLive.hidden = false;
+    els.snesFtpLive.classList.remove('is-complete', 'is-error', 'is-retry-needed');
+    els.snesFtpRetryActions.hidden = true;
+    setBarProgress(els.snesFtpLiveBar, 0, { snap: true });
+    const originals = state.snesRoms.slice();
+    const baseInput = els.snesFtpPath.value;
+    const base = baseInput.trim() ? baseInput : 'Hdd1:/';
+    const destination = base.replace(/[\\/]+$/, '') + '/' + romDirs.join('/');
+    els.snesArchiveStatus.hidden = false;
+    els.snesArchiveStatus.textContent = 'Preparing to copy ' + originals.length + ' ROM file' + (originals.length === 1 ? '' : 's') + ' unchanged to ' + destination + '/.';
+    await requestWakeLock();
+    let writer = null;
+    try {
+      await snesEnsureRemoteDirectory(romDirs);
+      for (let i = 0; i < originals.length; i++) {
+        const item = originals[i];
+        if (!state.snesRoms.some(current => current.id === item.id)) throw new Error('The ROM list changed during upload; stop and start again.');
+        els.snesFtpLiveText.textContent = 'Uploading ROM ' + (i + 1) + ' of ' + originals.length + ' (list order): ' + item.file.name + '…';
+        writer = new FTPWriter(state.ftpToken);
+        try {
+          await writer.beginFile([...romDirs, item.file.name], item.file.size);
+          const chunkSize = 8 * 1024 * 1024;
+          for (let offset = 0; offset < item.file.size; offset += chunkSize) {
+            await writer.write(item.file.slice(offset, Math.min(item.file.size, offset + chunkSize)));
+          }
+          await writer.endFile();
+          writer = null;
+        } catch (err) {
+          if (writer && writer.abort) { try { await writer.abort(err); } catch (_) {} }
+          writer = null;
+          throw err;
+        }
+      }
+      const doneWriter = new FTPWriter(state.ftpToken);
+      await doneWriter.finish();
+      setFtpLive('All SNES360 ROMs uploaded unchanged to ' + destination + '/.', 1);
+      els.snesArchiveStatus.textContent = 'Upload complete: ' + originals.length + ' ROM file' + (originals.length === 1 ? '' : 's') + ' copied unchanged to ' + destination + '/ in the numbered list order. The selected ROM list was cleared.';
+      state.snesRoms = [];
+      renderSnesRoms();
+      const cleaned = await cleanupSnesArchiveDirs();
+      if (!cleaned) els.snesArchiveStatus.textContent += ' The browser could not confirm removal of all temporary .7z data; reopening this page retries cleanup.';
+    } catch (err) {
+      if (writer && writer.abort) { try { await writer.abort(err); } catch (_) {} }
+      setFtpLive('Upload failed; the ROM selection is retained for retry. ' + (err.message || String(err)), 0);
+      els.snesArchiveStatus.textContent = 'Upload failed; your ROM list and extracted .7z files were kept for retry. ' + (err.message || String(err));
+      if (err && err.name === 'AbortError') els.snesArchiveStatus.textContent += ' Completed files remain on the Xbox; the current file was not confirmed.';
+    } finally {
+      state.snesBusy = false; state.snesFtpActive = false;
+      updateSnesEnabled();
+      await releaseWakeLockIfIdle();
+    }
+  }
+
+  els.snesChooseRomsBtn.addEventListener('click', () => { if (!state.snesBusy && !state.archiveBusy) els.snesRomInput.click(); });
+  els.snesChooseArchiveBtn.addEventListener('click', () => { if (!state.snesBusy && !state.archiveBusy) els.snesArchiveInput.click(); });
+  els.snesRomInput.addEventListener('change', () => { void handleSnesImport(Array.from(els.snesRomInput.files || [])); els.snesRomInput.value = ''; });
+  els.snesArchiveInput.addEventListener('change', () => { void handleSnesImport(Array.from(els.snesArchiveInput.files || [])); els.snesArchiveInput.value = ''; });
+  els.snesClearRomsBtn.addEventListener('click', () => { void clearSnesRoms(); });
+  els.snesDropZone.addEventListener('click', event => { if (!event.target.closest('button') && !state.snesBusy && !state.archiveBusy) els.snesRomInput.click(); });
+  els.snesDropZone.addEventListener('keydown', event => { if ((event.key === 'Enter' || event.key === ' ') && !state.snesBusy && !state.archiveBusy) { event.preventDefault(); els.snesRomInput.click(); } });
+  for (const type of ['dragenter', 'dragover']) els.snesDropZone.addEventListener(type, event => { event.preventDefault(); if (!state.snesBusy && !state.archiveBusy) els.snesDropZone.classList.add('drag-active'); });
+  for (const type of ['dragleave', 'dragend']) els.snesDropZone.addEventListener(type, () => els.snesDropZone.classList.remove('drag-active'));
+  els.snesDropZone.addEventListener('drop', async event => {
+    event.preventDefault(); els.snesDropZone.classList.remove('drag-active');
+    if (state.snesBusy || state.archiveBusy) return;
+    try {
+      const items = Array.from((event.dataTransfer && event.dataTransfer.items) || []);
+      const entries = items.map(item => item.webkitGetAsEntry ? item.webkitGetAsEntry() : null).filter(Boolean);
+      let files = Array.from((event.dataTransfer && event.dataTransfer.files) || []);
+      if (entries.some(entry => entry.isDirectory)) {
+        // Promise.all and recursive traversal preserve the browser's entry order; the visible numbered ROM list is the authoritative FTP upload order.
+        const droppedItems = (await Promise.all(entries.map(entry => readDirectoryEntry(entry, '')))).flat();
+        files = droppedItems.map(item => item.file);
+      }
+      await handleSnesImport(files);
+    } catch (err) {
+      els.snesArchiveStatus.hidden = false; els.snesArchiveStatus.textContent = 'Could not read the dropped files: ' + (err.message || String(err));
+    }
+  });
+  els.snesFtpPreset.addEventListener('change', snesApplyPreset);
+  els.snesFtpPath.addEventListener('input', () => {
+    state.snesFtpConnected = false;
+    setFtpStatus(els.snesFtpStatus, 'FTP base path changed; test the SNES360 FTP connection again.');
+    if (snesPresetValues(els.snesFtpPreset.value)?.[0] !== els.snesFtpPath.value) els.snesFtpPreset.value = 'custom';
+    updateSnesEnabled();
+  });
+  els.snesFtpRomDir.addEventListener('input', () => {
+    if (snesPresetValues(els.snesFtpPreset.value)?.[1] !== els.snesFtpRomDir.value) els.snesFtpPreset.value = 'custom';
+    updateSnesEnabled();
+  });
+  for (const el of [els.snesFtpHost, els.snesFtpPort, els.snesFtpUser, els.snesFtpPassword]) {
+    el.addEventListener('input', () => {
+      state.snesFtpConnected = false;
+      setFtpStatus(els.snesFtpStatus, 'FTP settings changed; test the SNES360 FTP connection again.');
+      if (el === els.snesFtpHost || el === els.snesFtpUser) persistIdentityOnInput('snes');
+      updateSnesEnabled();
+    });
+    el.addEventListener('keydown', event => { if (event.key === 'Enter' && state.ftpToken && !state.snesBusy) { event.preventDefault(); els.snesFtpConnectBtn.click(); } });
+  }
+  els.snesFtpPath.addEventListener('keydown', event => { if (event.key === 'Enter' && state.ftpToken && !state.snesBusy) { event.preventDefault(); els.snesFtpConnectBtn.click(); } });
+  els.snesFtpConnectBtn.addEventListener('click', async () => {
+    if (!state.ftpToken || state.snesBusy) return;
+    const baseInput = els.snesFtpPath.value;
+    const basePath = baseInput.trim() ? baseInput : 'Hdd1:/';
+    els.snesFtpConnectBtn.disabled = true;
+    setFtpStatus(els.snesFtpStatus, 'Testing FTP connection…');
+    try {
+      const r = await bridgeRequest('/api/connect', { host: els.snesFtpHost.value.trim(), port: Number(els.snesFtpPort.value || 21), user: els.snesFtpUser.value, password: els.snesFtpPassword.value, basePath });
+      state.snesFtpConnected = true; state.ftpConnected = false; state.rawFtpConnected = false; state.psxFtpConnected = false;
+      invalidateFtpManager('FTP connection is now assigned to the SNES360 uploader. Reconnect here to browse files.');
+      setFtpStatus(els.snesFtpStatus, 'Connected. Remote base: ' + r.cwd);
+      setFtpStatus(els.ftpStatus, 'A separate SNES360 uploader FTP connection is active. Test the converter FTP connection again before converting via FTP.');
+      setFtpStatus(els.rawFtpStatus, 'A separate SNES360 uploader FTP connection is active. Test the raw-file uploader connection again if needed.');
+      setFtpStatus(els.psxFtpStatus, 'A separate SNES360 uploader FTP connection is active. Test the PS1 merger FTP connection again if needed.');
+      log('Xbox FTP connection tested successfully for the SNES360 ROM uploader.');
+    } catch (err) {
+      state.snesFtpConnected = false;
+      setFtpStatus(els.snesFtpStatus, 'Not connected: ' + (err.message || String(err)));
+    } finally { updateSnesEnabled(); }
+  });
+  els.snesFtpRetryBtn.addEventListener('click', onFtpRetryClick);
+  els.snesFtpCancelBtn.addEventListener('click', () => { if (!state.ftpRetryResolver) return; log('Cancelling the paused SNES360 FTP upload…'); settleFtpRetry(false); });
+  els.snesUploadBtn.addEventListener('click', () => { void uploadSnesRoms(); });
+
+  const SNES_ROM_EXT = /\.(?:sfc|smc|swc|fig)$/i;
   const ARCHIVE_SESSION_KEY = 'nebula-iso2god-7z-opfs-dir';
   const PSX_ARCHIVE_SESSION_KEY = 'nebula-psx-7z-opfs-dirs';
+  const SNES_ARCHIVE_SESSION_KEY = 'nebula-snes-7z-opfs-dirs';
   function forgetArchiveSessionDir(name) {
     try { if (sessionStorage.getItem(ARCHIVE_SESSION_KEY) === name) sessionStorage.removeItem(ARCHIVE_SESSION_KEY); } catch (_) {}
   }
@@ -3284,10 +3638,20 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function archiveUi(kind = state.archiveKind) {
     if (kind === 'raw') return { status: els.rawArchiveStatus, progressWrap: els.rawArchiveProgressWrap, progressBar: els.rawArchiveProgressBar, cancelBtn: els.rawArchiveCancelBtn };
     if (kind === 'psx') return { status: els.psxArchiveStatus, progressWrap: els.psxArchiveProgressWrap, progressBar: els.psxArchiveProgressBar, cancelBtn: els.psxArchiveCancelBtn };
+    if (kind === 'snes') return { status: els.snesArchiveStatus, progressWrap: els.snesArchiveProgressWrap, progressBar: els.snesArchiveProgressBar, cancelBtn: els.snesArchiveCancelBtn };
     return { status: els.archiveStatus, progressWrap: els.archiveProgressWrap, progressBar: els.archiveProgressBar, cancelBtn: els.archiveCancelBtn };
   }
   function savePsxArchiveSessionDirs() {
     try { sessionStorage.setItem(PSX_ARCHIVE_SESSION_KEY, JSON.stringify(state.psxArchiveImportDirs)); } catch (_) {}
+  }
+  async function cleanupSnesArchiveDirs(names = state.snesArchiveImportDirs) {
+    const removing = [...new Set(names || [])].filter(name => /^nebula-7z-[a-z0-9-]+$/.test(name));
+    const failed = [];
+    for (const name of removing) if (!(await removeArchiveOpfsDir(name))) failed.push(name);
+    state.snesArchiveImportDirs = state.snesArchiveImportDirs.filter(name => !removing.includes(name));
+    for (const name of failed) if (!state.snesArchiveImportDirs.includes(name)) state.snesArchiveImportDirs.push(name);
+    try { sessionStorage.setItem(SNES_ARCHIVE_SESSION_KEY, JSON.stringify(state.snesArchiveImportDirs)); } catch (_) {}
+    return failed.length === 0;
   }
   async function cleanupPsxArchiveDirs(names = state.psxArchiveImportDirs) {
     const removing = [...new Set(names || [])].filter(name => /^nebula-7z-[a-z0-9-]+$/.test(name));
@@ -3312,6 +3676,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   let archiveStartupCleanup = Promise.resolve(true);
   let psxArchiveStartupCleanup = Promise.resolve(true);
+  let snesArchiveStartupCleanup = Promise.resolve(true);
   try {
     const previousDir = sessionStorage.getItem(ARCHIVE_SESSION_KEY);
     if (previousDir && /^nebula-7z-[a-z0-9-]+$/.test(previousDir)) archiveStartupCleanup = removeArchiveOpfsDir(previousDir);
@@ -3324,12 +3689,24 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       psxArchiveStartupCleanup = Promise.all(psxDirs.map(removeArchiveOpfsDir)).then(results => results.every(Boolean));
       sessionStorage.removeItem(PSX_ARCHIVE_SESSION_KEY);
     }
+    const snesDirsRaw = sessionStorage.getItem(SNES_ARCHIVE_SESSION_KEY);
+    if (snesDirsRaw) {
+      let snesDirs = [];
+      try { snesDirs = JSON.parse(snesDirsRaw); } catch (_) { snesDirs = []; }
+      if (!Array.isArray(snesDirs)) snesDirs = [];
+      snesDirs = snesDirs.filter(name => /^nebula-7z-[a-z0-9-]+$/.test(name));
+      snesArchiveStartupCleanup = Promise.all(snesDirs.map(async name => ({ name, removed: await removeArchiveOpfsDir(name) }))).then(results => {
+        const failed = results.filter(item => !item.removed).map(item => item.name);
+        try { if (failed.length) sessionStorage.setItem(SNES_ARCHIVE_SESSION_KEY, JSON.stringify(failed)); else sessionStorage.removeItem(SNES_ARCHIVE_SESSION_KEY); } catch (_) {}
+        return failed.length === 0;
+      });
+    }
   } catch (_) {}
   function setArchiveBusy(active, kind = state.archiveKind) {
     state.archiveBusy = active;
     state.archiveKind = kind;
     const controlsLocked = active || state.psxArchiveBatchActive;
-    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskModsMode, els.psxArchiveInput, els.psxArchiveBrowseBtn, els.modsFilesInput, els.modsFolderInput, els.modsChooseFilesBtn, els.modsChooseFolderBtn]) el.disabled = controlsLocked;
+    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskFtpMode, els.taskModsMode, els.psxArchiveInput, els.psxArchiveBrowseBtn, els.snesRomInput, els.snesArchiveInput, els.snesChooseRomsBtn, els.snesChooseArchiveBtn, els.snesFtpConnectBtn, els.modsFilesInput, els.modsFolderInput, els.modsChooseFilesBtn, els.modsChooseFolderBtn]) el.disabled = controlsLocked;
     const ui = archiveUi(kind);
     ui.cancelBtn.hidden = !active;
     if (active) {
@@ -3343,6 +3720,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     updateConvertEnabled();
     updatePsxEnabled();
+    updateSnesEnabled();
     if (!active) void releaseWakeLockIfIdle();
   }
   async function collectExtractedImages(dirHandle, path = '') {
@@ -3364,6 +3742,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const rel = path ? path + '/' + name : name;
       if (handle.kind === 'directory') found.push(...await collectExtractedPsxFiles(handle, rel));
       else if (handle.kind === 'file' && /\.(?:cue|bin|sbi)$/i.test(name) && name !== '.DS_Store' && !name.startsWith('._')) {
+        const file = await handle.getFile();
+        found.push({ file, path: rel });
+      }
+    }
+    return found;
+  }
+  async function collectExtractedSnesFiles(dirHandle, path = '') {
+    const found = [];
+    for await (const [name, handle] of dirHandle.entries()) {
+      const rel = path ? path + '/' + name : name;
+      if (handle.kind === 'directory') found.push(...await collectExtractedSnesFiles(handle, rel));
+      else if (handle.kind === 'file' && SNES_ROM_EXT.test(name) && name !== '.DS_Store' && !name.startsWith('._')) {
         const file = await handle.getFile();
         found.push({ file, path: rel });
       }
@@ -3405,6 +3795,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ui.status.textContent = 'Unpacked ' + usable.length + ' PS1 cue/bin/SBI file' + (usable.length === 1 ? '' : 's') + '. Other archive entries were skipped. Temporary files stay in browser storage while these games remain in the list and are removed when you clear the list, start over, or close this page. The original .7z is unchanged.';
       psxLog('Imported ' + usable.length + ' PS1 cue/bin/SBI file(s) from .7z; unrelated archive entries were skipped.');
       await addPsxInputs(usable);
+      return;
+    }
+    if (kind === 'snes') {
+      const usable = (files || []).filter(it => it && it.file && SNES_ROM_EXT.test(it.file.name)).map(it => ({ file: it.file, path: it.file.name }));
+      if (!usable.length) throw new Error('No supported SNES ROM files were found in this .7z archive.');
+      setArchiveBusy(false, kind);
+      ui.progressWrap.hidden = false; ui.progressBar.classList.remove('indeterminate'); setBarProgress(ui.progressBar, 1, { snap: true });
+      ui.status.hidden = false;
+      const added = await addSnesRoms(usable, tempDir);
+      if (added) { state.snesArchiveImportDirs.push(tempDir); try { sessionStorage.setItem(SNES_ARCHIVE_SESSION_KEY, JSON.stringify(state.snesArchiveImportDirs)); } catch (_) {} forgetArchiveSessionDir(tempDir); }
+      else await removeArchiveOpfsDir(tempDir);
+      ui.status.textContent = 'Unpacked ' + usable.length + ' supported SNES ROM file' + (usable.length === 1 ? '' : 's') + ' (' + added + ' added). Other archive entries were skipped; the original .7z is unchanged. Extracted ROMs stay in browser storage for retry, then are cleared after upload or when you clear the list.';
       return;
     }
     if (kind === 'raw') {
@@ -3457,7 +3859,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         ? 'The browser could not save the extracted XBLA/XBLIG files to site storage. Check browser storage and Mac free space; in Safari, use a regular window rather than Private Browsing.'
         : kind === 'psx'
           ? 'The browser could not save the extracted PS1 files to site storage. Check browser storage and Mac free space; allow space for the uncompressed cue/bin files and use a regular Safari window, not Private Browsing.'
-          : 'The browser could not write the extracted image to site storage. This often means the browser site-storage quota or Mac free space is too low. Check that you have space roughly equal to the uncompressed ISO plus headroom; in Safari, use a regular window (not Private Browsing).'
+          : kind === 'snes'
+            ? 'The browser could not save the extracted SNES ROMs to site storage. Check browser storage and Mac free space; use a regular browser window rather than Private Browsing.'
+            : 'The browser could not write the extracted image to site storage. This often means the browser site-storage quota or Mac free space is too low. Check that you have space roughly equal to the uncompressed ISO plus headroom; in Safari, use a regular window (not Private Browsing).'
       : rawMessage;
     ui.status.hidden = false;
     ui.status.textContent = cancelled
@@ -3517,10 +3921,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     startNextPsxArchiveBatchItem();
   }
   async function startArchiveImport(file, kind = 'iso', pathPrefix = '') {
-    if (!file || state.archiveBusy || state.converting || state.batchRunning || state.rawUploading || state.psxBusy) return;
+    if (!file || state.archiveBusy || state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.snesBusy) return;
     if (kind === 'raw' && state.taskMode !== 'raw') return;
     if (kind === 'psx' && state.taskMode !== 'psx') return;
+    if (kind === 'snes' && state.taskMode !== 'snes') return;
     if (kind === 'psx') state.psxArchivePathPrefix = pathPrefix;
+    if (kind === 'snes') await snesArchiveStartupCleanup;
     clearError();
     state.archiveKind = kind;
     const ui = archiveUi(kind);
@@ -3533,7 +3939,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ? 'Preparing local XBLA/XBLIG archive import… nothing is uploaded during extraction.'
       : kind === 'psx'
         ? 'Preparing local PS1 archive import… only cue/bin/SBI files will be unpacked.'
-        : 'Preparing local ISO archive import…';
+        : kind === 'snes'
+          ? 'Preparing local SNES ROM archive import… only supported ROMs will be unpacked; nothing is uploaded yet.'
+          : 'Preparing local ISO archive import…';
     ui.progressWrap.hidden = false;
     setBarProgress(ui.progressBar, 0, { snap: true });
     ui.progressBar.classList.add('indeterminate');
@@ -3557,8 +3965,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     const startupCleanupOk = await archiveStartupCleanup;
     const psxStartupCleanupOk = kind === 'psx' ? await psxArchiveStartupCleanup : true;
+    const snesStartupCleanupOk = kind === 'snes' ? await snesArchiveStartupCleanup : true;
     if (id !== state.archiveRequestId || !state.archiveBusy) return;
-    if (startupCleanupOk === false || psxStartupCleanupOk === false) {
+    if (startupCleanupOk === false || psxStartupCleanupOk === false || snesStartupCleanupOk === false) {
       await failArchiveImport(id, '', 'The browser could not clear temporary data from an earlier .7z import. Close this page, reopen it, and retry.', false, kind);
       return;
     }
@@ -3587,7 +3996,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     ui.status.textContent = kind === 'psx'
       ? 'Reading the 7z archive index locally… only cue/bin/SBI files will be unpacked.'
-      : 'Reading the 7z archive index locally… nothing is uploaded.';
+      : kind === 'snes'
+        ? 'Reading the 7z archive index locally… only .sfc/.smc/.swc/.fig ROM files will be unpacked.'
+        : 'Reading the 7z archive index locally… nothing is uploaded.';
     worker.onmessage = async event => {
       const msg = event.data || {};
       if (msg.id !== id || id !== state.archiveRequestId) return;
@@ -3604,7 +4015,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             ? 'Reading the archive index locally… only 8-character Title ID/000D0000 files will be unpacked; nothing is uploaded.'
             : kind === 'psx'
               ? 'Reading the archive index locally… only cue/bin/SBI files will be unpacked; unrelated entries are ignored.'
-              : 'Reading the archive index locally… large archives may take a little while. Nothing is uploaded.';
+              : kind === 'snes'
+                ? 'Reading the archive index locally… only supported SNES ROMs will be unpacked; unrelated entries are ignored.'
+                : 'Reading the archive index locally… large archives may take a little while. Nothing is uploaded.';
         } else if (msg.phase === 'extracting') {
           const total = Math.max(1, Number(msg.totalBytes) || 1);
           const done = Math.max(0, Number(msg.processedBytes) || 0);
@@ -3621,7 +4034,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             ? 'Unpacking ' + (currentFile || 'matching XBLA/XBLIG content') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no files are uploaded.'
             : kind === 'psx'
               ? 'Unpacking ' + (currentFile || 'PS1 cue/bin/SBI files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; unrelated archive entries are skipped.'
-              : 'Extracting ' + (currentFile || 'supported image files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no image data is uploaded.';
+              : kind === 'snes'
+                ? 'Unpacking ' + (currentFile || 'SNES ROM files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; unrelated archive entries are skipped.'
+                : 'Extracting ' + (currentFile || 'supported image files') + ' — ' + pct + '% (' + fmtBytes(done) + ' / ' + fmtBytes(total) + '). Local browser work; no image data is uploaded.';
         }
       } else if (msg.type === 'done') {
         worker.terminate();
@@ -3635,6 +4050,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             await finishArchiveImport(id, tempDir, files, kind);
           } else if (kind === 'psx') {
             const files = await collectExtractedPsxFiles(dir);
+            files.sort((a, b) => a.path.localeCompare(b.path));
+            await finishArchiveImport(id, tempDir, files, kind);
+          } else if (kind === 'snes') {
+            const files = await collectExtractedSnesFiles(dir);
             files.sort((a, b) => a.path.localeCompare(b.path));
             await finishArchiveImport(id, tempDir, files, kind);
           } else {
@@ -3697,6 +4116,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   els.archiveCancelBtn.addEventListener('click', cancelArchiveImport);
   els.rawArchiveCancelBtn.addEventListener('click', cancelArchiveImport);
+  els.snesArchiveCancelBtn.addEventListener('click', cancelArchiveImport);
   els.psxArchiveCancelBtn.addEventListener('click', () => {
     if (state.psxArchiveBatchActive) {
       state.psxArchiveBatchCancelled = true;
@@ -3851,6 +4271,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } else if (state.converting && state.outputMode === 'ftp') {
       positionCompletionUfo('overallBar', state.lastOverall || 0);
     }
+    if (state.snesFtpActive) {
+      els.snesFtpLive.hidden = false;
+      setTextIfChanged(els.snesFtpLiveText, message);
+      const snesDone = message.startsWith('All SNES360 ROMs uploaded');
+      els.snesFtpLive.classList.toggle('is-complete', snesDone);
+      els.snesFtpLive.classList.toggle('is-error', /failed|could not|error|stopped/i.test(message));
+      setBarProgress(els.snesFtpLiveBar, pct / 100);
+      if (message.startsWith('FTP connection failed')) els.snesFtpRetryActions.hidden = false;
+    }
     if (state.psxFtpActive) {
       els.psxLive.hidden = false;
       els.psxMergeLive.hidden = true;
@@ -3871,6 +4300,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function setFtpStatus(el, message) {
     el.textContent = message;
     el.classList.toggle('is-connected', message.startsWith('Connected. Remote base:'));
+    if (el === els.snesFtpStatus) el.classList.toggle('is-error', /^(?:Not connected:|FTP requires the local helper)/.test(message));
   }
   function clearFtpRetryPrompt() {
     state.ftpRetryPending = false;
@@ -3878,9 +4308,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.rawFtpRetryBtn.hidden = false; els.rawFtpRetryBtn.disabled = false;
     els.rawFtpCancelBtn.disabled = false; els.rawFtpRetryActions.hidden = true;
     els.psxFtpRetryBtn.disabled = false; els.psxFtpCancelBtn.disabled = false; els.psxFtpRetryActions.hidden = true;
+    els.snesFtpRetryBtn.disabled = false; els.snesFtpCancelBtn.disabled = false; els.snesFtpRetryActions.hidden = true;
     els.ftpLive.classList.remove('is-retry-needed');
     els.rawFtpLive.classList.remove('is-retry-needed');
     els.psxFtpLive.classList.remove('is-retry-needed');
+    els.snesFtpLive.classList.remove('is-retry-needed');
   }
   function settleFtpRetry(shouldRetry) {
     const resolve = state.ftpRetryResolver;
@@ -3891,7 +4323,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function onFtpRetryClick() {
     if (!state.ftpRetryResolver) return;
-    els.ftpRetryBtn.disabled = true; els.rawFtpRetryBtn.disabled = true; els.rawFtpCancelBtn.disabled = true; els.psxFtpRetryBtn.disabled = true; els.psxFtpCancelBtn.disabled = true;
+    els.ftpRetryBtn.disabled = true; els.rawFtpRetryBtn.disabled = true; els.rawFtpCancelBtn.disabled = true; els.psxFtpRetryBtn.disabled = true; els.psxFtpCancelBtn.disabled = true; els.snesFtpRetryBtn.disabled = true; els.snesFtpCancelBtn.disabled = true;
     setFtpLive('Retrying the failed file from its staged copy on this computer…', 0);
     els.phaseLabel.textContent = 'Resuming FTP transfer…';
     log('Retrying the interrupted FTP file from the local staged copy; completed Xbox files are being kept.');
@@ -3923,9 +4355,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.ftpConnected = true;
       state.rawFtpConnected = false;
       state.psxFtpConnected = false;
+      state.snesFtpConnected = false;
       invalidateFtpManager('FTP connection is now assigned to the ISO tool. Reconnect here to browse files.');
       setFtpStatus(els.ftpStatus, 'Connected. Remote base: ' + r.cwd);
       setFtpStatus(els.rawFtpStatus, 'The FTP connection settings changed; test the raw-file uploader connection again if needed.');
+      setFtpStatus(els.snesFtpStatus, 'A separate ISO FTP connection is active. Test the SNES360 connection again if needed.');
       log('Xbox FTP connection tested successfully.');
     } catch (err) {
       state.ftpConnected = false;
@@ -3955,9 +4389,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.rawFtpConnected = true;
       state.ftpConnected = false;
       state.psxFtpConnected = false;
+      state.snesFtpConnected = false;
       invalidateFtpManager('FTP connection is now assigned to the XBLA uploader. Reconnect here to browse files.');
       setFtpStatus(els.rawFtpStatus, 'Connected. Remote base: ' + r.cwd);
       setFtpStatus(els.ftpStatus, 'A separate raw-file FTP connection is active. Test the converter FTP connection again before converting via FTP.');
+      setFtpStatus(els.snesFtpStatus, 'A separate raw-file FTP connection is active. Test the SNES360 connection again if needed.');
       log('Xbox FTP connection tested for existing content-file upload.');
     } catch (err) {
       state.rawFtpConnected = false;
@@ -4143,6 +4579,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.rawFtpRetryBtn.disabled = false; els.rawFtpCancelBtn.disabled = false;
       els.rawFtpRetryActions.hidden = false;
     }
+    if (state.snesFtpActive) {
+      els.snesFtpLive.classList.add('is-retry-needed');
+      els.snesFtpRetryBtn.disabled = false; els.snesFtpCancelBtn.disabled = false;
+      els.snesFtpRetryActions.hidden = false;
+    }
     if (state.psxFtpActive) {
       els.psxFtpLive.classList.add('is-retry-needed');
       els.psxFtpRetryBtn.disabled = false; els.psxFtpCancelBtn.disabled = false;
@@ -4291,7 +4732,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const kind = isError || /failed|stopped|could not|error/.test(lower) ? 'is-error'
       : /^deleting\b/.test(lower) ? 'is-deleting'
       : /^uploading\b/.test(lower) ? 'is-uploading'
-      : /\b(connecting|reading|refreshing|creating|importing)\b/.test(lower) ? 'is-working'
+      : /\b(connecting|opening|reading|refreshing|creating|importing)\b/.test(lower) ? 'is-working'
       : /^(uploaded|deleted|imported|created)\b/.test(lower) ? 'is-success'
       : '';
     els.ftpManagerActivity.textContent = text;
@@ -4313,9 +4754,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function managerSetBusy(busy) {
     state.ftpManagerBusy = !!busy;
     for (const el of [els.ftpManagerHost, els.ftpManagerPort, els.ftpManagerUser, els.ftpManagerPassword, els.ftpManagerBasePath, els.ftpManagerRemember]) el.disabled = !!busy;
-    for (const el of [els.ftpManagerUpBtn, els.ftpManagerRefreshBtn, els.ftpManagerBackBtn, els.ftpManagerForwardBtn, els.ftpManagerMkdirBtn, els.ftpManagerUploadBtn, els.ftpManagerUploadFolderBtn, els.ftpManagerDownloadBtn, els.ftpManagerDeleteBtn, els.ftpManagerFilesInput, els.ftpManagerFolderInput, els.ftpManagerSelectAll, els.ftpManagerSearch]) el.disabled = !!busy || !state.ftpManagerConnected;
+    for (const el of [els.ftpManagerUpBtn, els.ftpManagerRefreshBtn, els.ftpManagerBackBtn, els.ftpManagerForwardBtn, els.ftpManagerMkdirBtn, els.ftpManagerUploadBtn, els.ftpManagerUploadFolderBtn, els.ftpManagerDownloadBtn, els.ftpManagerDeleteBtn, els.ftpManagerFilesInput, els.ftpManagerFolderInput, els.ftpManagerSelectAll, els.ftpManagerSearch, els.ftpManagerJumpPath, els.ftpManagerJumpBtn]) el.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerConnectBtn.disabled = !!busy || !state.ftpToken;
-    for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskFtpMode]) el.disabled = !!busy;
+    for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskFtpMode]) el.disabled = !!busy;
     els.ftpManagerUseIsoBtn.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerUseXblaBtn.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerUsePs1Btn.disabled = !!busy || !state.ftpManagerConnected;
@@ -4368,6 +4809,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     });
     els.ftpManagerUpBtn.disabled = state.ftpManagerBusy || !state.ftpManagerConnected || !state.ftpManagerSegments.length;
     els.ftpManagerLocation.textContent = state.ftpManagerCwd || managerCurrentPath();
+    if (els.ftpManagerJumpPath && document.activeElement !== els.ftpManagerJumpPath) els.ftpManagerJumpPath.value = state.ftpManagerSegments.join('/');
   }
   function managerVisibleEntries() {
     const query = String(els.ftpManagerSearch.value || '').trim().toLocaleLowerCase();
@@ -4400,7 +4842,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const nameCell = document.createElement('td');
       if (entry.type === 'dir') {
         const open = document.createElement('button');
-        open.type = 'button'; open.className = 'ftp-manager-name is-dir'; open.textContent = '📁 ' + entry.name;
+        open.type = 'button'; open.className = 'ftp-manager-name is-dir'; open.textContent = '📁 ' + entry.name + '  ›';
+        open.title = 'Open folder (empty folders are openable too)';
+        open.setAttribute('aria-label', 'Open folder ' + entry.name);
         open.addEventListener('click', () => managerNavigate([...state.ftpManagerSegments, entry.name]));
         nameCell.appendChild(open);
       } else {
@@ -4427,7 +4871,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ? ''
       : (String(els.ftpManagerSearch.value || '').trim()
         ? 'No files or folders match “' + String(els.ftpManagerSearch.value).trim() + '” in this folder.'
-        : 'This folder is empty.');
+        : 'This folder is empty. You can still upload files/folders here using the buttons above or the drop area.');
     managerRenderBreadcrumbs();
     managerUpdateSelectionControls();
   }
@@ -4464,6 +4908,40 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     try { await managerRefresh(); }
     catch (err) { managerSetActivity('Could not read folder: ' + (err.message || String(err)), true); }
     finally { managerSetBusy(false); managerUpdateSelectionControls(); }
+  }
+  function managerJumpPathSegments(raw) {
+    const value = String(raw || '').trim();
+    if (!value) return [];
+    if (value.startsWith('/') || /^[A-Za-z]:/.test(value)) throw new Error('Enter a path relative to the configured starting folder, not an absolute drive path.');
+    const parts = value.replace(/\\/g, '/').split('/').filter(Boolean);
+    if (parts.some(part => part === '.' || part === '..' || part.includes(':') || Array.from(part).some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127))) {
+      throw new Error('The path contains an invalid or unsafe folder segment.');
+    }
+    return parts;
+  }
+  async function managerOpenPath() {
+    if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
+    let segments;
+    try { segments = managerJumpPathSegments(els.ftpManagerJumpPath.value); }
+    catch (err) { managerSetActivity('Could not open folder: ' + err.message, true); return; }
+    managerSetBusy(true);
+    managerSetActivity('Opening folder path…');
+    try {
+      const result = await bridgeRequest('/api/fs/list', { segments });
+      managerRecordNavigation(segments);
+      state.ftpManagerSegments = segments.slice();
+      state.ftpManagerCwd = result.cwd || managerCurrentPath();
+      state.ftpManagerEntries = Array.isArray(result.entries) ? result.entries : [];
+      state.ftpManagerSelected.clear();
+      els.ftpManagerSearch.value = '';
+      managerRenderEntries();
+      managerUpdateFolderSummary();
+    } catch (err) {
+      managerSetActivity('Could not open folder path: ' + (err.message || String(err)), true);
+    } finally {
+      managerSetBusy(false);
+      managerUpdateSelectionControls();
+    }
   }
   async function managerNavigateHistory(delta) {
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
@@ -4511,10 +4989,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.ftpManagerHistoryIndex = 0;
       state.ftpManagerCwd = result.cwd || basePath;
       state.ftpManagerConnected = true;
-      state.ftpConnected = false; state.rawFtpConnected = false; state.psxFtpConnected = false;
+      state.ftpConnected = false; state.rawFtpConnected = false; state.psxFtpConnected = false; state.snesFtpConnected = false;
       setFtpStatus(els.ftpStatus, 'FTP settings changed by the file manager; test the ISO connection again before uploading.');
       setFtpStatus(els.rawFtpStatus, 'FTP settings changed by the file manager; test the XBLA connection again before uploading.');
       setFtpStatus(els.psxFtpStatus, 'FTP settings changed by the file manager; test the PS1 connection again before uploading.');
+      setFtpStatus(els.snesFtpStatus, 'FTP settings changed by the file manager; test the SNES360 connection again before uploading.');
       els.ftpManagerStatus.textContent = 'Connected. Remote base: ' + result.cwd;
       els.ftpManagerStatus.classList.add('is-connected');
       els.ftpManagerBrowser.hidden = false;
@@ -4534,10 +5013,32 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
     const name = window.prompt('New folder name:');
     if (name == null) return;
+    if (!name.trim() || name === '.' || name === '..' || name.includes('/') || name.includes('\\') || /[\x00-\x1f\x7f]/.test(name)) {
+      managerSetActivity('Enter one valid folder name without slashes or control characters.', true);
+      return;
+    }
+    const nextSegments = [...state.ftpManagerSegments, name];
     managerSetBusy(true); managerSetActivity('Creating folder…');
     try {
-      await bridgeRequest('/api/fs/mkdir', { segments: state.ftpManagerSegments, name });
-      await managerRefresh(); managerSetActivity('Created folder "' + name + '".');
+      const result = await bridgeRequest('/api/fs/mkdir', { segments: state.ftpManagerSegments, name });
+      try {
+        // Open by path immediately so an empty directory is usable even when the FTP server omits it from the parent listing.
+        const listing = await bridgeRequest('/api/fs/list', { segments: nextSegments });
+        managerRecordNavigation(nextSegments);
+        state.ftpManagerSegments = nextSegments;
+        state.ftpManagerCwd = listing.cwd || managerCurrentPath();
+        state.ftpManagerEntries = Array.isArray(listing.entries) ? listing.entries : [];
+        state.ftpManagerSelected.clear();
+        els.ftpManagerSearch.value = '';
+        managerRenderEntries();
+        managerUpdateFolderSummary();
+        managerSetActivity(result && result.created === false
+          ? 'That folder already existed; opened it. Upload files or drop a folder here to add files.'
+          : 'Created and opened folder "' + name + '". Upload files or drop a folder here to add files.');
+      } catch (openErr) {
+        try { await managerRefresh(); } catch (_) {}
+        managerSetActivity('Folder "' + name + '" was created, but could not be opened: ' + (openErr.message || String(openErr)), true);
+      }
     } catch (err) { managerSetActivity('Could not create folder: ' + (err.message || String(err)), true); }
     finally { managerSetBusy(false); managerUpdateSelectionControls(); }
   }
@@ -4700,6 +5201,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       invalidateFtpManager('Connection settings changed; reconnect to refresh the remote directory.');
     });
   }
+  els.ftpManagerJumpBtn.addEventListener('click', managerOpenPath);
+  els.ftpManagerJumpPath.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); managerOpenPath(); } });
   els.ftpManagerUpBtn.addEventListener('click', () => managerNavigate(state.ftpManagerSegments.slice(0, -1)));
   els.ftpManagerBackBtn.addEventListener('click', () => managerNavigateHistory(-1));
   els.ftpManagerForwardBtn.addEventListener('click', () => managerNavigateHistory(1));
@@ -5559,10 +6062,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.psxFtpConnected = true;
       state.ftpConnected = false;
       state.rawFtpConnected = false;
+      state.snesFtpConnected = false;
       invalidateFtpManager('FTP connection is now assigned to the PS1 tool. Reconnect here to browse files.');
       setFtpStatus(els.psxFtpStatus, 'Connected. Remote base: ' + r.cwd);
       setFtpStatus(els.ftpStatus, 'A separate PS1-merger FTP connection is active. Test the converter FTP connection again before converting via FTP.');
       setFtpStatus(els.rawFtpStatus, 'A separate PS1-merger FTP connection is active. Test the raw-file uploader connection again if needed.');
+      setFtpStatus(els.snesFtpStatus, 'A separate PS1-merger FTP connection is active. Test the SNES360 connection again if needed.');
       psxLog('Xbox FTP connection tested successfully for the PS1 merger.');
       updateConvertEnabled();
     } catch (err) {
@@ -5608,13 +6113,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function updatePsxEnabled() {
     syncWorkingMotionState();
     const ready = state.psxJobs.some(j => j.status === 'ready');
-    let ok = ready && !state.psxBusy && !state.converting && !state.batchRunning && !state.rawUploading && !state.archiveBusy && !state.psxArchiveBatchActive;
+    let ok = ready && !state.psxBusy && !state.converting && !state.batchRunning && !state.rawUploading && !state.snesBusy && !state.archiveBusy && !state.psxArchiveBatchActive;
     let hint = '';
     if (ok && state.psxOutputMode === 'folder' && !state.psxDirHandle) { ok = false; hint = 'Choose an output folder first.'; }
     if (ok && state.psxOutputMode === 'ftp' && !state.psxFtpConnected) { ok = false; hint = 'Test the Xbox FTP connection first.'; }
     els.psxMergeBtn.disabled = !ok;
     els.psxMergeBtn.textContent = state.psxBusy ? 'Merging…' : (hint || psxMergeLabel());
-    const selDisabled = state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive;
+    const selDisabled = state.psxBusy || state.snesBusy || state.archiveBusy || state.psxArchiveBatchActive;
     for (const el of [els.psxFolderInput, els.psxFilesInput, els.psxArchiveInput, els.psxCoverFilesInput, els.psxChooseFolderBtn, els.psxChooseFilesBtn, els.psxArchiveBrowseBtn, els.psxChooseCoverFilesBtn, els.psxClearCoverFilesBtn, els.psxClearJobsBtn, els.psxResetBtn, els.psxChooseOutputFolderBtn]) el.disabled = selDisabled;
     els.psxClearCoverFilesBtn.disabled = selDisabled || !state.psxLocalCoverFiles.length;
     els.psxDropZone.setAttribute('data-disabled', selDisabled ? 'true' : 'false');
@@ -6741,7 +7246,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   updatePsxEnabled();
   /* ---------------- conversion ---------------- */
   function shouldKeepScreenAwake() {
-    return !!(state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.archiveBusy || state.psxArchiveBatchActive);
+    return !!(state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.snesBusy || state.archiveBusy || state.psxArchiveBatchActive);
   }
   let wakeLockRequest = null;
   async function requestWakeLock() {
@@ -6783,7 +7288,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   });
   window.addEventListener('beforeunload', (e) => {
-    if (state.converting || state.batchRunning || state.archiveBusy || state.psxArchiveBatchActive || state.rawUploading || state.psxBusy) { e.preventDefault(); e.returnValue = ''; }
+    if (state.converting || state.batchRunning || state.archiveBusy || state.psxArchiveBatchActive || state.rawUploading || state.psxBusy || state.snesBusy) { e.preventDefault(); e.returnValue = ''; }
   });
   window.addEventListener('pagehide', (e) => {
     if (e.persisted) return;
@@ -6794,6 +7299,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     void cleanupArchiveImports();
     void cleanupRawArchiveDirs(state.rawArchiveImportDirs.slice());
     void cleanupPsxArchiveDirs(state.psxArchiveImportDirs.slice());
+    void cleanupSnesArchiveDirs(state.snesArchiveImportDirs.slice());
   });
 
   function onProgress(p) {
@@ -7328,7 +7834,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
     }
     function frame(t) {
-      const busy = state.converting || state.batchRunning || state.archiveBusy || state.rawUploading || state.psxBusy;
+      const busy = state.converting || state.batchRunning || state.archiveBusy || state.rawUploading || state.psxBusy || state.snesBusy;
       const paintInterval = busy && t >= showerUntil ? 1000 / 12 : 1000 / 30;
       if (t - lastPaint < paintInterval) { raf = requestAnimationFrame(frame); return; }
       const dt = Math.min(0.05, (t - last) / 1000 || 0);
@@ -7372,30 +7878,36 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.ftpConnectBtn.disabled = false;
       els.rawFtpConnectBtn.disabled = false;
       els.psxFtpConnectBtn.disabled = false;
+      els.snesFtpConnectBtn.disabled = false;
       els.ftpManagerConnectBtn.disabled = false;
       setFtpStatus(els.ftpStatus, 'Local helper ready. Enter the Xbox FTP settings and test the connection.');
       els.ftpManagerStatus.textContent = 'Local helper ready. Enter the Xbox FTP settings and connect to browse.';
       setFtpStatus(els.rawFtpStatus, 'Local helper ready. Enter the Xbox FTP settings below and test the connection.');
       setFtpStatus(els.psxFtpStatus, 'Local helper ready. Enter the Xbox FTP settings below and test the connection.');
+      setFtpStatus(els.snesFtpStatus, 'Local helper ready. Enter the Xbox FTP settings above and test the connection.');
     } else {
       els.ftpConnectBtn.disabled = true;
       els.rawFtpConnectBtn.disabled = true;
       els.psxFtpConnectBtn.disabled = true;
+      els.snesFtpConnectBtn.disabled = true;
       els.ftpManagerConnectBtn.disabled = true;
       els.ftpManagerStatus.textContent = 'FTP requires the local helper; start ftp_helper.py and use its local page.';
       setFtpStatus(els.ftpStatus, 'FTP requires the local helper; start ftp_helper.py and use its local page.');
       setFtpStatus(els.rawFtpStatus, 'FTP requires the local helper; start it and use its local page.');
       setFtpStatus(els.psxFtpStatus, 'FTP requires the local helper; start it and use its local page.');
+      setFtpStatus(els.snesFtpStatus, 'FTP requires the local helper; start it and use its local page.');
     }
   }).catch(() => {
     els.ftpConnectBtn.disabled = true;
     els.rawFtpConnectBtn.disabled = true;
     els.psxFtpConnectBtn.disabled = true;
+    els.snesFtpConnectBtn.disabled = true;
     els.ftpManagerConnectBtn.disabled = true;
     els.ftpManagerStatus.textContent = 'FTP requires the local helper; start ftp_helper.py and use its local page.';
     setFtpStatus(els.ftpStatus, 'FTP requires the local helper; start ftp_helper.py and use its local page.');
     setFtpStatus(els.rawFtpStatus, 'FTP requires the local helper; start it and use its local page.');
     setFtpStatus(els.psxFtpStatus, 'FTP requires the local helper; start it and use its local page.');
+    setFtpStatus(els.snesFtpStatus, 'FTP requires the local helper; start it and use its local page.');
   });
   updateConvertEnabled();
   initStarfield();

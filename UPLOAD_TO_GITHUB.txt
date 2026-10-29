@@ -6,7 +6,7 @@ Upload through GitHub's website (no GitHub Desktop required):
 1. Download and extract this archive on your computer.
 2. Open https://github.com/Lucas1279/nebula-iso2god and select the branch used by GitHub Pages.
 3. Choose Add file → Upload files.
-4. Upload the extracted files and folders into the repository root, replacing the matching files. Keep the complete vendor/ folder and the three linked ZIP download assets.
+4. Upload the extracted files and folders into the repository root, replacing the matching files. Keep the complete vendor/ folder and the four linked ZIP download assets.
 5. Commit the changes to that branch. Do not upload this outer full-build ZIP as the only file.
 6. Wait for GitHub Pages to redeploy at https://lucas1279.github.io/nebula-iso2god/.
 
