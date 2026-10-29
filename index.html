@@ -118,6 +118,15 @@ input[type=text]:focus,input[type=password]:focus{outline:2px solid rgba(110,231
 .radio-card .h{font-weight:800}.radio-card .d{display:block;color:var(--muted);font-size:.87rem;margin-top:5px}
 .check{display:flex; gap:10px; align-items:flex-start; margin-top:14px; line-height:1.5; cursor:pointer}
 .check input{margin-top:3px; width:18px;height:18px; accent-color:#67e8f9}
+#ftpManagerRemember,#rememberFtpSnes{appearance:none;display:grid;place-content:center;flex:0 0 18px;width:18px;height:18px;margin-top:3px;border:1px solid rgba(145,170,255,.62);border-radius:5px;background:linear-gradient(180deg,rgba(9,14,34,.96),rgba(4,8,24,.96));accent-color:transparent;cursor:pointer}
+#ftpManagerRemember::before,#rememberFtpSnes::before{content:"";width:8px;height:4px;border-left:2px solid #071022;border-bottom:2px solid #071022;transform:rotate(-45deg) scale(0);transition:transform .12s ease}
+#ftpManagerRemember:checked,#rememberFtpSnes:checked{border-color:#67e8f9;background:linear-gradient(135deg,#67e8f9,#a5b4fc)}
+#ftpManagerRemember:checked::before,#rememberFtpSnes:checked::before{transform:rotate(-45deg) scale(1)}
+#ftpManagerRemember:focus-visible,#rememberFtpSnes:focus-visible{outline:2px solid #7dd3fc;outline-offset:3px}
+#ftpManagerRemember:disabled,#rememberFtpSnes:disabled{opacity:.65;cursor:not-allowed}
+input:autofill,input:autofill:hover,input:autofill:focus,input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active{-webkit-text-fill-color:var(--text)!important;-webkit-box-shadow:0 0 0 1000px rgba(4,8,24,.98) inset!important;box-shadow:0 0 0 1000px rgba(4,8,24,.98) inset!important;background-color:rgba(4,8,24,.98)!important;background-image:none!important;caret-color:var(--text)!important;border-color:var(--line)!important;transition:background-color 99999s ease-in-out 0s}
+#psxFtpPathPreset,#snesFtpPreset{-webkit-appearance:none;appearance:none;color-scheme:dark;background-color:rgba(4,8,24,.96)!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m3 6 5 5 5-5' fill='none' stroke='%23b9c5ff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 14px center!important;background-size:16px 16px!important;padding-right:40px!important}
+#psxFtpPathPreset option,#snesFtpPreset option{background:#080d20;color:#f1f4ff}
 .mode-row{display:flex; flex-wrap:wrap; gap:9px; margin-top:9px}
 .mode-btn{flex:1 1 190px; text-align:left; border-radius:15px; border:1px solid var(--line); background:rgba(8,12,34,.62); color:var(--text); padding:13px 14px; cursor:pointer; line-height:1.45;transition:border-color .2s,box-shadow .24s,transform .2s,background .24s}
 .mode-btn b{display:block; font-size:.99rem}.mode-btn span{color:var(--muted); font-size:.85rem}
@@ -212,8 +221,8 @@ footer a{color:#9edcff}
 #psxErrorBox{white-space:pre-wrap; line-height:1.55; margin-top:16px; padding:14px 16px; border-radius:14px; color:#ffd7de; background:rgba(90,12,32,.5); border:1px solid rgba(255,122,144,.55)}
 .logbox{margin-top:14px; max-height:230px; overflow:auto; padding:13px 14px; border-radius:13px; background:rgba(1,4,14,.88); border:1px solid rgba(110,150,255,.18); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.79rem; line-height:1.55; color:#a9f0cf}
 #psxFtpStatus,#psxFtpLiveText,#psxOverallLiveText,#psxLiveText{min-width:0;overflow-wrap:anywhere}
-#psxFtpPathPreset{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:rgba(4,8,24,.8);color:var(--text);font-size:1rem}
-#psxFtpPathPreset:focus{outline:2px solid rgba(110,231,255,.6);outline-offset:1px}
+#psxFtpPathPreset,#snesFtpPreset{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:rgba(4,8,24,.8);color:var(--text);font-size:1rem}
+#psxFtpPathPreset:focus,#snesFtpPreset:focus{outline:2px solid rgba(110,231,255,.6);outline-offset:1px}
 #psxFtpLive.is-retry-needed{padding:12px;border:1px solid rgba(251,191,36,.65);border-radius:12px;background:rgba(120,80,0,.15)}
 #psxFtpRetryActions[hidden]{display:none}
 #psxFtpStatus.is-connected{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-size:1rem;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12);overflow-wrap:anywhere}
@@ -368,7 +377,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.4 · build 2026-10-29</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.6 · build 2026-10-29</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -449,7 +458,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
         <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
-          <div class="big" aria-hidden="true">📂</div><div class="t">Drop multiple files or a folder here</div><div class="s">Any file type uploads unchanged into the current Xbox folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Existing same-named files may be replaced.</div>
+          <div class="big" aria-hidden="true">📂</div><div class="t">Drop multiple files or a folder here</div><div class="s">Any file type uploads unchanged into the current Xbox folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. ROM bytes are copied unchanged. Xbox FATX filename limits are handled automatically: names over 42 characters are shortened only on the console, while your local files and names stay untouched. Existing same-named files may be replaced.</div>
         </div>
         <div class="setup" id="ftpManagerArchiveProgressWrap" hidden style="margin-top:10px">
           <div class="bar-wrap thin"><div class="bar thin" id="ftpManagerArchiveProgressBar" style="width:0%"></div></div>
@@ -881,25 +890,25 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
         <div class="muted tiny" style="margin-top:8px">Temporary FTP staging files are removed after success, cancel, or helper shutdown. A failed file is retained only while Retry is available. FTP is unencrypted—use only on your trusted home network.</div>
       </div>
       <div class="setup" style="margin-top:12px"><strong>Xbox FTP connection and destination (same home network only)</strong>
-        <p class="muted small" style="margin:5px 0 10px;line-height:1.55">The selected destination is <code>Usb1/Snes360/Roms</code>: FTP base path <code>Usb1</code> plus folder <code>Snes360/Roms</code>. Both fields are editable; the app creates any missing folders. Make sure your SNES360 setup scans/maps this location. Existing same-named files may be replaced.</p>
+        <p class="muted small" style="margin:5px 0 10px;line-height:1.55">The selected destination is <code>usb1/emulators/Snes360/Roms</code>: FTP base path <code>usb1/</code> plus folder <code>emulators/Snes360/Roms</code>. Both fields are editable; the app creates any missing folders. Make sure your SNES360 setup scans/maps this location. Existing same-named files may be replaced.</p>
         <div class="grid2">
           <div><label class="f" for="snesFtpHost">Xbox IP address</label><input id="snesFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
           <div><label class="f" for="snesFtpPort">FTP port</label><input id="snesFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
           <div><label class="f" for="snesFtpUser">FTP username</label><input id="snesFtpUser" type="text" placeholder="Check Aurora/FreeStyle FTP settings" autocomplete="off"></div>
           <div><label class="f" for="snesFtpPassword">FTP password</label><input id="snesFtpPassword" type="password" autocomplete="off"></div>
-          <div style="grid-column:1/-1"><label class="f" for="snesFtpPreset">Quick destination preset <span class="muted">(optional)</span></label><select id="snesFtpPreset"><option value="usb1" selected>USB1 — Usb1/Snes360/Roms</option><option value="hdd">HDD — Hdd1:/Emus/Snes360/Roms</option><option value="usb0">USB0 — Usb0:/Roms</option><option value="usb0legacy">USB0 legacy — Usb0:/_Emus/Snes360/Roms</option><option value="custom">Custom path (type below)</option></select><div class="muted tiny">Selecting a preset fills the editable base path and folder fields below.</div></div>
-          <div><label class="f" for="snesFtpPath">Xbox FTP base path</label><input id="snesFtpPath" type="text" value="Usb1" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
-          <div><label class="f" for="snesFtpRomDir">ROM folder under base path</label><input id="snesFtpRomDir" type="text" value="Snes360/Roms" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+          <div style="grid-column:1/-1"><label class="f" for="snesFtpPreset">Quick destination preset <span class="muted">(optional)</span></label><select id="snesFtpPreset"><option value="usb1emu" selected>USB1 — usb1/emulators/Snes360/Roms</option><option value="usb1">USB1 root — Usb1/Snes360/Roms</option><option value="hdd">HDD — Hdd1:/Emus/Snes360/Roms</option><option value="usb0">USB0 — Usb0:/Roms</option><option value="usb0legacy">USB0 legacy — Usb0:/_Emus/Snes360/Roms</option><option value="custom">Custom path (type below)</option></select><div class="muted tiny">Selecting a preset fills the editable base path and folder fields below.</div></div>
+          <div><label class="f" for="snesFtpPath">Xbox FTP base path</label><input id="snesFtpPath" type="text" value="usb1/" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+          <div><label class="f" for="snesFtpRomDir">ROM folder under base path</label><input id="snesFtpRomDir" type="text" value="emulators/Snes360/Roms" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
         </div>
         <label class="check" style="margin-top:10px"><input id="rememberFtpSnes" type="checkbox"><span>Remember Xbox IP and FTP username on this device (password is not saved)</span></label>
-        <div class="btn-row"><button class="btn" id="snesFtpConnectBtn" type="button">Test Xbox FTP connection</button><button class="btn primary" id="snesUploadBtn" type="button" disabled>Upload ROMs unchanged</button></div>
+        <div class="btn-row"><button class="btn" id="snesFtpConnectBtn" type="button">Test Xbox FTP connection</button><button class="btn primary" id="snesUploadBtn" type="button" disabled>Upload ROMs (data unchanged)</button></div>
         <div id="snesFtpStatus" class="muted small" aria-live="polite" style="margin-top:9px"></div>
         <div id="snesFtpLive" hidden>
           <div class="bar-wrap thin"><div class="bar thin ftp-transfer-bar" id="snesFtpLiveBar" style="width:0%"></div></div>
           <div class="muted small" id="snesFtpLiveText" aria-live="polite" style="margin-top:8px;overflow-wrap:anywhere"></div>
           <div class="btn-row ftp-retry-actions" id="snesFtpRetryActions" hidden><button class="btn small primary ftp-retry-btn" id="snesFtpRetryBtn" type="button">Retry file &amp; continue</button><button class="btn small danger" id="snesFtpCancelBtn" type="button">Cancel this upload</button></div>
         </div>
-        <div class="muted tiny" style="margin-top:8px">SNES360 scans ROMs in its configured ROM folder. If you choose a non-standard drive/path, make sure the console can access it (some v0.32 setups use <code>MappedDrive</code> entries in <code>settings.xml</code>).</div>
+        <div class="muted tiny" style="margin-top:8px">SNES360 scans ROMs in its configured ROM folder. If you choose a non-standard drive/path, make sure the console can access it (some v0.32 setups use <code>MappedDrive</code> entries in <code>settings.xml</code>). Names longer than the Xbox FATX 42-character limit are automatically shortened for the Xbox copy; the original local filename and ROM bytes are preserved.</div>
       </div>
     </section>
     <details class="faq">
@@ -962,7 +971,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.4 · build 2026-10-29</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.6 · build 2026-10-29</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -3334,13 +3343,48 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   });
 
   let snesRomSeq = 0;
+  const SNES_FATX_MAX_FILENAME = 42;
   function snesRomNameSafe(name) {
     return !!name && name !== '.' && name !== '..' && !/[<>:"\/\\|?*\x00-\x1f]/.test(name) && !/[ .]$/.test(name);
   }
+  function snesTakeFilenameUnits(text, maxUnits) {
+    let out = '', used = 0;
+    for (const ch of text) {
+      if (used + ch.length > maxUnits) break;
+      out += ch; used += ch.length;
+    }
+    return out;
+  }
+  function snesTrimXboxFilename(name, suffix = '') {
+    const dot = name.lastIndexOf('.');
+    const ext = dot > 0 ? name.slice(dot) : '';
+    const stem = dot > 0 ? name.slice(0, dot) : name;
+    const room = Math.max(1, SNES_FATX_MAX_FILENAME - ext.length - suffix.length);
+    const tagMatch = stem.match(/(?:\s+\([^()]*\))+$/);
+    const trailingTag = tagMatch && tagMatch[0].length <= room - 8 ? tagMatch[0] : '';
+    const title = trailingTag ? stem.slice(0, -trailingTag.length) : stem;
+    let shortStem = snesTakeFilenameUnits(title, Math.max(1, room - trailingTag.length)).replace(/[ .]+$/g, '');
+    if (!shortStem) shortStem = snesTakeFilenameUnits(title, 1) || '_';
+    return shortStem + trailingTag + suffix + ext;
+  }
+  function snesPlanXboxNames(items) {
+    const reserved = new Set(items.filter(item => item.file.name.length <= SNES_FATX_MAX_FILENAME).map(item => item.file.name.toLocaleLowerCase()));
+    const used = new Set(reserved), result = new Map();
+    for (const item of items) {
+      const original = item.file.name;
+      if (original.length <= SNES_FATX_MAX_FILENAME) { result.set(item.id, original); continue; }
+      let remote = snesTrimXboxFilename(original), serial = 2;
+      while (used.has(remote.toLocaleLowerCase())) remote = snesTrimXboxFilename(original, ' (' + serial++ + ')');
+      used.add(remote.toLocaleLowerCase());
+      result.set(item.id, remote);
+    }
+    return result;
+  }
   function renderSnesRoms() {
     const files = state.snesRoms;
+    const xboxNames = snesPlanXboxNames(files);
     els.snesRomSummary.textContent = files.length
-      ? files.length + ' ROM file' + (files.length === 1 ? '' : 's') + ' · ' + fmtBytes(files.reduce((sum, item) => sum + item.file.size, 0)) + ' · numbered FTP upload order · uploaded unchanged'
+      ? files.length + ' ROM file' + (files.length === 1 ? '' : 's') + ' · ' + fmtBytes(files.reduce((sum, item) => sum + item.file.size, 0)) + ' · numbered FTP order · ROM data unchanged; Xbox names shortened only if needed'
       : 'No ROMs selected.';
     els.snesRomList.replaceChildren();
     for (let index = 0; index < files.length; index++) {
@@ -3350,7 +3394,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const detail = document.createElement('div'); detail.className = 'snes-rom-detail';
       const name = document.createElement('strong'); name.textContent = item.file.name;
       const meta = document.createElement('span'); meta.className = 'muted tiny';
-      meta.textContent = fmtBytes(item.file.size) + (item.file.name.length > 42 ? ' · long name may not fit on Xbox HDD (FATX)' : '') + (item.archiveDir ? ' · extracted locally from .7z' : '');
+      const xboxName = xboxNames.get(item.id) || item.file.name;
+      meta.textContent = fmtBytes(item.file.size) + (xboxName !== item.file.name ? ' · Xbox copy name: ' + xboxName + ' (auto-shortened to FATX’s 42-character limit; local name unchanged)' : '') + (item.archiveDir ? ' · extracted locally from .7z' : '');
       detail.append(name, meta);
       const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn small'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', 'Remove ' + item.file.name);
       remove.disabled = state.snesBusy || state.archiveBusy;
@@ -3397,6 +3442,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (skippedUnsupported) notices.push(skippedUnsupported + ' non-ROM, empty, or metadata file(s) ignored; source files are unchanged');
     if (duplicateNames.length) notices.push('duplicate destination name(s) skipped: ' + duplicateNames.join(', '));
     if (badNames.length) notices.push('invalid Xbox filename(s) skipped: ' + badNames.join(', '));
+    const plannedXboxNames = snesPlanXboxNames(state.snesRoms);
+    const shortenedCount = accepted.filter(item => (plannedXboxNames.get(item.id) || item.file.name) !== item.file.name).length;
+    if (shortenedCount) notices.push(shortenedCount + ' filename(s) will be shortened automatically to fit the Xbox FATX 42-character limit; source filenames and ROM bytes stay unchanged');
     els.snesArchiveStatus.hidden = false;
     els.snesArchiveStatus.textContent = accepted.length
       ? 'Added ' + accepted.length + ' ROM file' + (accepted.length === 1 ? '' : 's') + (notices.length ? '; ' + notices.join('; ') + '.' : '.') + ' ROM bytes will be copied unchanged, one file at a time in the numbered list order.'
@@ -3408,6 +3456,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       hdd: ['Hdd1:/', 'Emus/Snes360/Roms'],
       usb0: ['Usb0:/', 'Roms'],
       usb1: ['Usb1', 'Snes360/Roms'],
+      usb1emu: ['usb1/', 'emulators/Snes360/Roms'],
       usb0legacy: ['Usb0:/', '_Emus/Snes360/Roms'],
     })[preset] || null;
   }
@@ -3442,7 +3491,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.snesArchiveInput.disabled = blocked;
     els.snesFtpConnectBtn.disabled = !state.ftpToken || state.snesBusy || state.archiveBusy;
     els.snesUploadBtn.disabled = !ready || !ftpReady || blocked;
-    els.snesUploadBtn.textContent = state.snesBusy ? 'Uploading ROMs…' : 'Upload ' + (state.snesRoms.length || '') + (state.snesRoms.length ? ' ROM' + (state.snesRoms.length === 1 ? '' : 's') + ' unchanged' : ' ROMs unchanged');
+    els.snesUploadBtn.textContent = state.snesBusy ? 'Uploading ROM data…' : 'Upload ' + (state.snesRoms.length || '') + (state.snesRoms.length ? ' ROM' + (state.snesRoms.length === 1 ? '' : 's') + ' (data unchanged)' : ' ROMs (data unchanged)');
     els.snesDropZone.setAttribute('data-disabled', blocked ? 'true' : 'false');
     for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskModsMode, els.taskFtpMode]) el.disabled = blocked;
     for (const el of [els.snesFtpHost, els.snesFtpPort, els.snesFtpUser, els.snesFtpPassword, els.snesFtpPath, els.snesFtpRomDir, els.snesFtpPreset]) el.disabled = state.snesBusy;
@@ -3479,11 +3528,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.snesFtpRetryActions.hidden = true;
     setBarProgress(els.snesFtpLiveBar, 0, { snap: true });
     const originals = state.snesRoms.slice();
+    const xboxNames = snesPlanXboxNames(originals);
     const baseInput = els.snesFtpPath.value;
     const base = baseInput.trim() ? baseInput : 'Hdd1:/';
     const destination = base.replace(/[\\/]+$/, '') + '/' + romDirs.join('/');
     els.snesArchiveStatus.hidden = false;
-    els.snesArchiveStatus.textContent = 'Preparing to copy ' + originals.length + ' ROM file' + (originals.length === 1 ? '' : 's') + ' unchanged to ' + destination + '/.';
+    els.snesArchiveStatus.textContent = 'Preparing to copy ' + originals.length + ' ROM file' + (originals.length === 1 ? '' : 's') + ' with the original ROM bytes to ' + destination + '/. Names longer than 42 characters will be shortened only on the Xbox; Mac source names remain unchanged.';
     await requestWakeLock();
     let writer = null;
     try {
@@ -3491,10 +3541,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       for (let i = 0; i < originals.length; i++) {
         const item = originals[i];
         if (!state.snesRoms.some(current => current.id === item.id)) throw new Error('The ROM list changed during upload; stop and start again.');
-        els.snesFtpLiveText.textContent = 'Uploading ROM ' + (i + 1) + ' of ' + originals.length + ' (list order): ' + item.file.name + '…';
+        const xboxName = xboxNames.get(item.id) || item.file.name;
+        els.snesFtpLiveText.textContent = 'Uploading ROM ' + (i + 1) + ' of ' + originals.length + ' (list order): ' + item.file.name + (xboxName !== item.file.name ? ' → Xbox name: ' + xboxName : '') + '…';
         writer = new FTPWriter(state.ftpToken);
         try {
-          await writer.beginFile([...romDirs, item.file.name], item.file.size);
+          await writer.beginFile([...romDirs, xboxName], item.file.size);
           const chunkSize = 8 * 1024 * 1024;
           for (let offset = 0; offset < item.file.size; offset += chunkSize) {
             await writer.write(item.file.slice(offset, Math.min(item.file.size, offset + chunkSize)));
@@ -3509,12 +3560,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
       const doneWriter = new FTPWriter(state.ftpToken);
       await doneWriter.finish();
-      setFtpLive('All SNES360 ROMs uploaded unchanged to ' + destination + '/.', 1);
-      els.snesArchiveStatus.textContent = 'Upload complete: ' + originals.length + ' ROM file' + (originals.length === 1 ? '' : 's') + ' copied unchanged to ' + destination + '/ in the numbered list order. The selected ROM list was cleared.';
+      const shortenedCount = originals.filter(item => (xboxNames.get(item.id) || item.file.name) !== item.file.name).length;
+      setFtpLive('All SNES360 ROM data uploaded to ' + destination + '/.' + (shortenedCount ? ' ' + shortenedCount + ' Xbox filename(s) shortened to the FATX limit.' : ''), 1);
+      els.snesArchiveStatus.textContent = 'Upload complete: ' + originals.length + ' ROM file' + (originals.length === 1 ? '' : 's') + ' copied byte-for-byte to ' + destination + '/ in numbered list order. ' + (shortenedCount ? shortenedCount + ' Xbox filename(s) were shortened to fit FATX; the Mac source names were left unchanged. ' : '') + 'The selected ROM list was cleared.';
       state.snesRoms = [];
       renderSnesRoms();
       const cleaned = await cleanupSnesArchiveDirs();
       if (!cleaned) els.snesArchiveStatus.textContent += ' The browser could not confirm removal of all temporary .7z data; reopening this page retries cleanup.';
+      celebrateCompletion();
     } catch (err) {
       if (writer && writer.abort) { try { await writer.abort(err); } catch (_) {} }
       setFtpLive('Upload failed; the ROM selection is retained for retry. ' + (err.message || String(err)), 0);
@@ -4345,7 +4398,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (state.snesFtpActive) {
       els.snesFtpLive.hidden = false;
       setTextIfChanged(els.snesFtpLiveText, message);
-      const snesDone = message.startsWith('All SNES360 ROMs uploaded');
+      const snesDone = message.startsWith('All SNES360 ROM data uploaded');
       els.snesFtpLive.classList.toggle('is-complete', snesDone);
       els.snesFtpLive.classList.toggle('is-error', /failed|could not|error|stopped/i.test(message));
       setBarProgress(els.snesFtpLiveBar, pct / 100);
@@ -4640,8 +4693,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       return;
     }
     state.ftpRetryPending = true;
-    const message = 'FTP connection failed during ' + shortName + ': ' + (failure && failure.message ? failure.message : String(failure)) +
-      '. Its complete staged copy is still on this computer. Restore the Xbox/LAN connection, keep this page and the helper open, then retry this file. FTP will resend this file from the beginning (not continue at a byte offset), replace any partial Xbox copy, and continue the conversion or upload.';
+    const failureText = failure && failure.message ? failure.message : String(failure);
+    const fatxHint = state.snesFtpActive && /550.*(?:create file|file unavailable)/i.test(failureText)
+      ? ' The SNES360 uploader already shortened this Xbox filename to fit FATX; if the error persists, check that the selected folder is writable and the USB drive has free space.'
+      : '';
+    const message = 'FTP connection failed during ' + shortName + ': ' + failureText + '.' + fatxHint +
+      ' Its complete staged copy is still on this computer. Restore the Xbox/LAN connection, keep this page and the helper open, then retry this file. FTP will resend this file from the beginning (not continue at a byte offset), replace any partial Xbox copy, and continue the conversion or upload.';
     setFtpLive(message, fraction);
     els.ftpLive.classList.add('is-retry-needed');
     els.ftpRetryBtn.hidden = false; els.ftpRetryBtn.disabled = false;
@@ -5221,6 +5278,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
       await managerRefresh();
       managerSetActivity('Uploaded ' + completed + ' file(s) successfully.');
+      celebrateCompletion();
       return true;
     } finally {
       managerSetBusy(false);
