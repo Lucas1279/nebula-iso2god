@@ -4,7 +4,7 @@
  * Copyright (C) 1999-2015 Igor Pavlov; see ../License.txt.
  * This worker mounts the selected File as a read-only, seekable virtual file
  * (so the archive is read in slices, not copied wholesale into WASM memory),
- * and extracts only supported disc images or 8-hex Title ID/000D0000 content entries into OPFS.
+ * and extracts selected safe regular-file entries into OPFS. FTP archive imports keep every safe file type; game-specific modes apply their own allowlists.
  */
 import SevenZipFactory from '../runtime/7zz.js';
 
@@ -134,7 +134,7 @@ export function parseArchiveEntries(lines, kind = 'iso') {
       const safe = normalized && !normalized.startsWith('/') && !/^[A-Za-z]:\//.test(normalized) &&
         !parts.some(part => part === '..' || part === '.' || part === '');
       const titleId = kind === 'raw' ? matchingTitleIdFile(normalized) : '';
-      const wanted = kind === 'raw' ? !!titleId : kind === 'psx' ? PSX_EXTENSIONS.test(normalized) : IMAGE_EXTENSIONS.test(normalized);
+      const wanted = kind === 'ftp' ? true : kind === 'raw' ? !!titleId : kind === 'psx' ? PSX_EXTENSIONS.test(normalized) : IMAGE_EXTENSIONS.test(normalized);
       if (!isDir && safe && Number.isFinite(size) && wanted) {
         entries.push({ path: normalized, size, ...(titleId ? { titleId } : {}) });
       }
@@ -153,13 +153,13 @@ export function parseArchiveEntries(lines, kind = 'iso') {
 /** Extracts only selected ISO images or XBLA/XBLIG 000D0000 files to OPFS. */
 export async function extractArchiveEntriesToOpfs({ archive, destPath, onProgress, kind = 'iso' }) {
   if (!archive || typeof archive.slice !== 'function' || !Number.isFinite(archive.size)) {
-    throw new Error('Choose a .7z archive file.');
+    throw new Error(kind === 'ftp' ? 'Choose a .zip or .7z archive file.' : 'Choose a .7z archive file.');
   }
   if (typeof destPath !== 'string' || destPath.startsWith('/') ||
       destPath.split('/').some(part => part === '..')) {
     throw new Error('Invalid temporary extraction folder.');
   }
-  if (kind !== 'iso' && kind !== 'raw' && kind !== 'psx') throw new Error('Unknown .7z import type.');
+  if (kind !== 'iso' && kind !== 'raw' && kind !== 'psx' && kind !== 'ftp') throw new Error('Unknown archive import type.');
   const lines = [];
   let phase = 'list';
   let currentFile = null;
@@ -183,14 +183,16 @@ export async function extractArchiveEntriesToOpfs({ archive, destPath, onProgres
 
   onProgress?.({ phase: 'listing', processedBytes: 0, totalBytes: 0, currentFile: null });
   const listExit = await sevenZip.callMain(['l', '-slt', ARCHIVE_PATH]);
-  if (listExit !== 0) throw new Error('7z archive listing failed. The archive may be damaged or password-protected.');
+  if (listExit !== 0) throw new Error('Archive listing failed. The archive may be damaged, unsupported, or password-protected.');
   const entries = parseArchiveEntries(lines, kind);
   if (!entries.length) {
-    throw new Error(kind === 'raw'
-      ? 'No XBLA/XBLIG files were found under an 8-character Title ID/000D0000 folder in this .7z archive.'
-      : kind === 'psx'
-        ? 'No PS1 .cue, .bin, or .sbi files were found in this .7z archive.'
-        : 'No ISO/XISO/XSF/IMG/BIN image was found in this .7z archive.');
+    throw new Error(kind === 'ftp'
+      ? 'No safe files were found in this archive.'
+      : kind === 'raw'
+        ? 'No XBLA/XBLIG files were found under an 8-character Title ID/000D0000 folder in this .7z archive.'
+        : kind === 'psx'
+          ? 'No PS1 .cue, .bin, or .sbi files were found in this .7z archive.'
+          : 'No ISO/XISO/XSF/IMG/BIN image was found in this .7z archive.');
   }
   const totalBytes = entries.reduce((sum, entry) => sum + entry.size, 0);
   try {
@@ -240,7 +242,7 @@ if (isDedicatedWorker) {
     const msg = event.data;
     if (!msg || msg.type !== 'extract') return;
     const { id, archive, destPath } = msg;
-    const kind = msg.kind === 'raw' || msg.kind === 'psx' ? msg.kind : 'iso';
+    const kind = msg.kind === 'raw' || msg.kind === 'psx' || msg.kind === 'ftp' ? msg.kind : 'iso';
     try {
       const result = await extractArchiveEntriesToOpfs({
         archive, destPath, kind,
