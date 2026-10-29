@@ -587,6 +587,33 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     try: ftp.quit()
                     except Exception: pass
 
+            if parsed.path == "/api/fs/rename":
+                data = json.loads(self._body().decode("utf-8"))
+                segments = clean_segments(data.get("segments"))
+                parent, old_name = segments[:-1], clean_name(segments[-1])
+                new_name = clean_name(data.get("newName"))
+                if new_name == old_name:
+                    return send_json(self, 200, {"ok": True, "oldName": old_name, "newName": new_name, "renamed": False})
+                if new_name.casefold() == old_name.casefold():
+                    raise ValueError("Case-only renames are not supported; choose a different filename.")
+                cfg = CONFIG
+                if not cfg:
+                    raise ValueError("Connect to the Xbox FTP server first.")
+                ftp = ftp_login(cfg)
+                try:
+                    ftp_cwd(ftp, cfg, parent)
+                    listing = ftp_list_entries(ftp)
+                    source = next((item for item in listing if item["name"] == old_name), None)
+                    if not source or source["type"] != "file":
+                        raise ValueError("Only an existing remote file can be renamed; refresh and try again.")
+                    if any(item["name"].casefold() == new_name.casefold() for item in listing):
+                        raise ValueError("A same-named item already exists in this folder. It was not overwritten.")
+                    ftp.rename(old_name, new_name)
+                    return send_json(self, 200, {"ok": True, "oldName": old_name, "newName": new_name, "renamed": True})
+                finally:
+                    try: ftp.quit()
+                    except Exception: pass
+
             if parsed.path == "/api/fs/delete":
                 data = json.loads(self._body().decode("utf-8"))
                 segments = clean_segments(data.get("segments"))

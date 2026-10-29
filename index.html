@@ -324,7 +324,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-manager-table tr:hover td{background:rgba(110,140,220,.07)}
 .ftp-manager-table tr.selected td{background:rgba(56,189,248,.17);box-shadow:inset 0 1px rgba(125,211,252,.16),inset 0 -1px rgba(125,211,252,.16)}
 .ftp-manager-name{padding:0;border:0;background:transparent;color:#c8f7ff;text-align:left;cursor:pointer;font:inherit;overflow-wrap:anywhere}
-.ftp-manager-name.is-dir{font-weight:750}.ftp-manager-name.is-file{font-weight:700;color:#c8f7ff;text-decoration:underline;text-decoration-color:rgba(103,232,249,.55);text-underline-offset:3px}.ftp-manager-name:disabled{opacity:.55;cursor:wait}
+.ftp-manager-name.is-dir{font-weight:750}.ftp-manager-name.is-file{font-weight:700;color:#c8f7ff;text-decoration:underline;text-decoration-color:rgba(103,232,249,.55);text-underline-offset:3px}.ftp-manager-name:disabled{opacity:.55;cursor:wait}.ftp-manager-file-label{cursor:text;text-decoration:underline;text-decoration-color:rgba(103,232,249,.28);text-underline-offset:3px}
 .ftp-manager-empty{padding:22px;text-align:center;color:var(--muted)}
 .ftp-manager-table input[type=checkbox]{width:17px;height:17px;accent-color:#38bdf8}
 .ftp-manager-modal[hidden],#ftpManagerPromptWrap[hidden],#ftpManagerEditorWrap[hidden]{display:none!important}
@@ -468,6 +468,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
             <button class="btn small" id="ftpManagerUploadBtn" type="button" aria-label="Upload files to this folder" title="Upload files into the current Xbox folder">⬆ Upload files</button>
             <button class="btn small" id="ftpManagerUploadFolderBtn" type="button" aria-label="Upload a folder to this folder" title="Upload a folder and its contents">⬆ Upload folder</button>
             <button class="btn small" id="ftpManagerDownloadBtn" type="button" aria-label="Import selected Xbox files to this computer" disabled>⬇ Import</button>
+            <button class="btn small" id="ftpManagerCopyDesktopBtn" type="button" aria-label="Copy selected Xbox files to a folder, starting at Desktop" title="Choose Desktop in the system folder picker to copy files there. This requires a browser with folder access support." disabled>🖥 Copy to Desktop</button>
             <button class="btn small" id="ftpManagerPrepareDragBtn" type="button" aria-label="Prepare selected Xbox files for drag-out" disabled>↘ Prepare drag-out</button>
             <button class="btn small" id="ftpManagerEditBtn" type="button" aria-label="Edit the selected launch.ini" disabled>✎ Edit launch.ini</button>
             <button class="btn small danger" id="ftpManagerDeleteBtn" type="button" aria-label="Delete selected remote files or folders" disabled>🗑 Delete</button>
@@ -478,7 +479,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <button class="btn small" id="ftpManagerJumpBtn" type="button" disabled>Open folder</button>
           <span class="muted tiny" style="flex:1 1 100%">Use this if a folder (including an empty folder) is missing from the listing. After opening it, Upload files, Upload folder, and the drop area send items into that current folder.</span>
         </div>
-        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. To move remote files, drag a file row onto a destination folder row; selected file rows move together, and name collisions are never overwritten. Select files and choose <strong>Import selected to computer</strong> to save them in Downloads. For real desktop drag-out in Chrome/Edge, select one file up to 64 MiB, choose <strong>Prepare drag-out</strong>, then drag that row out within 15 minutes. Safari/Firefox cannot reliably export a file by page drag; use <strong>Import</strong> there and for larger files or batches. Click the <code>launch.ini</code> filename to open it in the built-in text editor, or select it and choose <strong>Edit launch.ini</strong>; saving writes the text back over FTP after confirmation. Keep a backup before editing console configuration. Files stream through the helper without an extra disk copy during ordinary import; folder downloads aren’t supported.</div>
+        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Click and hold a row checkbox, then drag across other checkboxes to select a range; Shift-click also selects a range. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. To move remote files, drag a file row onto a destination folder row; selected file rows move together, and name collisions are never overwritten. Double-click a filename to rename that remote file. Select files and choose <strong>Copy to Desktop</strong> to open a system folder picker (choose Desktop there; supported browsers may start the picker at Desktop), or choose <strong>Import</strong> to save to Downloads as a compatible fallback. For real desktop drag-out in Chrome/Edge, select one file up to 64 MiB, choose <strong>Prepare drag-out</strong>, then drag that row out within 15 minutes. Safari/Firefox cannot reliably export a file by page drag; use <strong>Import</strong> there and for larger files or batches. Click the <code>launch.ini</code> filename once to open it in the built-in text editor, or double-click it to rename; you can also select it and choose <strong>Edit launch.ini</strong>. Saving edits writes the text back over FTP after confirmation. Keep a backup before editing console configuration. Files stream through the helper without an extra disk copy during ordinary import; folder downloads aren’t supported.</div>
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
         <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
@@ -2132,7 +2133,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
     rawArchiveInput: $('rawArchiveInput'), rawArchiveBrowseBtn: $('rawArchiveBrowseBtn'), rawArchiveStatus: $('rawArchiveStatus'), rawArchiveProgressWrap: $('rawArchiveProgressWrap'), rawArchiveProgressBar: $('rawArchiveProgressBar'), rawArchiveCancelBtn: $('rawArchiveCancelBtn'),
     taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), taskPsxMode: $('taskPsxMode'), taskSnesMode: $('taskSnesMode'), taskModsMode: $('taskModsMode'), taskFtpMode: $('taskFtpMode'), heroIsoIntro: $('heroIsoIntro'), heroPsxIntro: $('heroPsxIntro'), heroSnesIntro: $('heroSnesIntro'), heroModsIntro: $('heroModsIntro'), heroFtpIntro: $('heroFtpIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), psxSteps: $('psxSteps'), snesSteps: $('snesSteps'), modsSteps: $('modsSteps'), ftpManagerSteps: $('ftpManagerSteps'), supportBadges: $('supportBadges'), appBuildLabel: $('appBuildLabel'), footerBuildLabel: $('footerBuildLabel'),
-    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerPrepareDragBtn: $('ftpManagerPrepareDragBtn'), ftpManagerEditBtn: $('ftpManagerEditBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerModal: $('ftpManagerModal'), ftpManagerModalCard: $('ftpManagerModalCard'), ftpManagerModalTitle: $('ftpManagerModalTitle'), ftpManagerModalMessage: $('ftpManagerModalMessage'), ftpManagerPromptWrap: $('ftpManagerPromptWrap'), ftpManagerPromptInput: $('ftpManagerPromptInput'), ftpManagerEditorWrap: $('ftpManagerEditorWrap'), ftpManagerEditorText: $('ftpManagerEditorText'), ftpManagerModalCancel: $('ftpManagerModalCancel'), ftpManagerModalConfirm: $('ftpManagerModalConfirm'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerJumpPath: $('ftpManagerJumpPath'), ftpManagerJumpBtn: $('ftpManagerJumpBtn'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'), ftpManagerArchiveProgressWrap: $('ftpManagerArchiveProgressWrap'), ftpManagerArchiveProgressBar: $('ftpManagerArchiveProgressBar'), ftpManagerArchiveStatus: $('ftpManagerArchiveStatus'), ftpManagerArchiveCancelBtn: $('ftpManagerArchiveCancelBtn'),
+    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerCopyDesktopBtn: $('ftpManagerCopyDesktopBtn'), ftpManagerPrepareDragBtn: $('ftpManagerPrepareDragBtn'), ftpManagerEditBtn: $('ftpManagerEditBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerModal: $('ftpManagerModal'), ftpManagerModalCard: $('ftpManagerModalCard'), ftpManagerModalTitle: $('ftpManagerModalTitle'), ftpManagerModalMessage: $('ftpManagerModalMessage'), ftpManagerPromptWrap: $('ftpManagerPromptWrap'), ftpManagerPromptInput: $('ftpManagerPromptInput'), ftpManagerEditorWrap: $('ftpManagerEditorWrap'), ftpManagerEditorText: $('ftpManagerEditorText'), ftpManagerModalCancel: $('ftpManagerModalCancel'), ftpManagerModalConfirm: $('ftpManagerModalConfirm'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerJumpPath: $('ftpManagerJumpPath'), ftpManagerJumpBtn: $('ftpManagerJumpBtn'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'), ftpManagerArchiveProgressWrap: $('ftpManagerArchiveProgressWrap'), ftpManagerArchiveProgressBar: $('ftpManagerArchiveProgressBar'), ftpManagerArchiveStatus: $('ftpManagerArchiveStatus'), ftpManagerArchiveCancelBtn: $('ftpManagerArchiveCancelBtn'),
     snesContentCard: $('snesContentCard'), snesDropZone: $('snesDropZone'), snesRomInput: $('snesRomInput'), snesArchiveInput: $('snesArchiveInput'), snesChooseRomsBtn: $('snesChooseRomsBtn'), snesChooseArchiveBtn: $('snesChooseArchiveBtn'), snesClearRomsBtn: $('snesClearRomsBtn'), snesRomSummary: $('snesRomSummary'), snesRomList: $('snesRomList'), snesArchiveStatus: $('snesArchiveStatus'), snesArchiveProgressWrap: $('snesArchiveProgressWrap'), snesArchiveProgressBar: $('snesArchiveProgressBar'), snesArchiveCancelBtn: $('snesArchiveCancelBtn'), snesFtpPreset: $('snesFtpPreset'), snesFtpPath: $('snesFtpPath'), snesFtpRomDir: $('snesFtpRomDir'), snesFtpHost: $('snesFtpHost'), snesFtpPort: $('snesFtpPort'), snesFtpUser: $('snesFtpUser'), snesFtpPassword: $('snesFtpPassword'), rememberFtpSnes: $('rememberFtpSnes'), snesFtpConnectBtn: $('snesFtpConnectBtn'), snesFtpStatus: $('snesFtpStatus'), snesUploadBtn: $('snesUploadBtn'), snesFtpLive: $('snesFtpLive'), snesFtpLiveBar: $('snesFtpLiveBar'), snesFtpLiveText: $('snesFtpLiveText'), snesFtpRetryActions: $('snesFtpRetryActions'), snesFtpRetryBtn: $('snesFtpRetryBtn'), snesFtpCancelBtn: $('snesFtpCancelBtn'),
     rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawOverallLiveText: $('rawOverallLiveText'), rawOverallLiveBar: $('rawOverallLiveBar'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
     modsPanel: $('modsPanel'), modsChooseFilesBtn: $('modsChooseFilesBtn'), modsChooseFolderBtn: $('modsChooseFolderBtn'), modsClearBtn: $('modsClearBtn'), modsFilesInput: $('modsFilesInput'), modsFolderInput: $('modsFolderInput'), modsDropZone: $('modsDropZone'), modsStatus: $('modsStatus'), modsResultsWrap: $('modsResultsWrap'), modsResultsSummary: $('modsResultsSummary'), modsResultsBody: $('modsResultsBody'), modsWarning: $('modsWarning'),
@@ -3530,7 +3531,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       usb0: ['Usb0:/', 'Roms'],
       usb1: ['Usb1', 'Snes360/Roms'],
       usb1emu: ['usb1/', 'emulators/Snes360/Roms'],
-      usb0legacy: ['Usb0:/', '_Emus/Snes360/Roms'],
+      usb0legacy: ['Usb0:/', '_Emus/Snes360/Roms']
     })[preset] || null;
   }
   function snesApplyPreset() {
@@ -5073,7 +5074,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function managerSetBusy(busy) {
     state.ftpManagerBusy = !!busy;
     for (const el of [els.ftpManagerHost, els.ftpManagerPort, els.ftpManagerUser, els.ftpManagerPassword, els.ftpManagerBasePath, els.ftpManagerRemember]) el.disabled = !!busy;
-    for (const el of [els.ftpManagerUpBtn, els.ftpManagerRefreshBtn, els.ftpManagerBackBtn, els.ftpManagerForwardBtn, els.ftpManagerMkdirBtn, els.ftpManagerUploadBtn, els.ftpManagerUploadFolderBtn, els.ftpManagerDownloadBtn, els.ftpManagerPrepareDragBtn, els.ftpManagerEditBtn, els.ftpManagerDeleteBtn, els.ftpManagerFilesInput, els.ftpManagerFolderInput, els.ftpManagerSelectAll, els.ftpManagerSearch, els.ftpManagerJumpPath, els.ftpManagerJumpBtn]) el.disabled = !!busy || !state.ftpManagerConnected;
+    for (const el of [els.ftpManagerUpBtn, els.ftpManagerRefreshBtn, els.ftpManagerBackBtn, els.ftpManagerForwardBtn, els.ftpManagerMkdirBtn, els.ftpManagerUploadBtn, els.ftpManagerUploadFolderBtn, els.ftpManagerDownloadBtn, els.ftpManagerCopyDesktopBtn, els.ftpManagerPrepareDragBtn, els.ftpManagerEditBtn, els.ftpManagerDeleteBtn, els.ftpManagerFilesInput, els.ftpManagerFolderInput, els.ftpManagerSelectAll, els.ftpManagerSearch, els.ftpManagerJumpPath, els.ftpManagerJumpBtn]) el.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerConnectBtn.disabled = !!busy || !state.ftpToken;
     for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskFtpMode]) el.disabled = !!busy;
     els.ftpManagerUseIsoBtn.disabled = !!busy || !state.ftpManagerConnected;
@@ -5143,21 +5144,102 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ? visible + ' of ' + total + ' item(s) match “' + query + '” in this folder.'
       : total + ' item(s) in this folder.');
   }
+  let ftpManagerSelectionAnchor = '';
+  let ftpManagerSelectionSweep = null;
+  let ftpManagerSkipCheckboxClick = null;
+  let ftpManagerLaunchIniClickTimer = 0;
+  window.addEventListener('pointerup', () => {
+    ftpManagerSelectionSweep = null;
+    const skipClick = ftpManagerSkipCheckboxClick;
+    if (skipClick) setTimeout(() => { if (ftpManagerSkipCheckboxClick === skipClick) ftpManagerSkipCheckboxClick = null; }, 0);
+  }, true);
+  window.addEventListener('pointercancel', () => { ftpManagerSelectionSweep = null; ftpManagerSkipCheckboxClick = null; }, true);
+  function managerSyncEntrySelection() {
+    els.ftpManagerTableBody.querySelectorAll('tr[data-entry-name]').forEach(row => {
+      const selected = state.ftpManagerSelected.has(row.dataset.entryName);
+      row.classList.toggle('selected', selected);
+      const checkbox = row.querySelector('input[type="checkbox"]');
+      if (checkbox) checkbox.checked = selected;
+    });
+    managerUpdateSelectionControls();
+  }
+  function managerSetEntrySelected(name, selected) {
+    managerClearPreparedDragFiles();
+    if (selected) state.ftpManagerSelected.add(name); else state.ftpManagerSelected.delete(name);
+    managerSyncEntrySelection();
+  }
+  function managerSelectEntryRange(name, selected, additive = false) {
+    const names = managerVisibleEntries().map(entry => entry.name);
+    const targetIndex = names.indexOf(name);
+    let anchorIndex = names.indexOf(ftpManagerSelectionAnchor);
+    if (targetIndex < 0) return;
+    if (anchorIndex < 0) anchorIndex = targetIndex;
+    if (!additive) state.ftpManagerSelected.clear();
+    const first = Math.min(anchorIndex, targetIndex), last = Math.max(anchorIndex, targetIndex);
+    for (let index = first; index <= last; index++) {
+      if (selected) state.ftpManagerSelected.add(names[index]); else state.ftpManagerSelected.delete(names[index]);
+    }
+    ftpManagerSelectionAnchor = name;
+    managerClearPreparedDragFiles();
+    managerSyncEntrySelection();
+  }
+  function managerHandleRowSelection(name, event) {
+    if (event.shiftKey) {
+      managerSelectEntryRange(name, true, event.ctrlKey || event.metaKey);
+    } else if (event.ctrlKey || event.metaKey) {
+      ftpManagerSelectionAnchor = name;
+      managerSetEntrySelected(name, !state.ftpManagerSelected.has(name));
+    } else if (!state.ftpManagerSelected.has(name)) {
+      state.ftpManagerSelected.clear();
+      ftpManagerSelectionAnchor = name;
+      managerSetEntrySelected(name, true);
+    } else {
+      ftpManagerSelectionAnchor = name;
+    }
+  }
   function managerRenderEntries() {
+    if (ftpManagerLaunchIniClickTimer) { clearTimeout(ftpManagerLaunchIniClickTimer); ftpManagerLaunchIniClickTimer = 0; }
     const visibleEntries = managerVisibleEntries();
     els.ftpManagerTableBody.replaceChildren();
     visibleEntries.forEach(entry => {
       const tr = document.createElement('tr');
+      tr.dataset.entryName = entry.name;
       const checkCell = document.createElement('td');
       const check = document.createElement('input');
       check.type = 'checkbox'; check.checked = state.ftpManagerSelected.has(entry.name);
       tr.classList.toggle('selected', check.checked);
       check.setAttribute('aria-label', 'Select ' + entry.name);
-      check.addEventListener('change', () => {
-        managerClearPreparedDragFiles();
-        if (check.checked) state.ftpManagerSelected.add(entry.name); else state.ftpManagerSelected.delete(entry.name);
-        tr.classList.toggle('selected', check.checked);
-        managerUpdateSelectionControls();
+      check.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || state.ftpManagerBusy) return;
+        event.preventDefault();
+        const selected = !state.ftpManagerSelected.has(entry.name);
+        ftpManagerSelectionSweep = { selected };
+        ftpManagerSkipCheckboxClick = { name: entry.name };
+        if (event.shiftKey) managerSelectEntryRange(entry.name, selected, event.ctrlKey || event.metaKey);
+        else {
+          ftpManagerSelectionAnchor = entry.name;
+          managerSetEntrySelected(entry.name, selected);
+        }
+      });
+      check.addEventListener('click', event => {
+        event.preventDefault();
+        if (ftpManagerSkipCheckboxClick && ftpManagerSkipCheckboxClick.name === entry.name) {
+          ftpManagerSkipCheckboxClick = null;
+          return;
+        }
+        ftpManagerSkipCheckboxClick = null;
+        if (event.shiftKey) managerSelectEntryRange(entry.name, !state.ftpManagerSelected.has(entry.name), event.ctrlKey || event.metaKey);
+        else {
+          ftpManagerSelectionAnchor = entry.name;
+          managerSetEntrySelected(entry.name, !state.ftpManagerSelected.has(entry.name));
+        }
+      });
+      tr.addEventListener('pointerenter', () => {
+        if (ftpManagerSelectionSweep && !state.ftpManagerBusy) managerSetEntrySelected(entry.name, ftpManagerSelectionSweep.selected);
+      });
+      tr.addEventListener('click', event => {
+        if (state.ftpManagerBusy || (event.target && event.target.closest && event.target.closest('input,button'))) return;
+        managerHandleRowSelection(entry.name, event);
       });
       checkCell.appendChild(check);
       const nameCell = document.createElement('td');
@@ -5171,23 +5253,34 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       } else if (entry.type === 'file' && String(entry.name || '').toLocaleLowerCase() === 'launch.ini') {
         const open = document.createElement('button');
         open.type = 'button'; open.className = 'ftp-manager-name is-file'; open.disabled = !!state.ftpManagerBusy; open.textContent = '📄 ' + entry.name;
-        open.title = 'Open launch.ini in the built-in text editor';
-        open.setAttribute('aria-label', 'Open ' + entry.name + ' in the built-in text editor');
+        open.title = 'Click once to open launch.ini in the text editor; double-click to rename it';
+        open.setAttribute('aria-label', 'Open ' + entry.name + ' in the built-in text editor; double-click to rename');
         open.addEventListener('click', () => {
           if (state.ftpManagerBusy) return;
-          managerClearPreparedDragFiles();
-          state.ftpManagerSelected.clear();
-          state.ftpManagerSelected.add(entry.name);
-          els.ftpManagerTableBody.querySelectorAll('tr').forEach(row => row.classList.remove('selected'));
-          els.ftpManagerTableBody.querySelectorAll('input[type="checkbox"]').forEach(input => { input.checked = false; });
-          check.checked = true;
-          tr.classList.add('selected');
-          managerUpdateSelectionControls();
-          managerEditLaunchIni();
+          if (ftpManagerLaunchIniClickTimer) clearTimeout(ftpManagerLaunchIniClickTimer);
+          ftpManagerLaunchIniClickTimer = setTimeout(() => {
+            ftpManagerLaunchIniClickTimer = 0;
+            if (state.ftpManagerBusy) return;
+            state.ftpManagerSelected.clear();
+            ftpManagerSelectionAnchor = entry.name;
+            managerSetEntrySelected(entry.name, true);
+            managerEditLaunchIni();
+          }, 450);
+        });
+        open.addEventListener('dblclick', event => {
+          event.preventDefault(); event.stopPropagation();
+          if (ftpManagerLaunchIniClickTimer) { clearTimeout(ftpManagerLaunchIniClickTimer); ftpManagerLaunchIniClickTimer = 0; }
+          managerRenameEntry(entry);
         });
         nameCell.appendChild(open);
       } else {
-        const label = document.createElement('span'); label.textContent = (entry.type === 'file' ? '📄 ' : '🔒 ') + entry.name; nameCell.appendChild(label);
+        const label = document.createElement('span');
+        label.textContent = (entry.type === 'file' ? '📄 ' : '🔒 ') + entry.name;
+        if (entry.type === 'file') {
+          label.title = 'Double-click to rename this remote file';
+          label.addEventListener('dblclick', event => { event.preventDefault(); event.stopPropagation(); managerRenameEntry(entry); });
+        }
+        nameCell.appendChild(label);
       }
       const typeCell = document.createElement('td'); typeCell.textContent = entry.type === 'dir' ? 'Folder' : entry.type === 'file' ? 'File' : 'Other (protected)';
       const sizeCell = document.createElement('td'); sizeCell.textContent = entry.type === 'dir' ? '—' : fmtBytes(Number(entry.size) || 0);
@@ -5258,6 +5351,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpManagerDownloadBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !onlyFiles;
     els.ftpManagerDownloadBtn.textContent = selected.length ? '⬇ Import (' + selected.length + ')' : '⬇ Import';
     els.ftpManagerDownloadBtn.title = selected.length && !onlyFiles ? 'Open folders and select files to import them to your computer.' : 'Import selected Xbox files to your computer’s Downloads folder.';
+    els.ftpManagerCopyDesktopBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !onlyFiles || !hasDirPicker;
+    els.ftpManagerCopyDesktopBtn.textContent = selected.length ? '🖥 Copy to Desktop (' + selected.length + ')' : '🖥 Copy to Desktop';
+    els.ftpManagerCopyDesktopBtn.title = !hasDirPicker
+      ? 'This browser cannot write to a chosen folder. Use Import to save files to Downloads, then move them to Desktop.'
+      : !onlyFiles ? 'Select one or more files (not folders) to copy them to a folder; the picker starts at Desktop when available.'
+      : 'Choose Desktop in the system folder picker to copy the selected files there. The browser cannot write without your folder choice.';
     const oneFileSelected = selected.length === 1 && selected[0].type === 'file';
     const selectedBytes = oneFileSelected ? Math.max(0, Number(selected[0].size) || 0) : 0;
     const preparedForDrag = oneFileSelected && !!managerGetPreparedDrag([...state.ftpManagerSegments, selected[0].name]);
@@ -5284,6 +5383,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.ftpManagerEntries = Array.isArray(result.entries) ? result.entries : [];
     managerClearPreparedDragFiles();
     state.ftpManagerSelected.clear();
+    ftpManagerSelectionAnchor = '';
     managerRenderEntries();
     managerUpdateFolderSummary();
   }
@@ -5551,6 +5651,35 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } catch (err) { managerSetActivity('Could not create folder: ' + (err.message || String(err)), true); }
     finally { managerSetBusy(false); managerUpdateSelectionControls(); }
   }
+  async function managerRenameEntry(entry) {
+    if (!state.ftpManagerConnected || state.ftpManagerBusy || !entry || entry.type !== 'file') return;
+    const parent = state.ftpManagerSegments.slice();
+    const oldName = entry.name;
+    const answer = await showFtpManagerDialog({
+      title: 'Rename remote file',
+      message: 'Enter the new filename. The file contents stay on Xbox; only its name changes.',
+      mode: 'prompt', value: oldName, confirmLabel: 'Next'
+    });
+    if (answer == null) return;
+    const newName = String(answer);
+    if (!newName || newName === '.' || newName === '..' || newName.includes('/') || newName.includes('\\') || /[\x00-\x1f\x7f]/.test(newName)) {
+      managerSetActivity('Enter one valid filename without slashes or control characters.', true);
+      return;
+    }
+    if (newName === oldName) return;
+    if (!await managerConfirm('Rename “' + oldName + '” to “' + newName + '”? A same-named item will never be overwritten.', { title: 'Confirm remote rename', confirmLabel: 'Rename file' })) return;
+    managerSetBusy(true); managerSetActivity('Renaming ' + oldName + '…');
+    try {
+      await bridgeRequest('/api/fs/rename', { segments: [...parent, oldName], newName });
+      await managerRefresh();
+      state.ftpManagerSelected.add(newName);
+      ftpManagerSelectionAnchor = newName;
+      managerRenderEntries();
+      managerSetActivity('Renamed “' + oldName + '” to “' + newName + '”.');
+    } catch (err) {
+      managerSetActivity('Could not rename file: ' + (err.message || String(err)), true);
+    } finally { managerSetBusy(false); managerUpdateSelectionControls(); }
+  }
   async function managerDeleteSelected() {
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
     const selected = state.ftpManagerEntries.filter(entry => state.ftpManagerSelected.has(entry.name));
@@ -5597,6 +5726,72 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       managerSetActivity('Imported ' + completed + ' file(s) to your browser’s Downloads folder.');
     } catch (err) {
       managerSetActivity('Import stopped after ' + completed + ' file(s): ' + (err.message || String(err)), true);
+    } finally { managerSetBusy(false); managerUpdateSelectionControls(); }
+  }
+  async function managerCopySelectedToDesktop() {
+    if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
+    const selected = state.ftpManagerEntries.filter(entry => state.ftpManagerSelected.has(entry.name));
+    if (!selected.length || selected.some(entry => entry.type !== 'file')) {
+      managerSetActivity('Select one or more remote files to copy; folders cannot be copied with this action.', true);
+      return;
+    }
+    if (!hasDirPicker) {
+      managerSetActivity('This browser cannot copy directly to a chosen folder. Use Import to save files in Downloads, then move them to Desktop.', true);
+      return;
+    }
+    let destination;
+    try {
+      try {
+        destination = await window.showDirectoryPicker({ id: 'nebula-ftp-desktop', mode: 'readwrite', startIn: 'desktop' });
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+        if (!(err instanceof TypeError)) throw err;
+        destination = await window.showDirectoryPicker({ id: 'nebula-ftp-desktop', mode: 'readwrite' });
+      }
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      managerSetActivity('Could not open a destination folder: ' + (err.message || String(err)) + '. Use Import to Downloads as a fallback.', true);
+      return;
+    }
+    try {
+      if (destination.queryPermission && await destination.queryPermission({ mode: 'readwrite' }) !== 'granted') {
+        const permission = destination.requestPermission ? await destination.requestPermission({ mode: 'readwrite' }) : 'denied';
+        if (permission !== 'granted') {
+          managerSetActivity('Folder write permission was not granted. Nothing was copied.', true);
+          return;
+        }
+      }
+    } catch (err) {
+      managerSetActivity('Could not get write permission for that folder: ' + (err.message || String(err)), true);
+      return;
+    }
+    const conflicts = [];
+    try {
+      for (const entry of selected) {
+        try { await destination.getFileHandle(entry.name, { create: false }); conflicts.push(entry.name); }
+        catch (err) { if (!err || (err.name !== 'NotFoundError' && err.name !== 'TypeMismatchError')) throw err; if (err.name === 'TypeMismatchError') conflicts.push(entry.name); }
+      }
+    } catch (err) {
+      managerSetActivity('Could not inspect the chosen folder: ' + (err.message || String(err)), true);
+      return;
+    }
+    if (conflicts.length && !await managerConfirm('These Desktop file(s) already exist and will be replaced: ' + conflicts.join(', ') + '. Continue?', { title: 'Replace local files?', confirmLabel: 'Replace and copy', danger: true })) return;
+    const folder = state.ftpManagerSegments.slice();
+    managerSetBusy(true);
+    let copied = 0;
+    try {
+      for (const entry of selected) {
+        managerSetActivity('Copying from Xbox ' + (copied + 1) + '/' + selected.length + ': ' + entry.name);
+        const blob = await bridgeDownload('/api/fs/download', { segments: [...folder, entry.name] });
+        const fileHandle = await destination.getFileHandle(entry.name, { create: true });
+        const writable = await fileHandle.createWritable();
+        try { await writable.write(blob); await writable.close(); }
+        catch (err) { try { await writable.abort(); } catch (_) {} throw err; }
+        copied++;
+      }
+      managerSetActivity('Copied ' + copied + ' file(s) into the folder you chose.');
+    } catch (err) {
+      managerSetActivity('Desktop copy stopped after ' + copied + ' file(s): ' + (err.message || String(err)), true);
     } finally { managerSetBusy(false); managerUpdateSelectionControls(); }
   }
   async function managerPrepareDragOut() {
@@ -5849,17 +6044,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   });
   els.ftpManagerMkdirBtn.addEventListener('click', managerCreateFolder);
   els.ftpManagerDownloadBtn.addEventListener('click', managerDownloadSelected);
+  els.ftpManagerCopyDesktopBtn.addEventListener('click', managerCopySelectedToDesktop);
   els.ftpManagerPrepareDragBtn.addEventListener('click', managerPrepareDragOut);
   els.ftpManagerEditBtn.addEventListener('click', managerEditLaunchIni);
   els.ftpManagerDeleteBtn.addEventListener('click', managerDeleteSelected);
   els.ftpManagerSelectAll.addEventListener('change', () => {
     managerClearPreparedDragFiles();
     state.ftpManagerSelected = els.ftpManagerSelectAll.checked ? new Set(managerVisibleEntries().map(entry => entry.name)) : new Set();
+    const visibleNames = managerVisibleEntries().map(entry => entry.name);
+    ftpManagerSelectionAnchor = visibleNames.length ? visibleNames[0] : '';
     managerRenderEntries();
   });
   els.ftpManagerSearch.addEventListener('input', () => {
     managerClearPreparedDragFiles();
     state.ftpManagerSelected.clear();
+    ftpManagerSelectionAnchor = '';
     managerRenderEntries();
     managerUpdateFolderSummary();
   });
