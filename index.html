@@ -368,7 +368,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.2 · build 2026-10-29</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.4 · build 2026-10-29</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -880,16 +880,16 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
         <div class="btn-row"><a class="btn primary small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/Nebula-ISO2GOD-One-File-Fixed.zip" download="Nebula-ISO2GOD-One-File-Fixed.zip">⬇ Download fixed Mac one-command helper (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="https://lucas1279.github.io/nebula-iso2god/nebula-iso2god-timeout-fix.zip" download="nebula-iso2god-timeout-fix.zip">Full helper bundle (.zip)</a></div>
         <div class="muted tiny" style="margin-top:8px">Temporary FTP staging files are removed after success, cancel, or helper shutdown. A failed file is retained only while Retry is available. FTP is unencrypted—use only on your trusted home network.</div>
       </div>
-      <div class="setup" style="margin-top:12px"><strong>Xbox FTP destination</strong>
-        <p class="muted small" style="margin:5px 0 10px;line-height:1.55">For SNES360 v0.32, HDD installs normally use <code>Hdd1:/Emus/Snes360/Roms/</code>; USB0 installs can use <code>Usb0:/Roms/</code>. Choose the matching preset or edit both fields. Older v0.21 USB setups commonly used <code>Usb0:/_Emus/Snes360/Roms/</code>. The base path connects first; the ROM folder is created beneath it if missing. A same-named ROM in that destination may be replaced.</p>
+      <div class="setup" style="margin-top:12px"><strong>Xbox FTP connection and destination (same home network only)</strong>
+        <p class="muted small" style="margin:5px 0 10px;line-height:1.55">The selected destination is <code>Usb1/Snes360/Roms</code>: FTP base path <code>Usb1</code> plus folder <code>Snes360/Roms</code>. Both fields are editable; the app creates any missing folders. Make sure your SNES360 setup scans/maps this location. Existing same-named files may be replaced.</p>
         <div class="grid2">
-          <div><label class="f" for="snesFtpPreset">Destination preset</label><select id="snesFtpPreset"><option value="hdd">SNES360 v0.32 — HDD</option><option value="usb0">SNES360 v0.32 — USB0</option><option value="usb1">SNES360 v0.32 — USB1</option><option value="usb0legacy">Older SNES360 — USB0 legacy folder</option><option value="custom">Custom</option></select></div>
-          <div><label class="f" for="snesFtpPath">FTP base path (Xbox drive/folder)</label><input id="snesFtpPath" type="text" value="Hdd1:/" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
-          <div><label class="f" for="snesFtpRomDir">ROM folder relative to base path</label><input id="snesFtpRomDir" type="text" value="Emus/Snes360/Roms" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
           <div><label class="f" for="snesFtpHost">Xbox IP address</label><input id="snesFtpHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
           <div><label class="f" for="snesFtpPort">FTP port</label><input id="snesFtpPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
           <div><label class="f" for="snesFtpUser">FTP username</label><input id="snesFtpUser" type="text" placeholder="Check Aurora/FreeStyle FTP settings" autocomplete="off"></div>
           <div><label class="f" for="snesFtpPassword">FTP password</label><input id="snesFtpPassword" type="password" autocomplete="off"></div>
+          <div style="grid-column:1/-1"><label class="f" for="snesFtpPreset">Quick destination preset <span class="muted">(optional)</span></label><select id="snesFtpPreset"><option value="usb1" selected>USB1 — Usb1/Snes360/Roms</option><option value="hdd">HDD — Hdd1:/Emus/Snes360/Roms</option><option value="usb0">USB0 — Usb0:/Roms</option><option value="usb0legacy">USB0 legacy — Usb0:/_Emus/Snes360/Roms</option><option value="custom">Custom path (type below)</option></select><div class="muted tiny">Selecting a preset fills the editable base path and folder fields below.</div></div>
+          <div><label class="f" for="snesFtpPath">Xbox FTP base path</label><input id="snesFtpPath" type="text" value="Usb1" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+          <div><label class="f" for="snesFtpRomDir">ROM folder under base path</label><input id="snesFtpRomDir" type="text" value="Snes360/Roms" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
         </div>
         <label class="check" style="margin-top:10px"><input id="rememberFtpSnes" type="checkbox"><span>Remember Xbox IP and FTP username on this device (password is not saved)</span></label>
         <div class="btn-row"><button class="btn" id="snesFtpConnectBtn" type="button">Test Xbox FTP connection</button><button class="btn primary" id="snesUploadBtn" type="button" disabled>Upload ROMs unchanged</button></div>
@@ -962,7 +962,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.2 · build 2026-10-29</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.4 · build 2026-10-29</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -2122,7 +2122,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.9.2';
+  const APP_VERSION = '1.9.3';
   const APP_BUILD = '2026-10-29';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -2132,7 +2132,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     file: null, reader: null, analysis: null,
     outputMode: hasDirPicker ? 'folder' : 'zip',
     dirHandle: null, gameDirHandle: null, gameOutputName: '', zipHandle: null, zipSuggestedName: '',
-    ftpToken: null, ftpConnected: false, rawFtpConnected: false, snesFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerHistory: [[]], ftpManagerHistoryIndex: 0, ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpArchiveTargetSegments: [], ftpManagerBasePath: 'Hdd1:/', ftpManagerCwd: '', rawUploading: false, snesBusy: false, snesFtpActive: false, snesRoms: [], rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
+    ftpToken: null, ftpConnected: false, rawFtpConnected: false, snesFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerHistory: [[]], ftpManagerHistoryIndex: 0, ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpArchiveTargetSegments: [], ftpActiveStageId: null, ftpManagerBasePath: 'Hdd1:/', ftpManagerCwd: '', rawUploading: false, snesBusy: false, snesFtpActive: false, snesRoms: [], rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
     modsFiles: [], modsReplacements: [], modsReady: false, modsTargetIndex: new Map(),
     converting: false, cancelRequested: false,
     batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0,
@@ -3407,7 +3407,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     return ({
       hdd: ['Hdd1:/', 'Emus/Snes360/Roms'],
       usb0: ['Usb0:/', 'Roms'],
-      usb1: ['Usb1:/', 'Roms'],
+      usb1: ['Usb1', 'Snes360/Roms'],
       usb0legacy: ['Usb0:/', '_Emus/Snes360/Roms'],
     })[preset] || null;
   }
@@ -3802,7 +3802,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (id !== state.archiveRequestId) return;
     const ui = archiveUi(kind);
     state.archiveWorker = null;
-    state.archiveTempDir = '';
+    if (kind !== 'ftp') state.archiveTempDir = '';
     if (kind === 'ftp') {
       const usable = (files || []).filter(item => item && item.file && item.path);
       if (!usable.length) throw new Error('No safe files were found in this .zip or .7z archive.');
@@ -3824,6 +3824,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       } finally {
         const removed = await removeArchiveOpfsDir(tempDir);
         forgetArchiveSessionDir(tempDir);
+        if (state.archiveTempDir === tempDir) state.archiveTempDir = '';
         ui.progressWrap.hidden = true;
         if (!removed) managerSetActivity('Archive upload finished, but temporary extracted data could not be fully removed. Reopen the page to retry cleanup.', true);
       }
@@ -4677,6 +4678,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       this.written = 0;
       const r = await bridgeRequest('/api/file/begin', { segments, size: expectedSize });
       this.id = r.id;
+      state.ftpActiveStageId = this.id;
       const shortName = segments[segments.length - 1];
       state.ftpActivity = 'staging';
       setFtpLive('Staging ' + shortName + ' on Mac: 0 / ' + fmtBytes(expectedSize) + ' (not sent to Xbox yet)', 0);
@@ -4782,6 +4784,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         setFtpLive('Retrying ' + shortName + ' from the complete staged copy…', 0);
       }
       await bridgeRequest('/api/file/ack', { id });
+      if (state.ftpActiveStageId === id) state.ftpActiveStageId = null;
       this.id = null;
       state.ftpActivity = '';
       setFtpLive('Uploaded ' + shortName + ' to Xbox (' + fmtBytes(this.written) + ').', 1);
@@ -4790,6 +4793,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     async finish() { state.ftpActivity = ''; setFtpLive('All package files uploaded to Xbox.', 1); }
     async abort() {
       if (this.id) { try { await bridgeRequest('/api/file/abort', { id: this.id }); } catch (_) {} }
+      if (state.ftpActiveStageId === this.id) state.ftpActiveStageId = null;
       this.id = null;
       state.ftpActivity = '';
     }
@@ -7369,10 +7373,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   });
   window.addEventListener('beforeunload', (e) => {
-    if (state.converting || state.batchRunning || state.archiveBusy || state.psxArchiveBatchActive || state.rawUploading || state.psxBusy || state.snesBusy) { e.preventDefault(); e.returnValue = ''; }
+    if (state.converting || state.batchRunning || state.archiveBusy || state.psxArchiveBatchActive || state.rawUploading || state.psxBusy || state.snesBusy || state.ftpManagerBusy) { e.preventDefault(); e.returnValue = ''; }
   });
   window.addEventListener('pagehide', (e) => {
     if (e.persisted) return;
+    if (state.ftpActiveStageId && navigator.sendBeacon) {
+      try { navigator.sendBeacon(new URL('/api/file/abort', document.baseURI).toString(), new Blob([JSON.stringify({ id: state.ftpActiveStageId })], { type: 'application/json' })); } catch (_) {}
+      state.ftpActiveStageId = null;
+    }
     if (state.archiveWorker) { state.archiveWorker.terminate(); state.archiveWorker = null; }
     if (state.psxArchiveBatchActive) { state.psxArchiveBatchCancelled = true; state.psxArchiveBatchQueue = []; }
     const activeDir = state.archiveTempDir; state.archiveTempDir = '';
