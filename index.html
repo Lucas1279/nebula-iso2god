@@ -130,15 +130,15 @@ input[type=text]:focus,input[type=password]:focus{outline:2px solid rgba(110,231
 .raw-drop-zone[data-disabled="true"]{opacity:.7;cursor:not-allowed}
 .raw-drop-zone.drag-active{border-color:transparent;background:radial-gradient(560px 240px at 50% 0%, rgba(110,231,255,.22), transparent 70%), rgba(10,18,46,.75);transform:translateY(-1px)}
 .raw-drop-zone:focus-visible{outline:2px solid rgba(110,231,255,.7);outline-offset:3px}
-#ftpStatus,#rawFtpStatus,#rawFtpUploadResult,#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText{min-width:0;overflow-wrap:anywhere}
+#ftpStatus,#rawFtpStatus,#ftpManagerStatus,#rawFtpUploadResult,#ftpLiveText,#rawFtpLiveText,#rawOverallLiveText{min-width:0;overflow-wrap:anywhere}
 #rawSelectedFiles{max-width:100%;overflow-wrap:anywhere}
 #ftpLive.is-retry-needed,#rawFtpLive.is-retry-needed{padding:12px;border:1px solid rgba(251,191,36,.65);border-radius:12px;background:rgba(120,80,0,.15)}
 .ftp-retry-btn{margin-top:10px;min-height:40px}
 #rawFtpRetryActions[hidden]{display:none}
 #modsResultsWrap th,#modsResultsWrap td{padding:9px 10px;border-bottom:1px solid rgba(145,170,255,.14);text-align:left;vertical-align:top;font-size:.82rem}
 #modsResultsWrap th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
-#ftpStatus.is-connected,#rawFtpStatus.is-connected{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-size:1rem;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12);overflow-wrap:anywhere}
-#ftpStatus.is-connected::before,#rawFtpStatus.is-connected::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251f;font-size:.9rem;font-weight:900;line-height:1}
+#ftpStatus.is-connected,#rawFtpStatus.is-connected,#ftpManagerStatus.is-connected{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:8px 12px;border:1px solid rgba(52,211,153,.58);border-radius:11px;background:linear-gradient(105deg,rgba(52,211,153,.17),rgba(56,189,248,.16));color:#c8ffe6;font-size:1rem;font-weight:800;line-height:1.45;box-shadow:0 0 18px rgba(56,189,248,.12);overflow-wrap:anywhere}
+#ftpStatus.is-connected::before,#rawFtpStatus.is-connected::before,#ftpManagerStatus.is-connected::before{content:"✓";display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:linear-gradient(100deg,#34d399,#38bdf8);color:#06251f;font-size:.9rem;font-weight:900;line-height:1}
 .workflow-mode-hidden{display:none!important}
 .workflow-switch{margin:0 0 18px}
 .workflow-switch .mode-btn:hover:not(:disabled){transform:translateY(-2px)}
@@ -3039,7 +3039,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const sig = String.fromCharCode(...bytes.subarray(0, 4));
     const ext = (file.name.match(/\.([^.]+)$/)?.[1] || '').toLowerCase();
     if (['CON ', 'LIVE', 'PIRS'].includes(sig)) return { label: 'Xbox content package (' + sig.trim() + ')', package: true };
-    if ((bytes[0] === 0x50 && bytes[1] === 0x4b && ((bytes[2] === 0x03 && bytes[3] === 0x04) || (bytes[2] === 0x05 && bytes[3] === 0x06) || (bytes[2] === 0x07 && bytes[3] === 0x08))) || (bytes[0] === 0x37 && bytes[1] === 0x7a && bytes[2] === 0xbc && bytes[3] === 0xaf)) return { label: 'Mod archive — extract it first', archive: true, package: false }; 
+    if ((bytes[0] === 0x50 && bytes[1] === 0x4b && ((bytes[2] === 0x03 && bytes[3] === 0x04) || (bytes[2] === 0x05 && bytes[3] === 0x06) || (bytes[2] === 0x07 && bytes[3] === 0x08))) || (bytes[0] === 0x37 && bytes[1] === 0x7a && bytes[2] === 0xbc && bytes[3] === 0xaf)) return { label: 'Mod archive — extract it first', archive: true, package: false };
     if (sig === 'XEX2') return { label: 'Xbox executable (XEX2 signature)', signature: 'XEX2', package: false };
     if (sig === 'XBEH') return { label: 'Original Xbox executable (XBEH signature)', package: false };
     if (sig === 'DDS ') return { label: 'DDS texture (signature)', package: false };
@@ -3063,7 +3063,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function safeGameRelativePath(raw) {
     const value = String(raw || '').replace(/\\/g, '/');
-    if (!value || value.startsWith('/') || /^[A-Za-z]:/.test(value) || /[<>:"|?*\x00-\x1f\x7f]/.test(value)) return ''; 
+    if (!value || value.startsWith('/') || /^[A-Za-z]:/.test(value) || /[<>:"|?*\x00-\x1f\x7f]/.test(value)) return '';
     const parts = value.split('/');
     if (parts.some(part => !part || part === '.' || part === '..' || part.includes(':'))) return '';
     return parts.join('/');
@@ -4292,8 +4292,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function managerUpdateHistoryControls() {
     const history = state.ftpManagerHistory || [];
     const index = Number(state.ftpManagerHistoryIndex) || 0;
-    els.ftpManagerBackBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || index <= 0;
-    els.ftpManagerForwardBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || index >= history.length - 1;
+    const canNavigate = state.ftpManagerConnected && !state.ftpManagerBusy;
+    els.ftpManagerBackBtn.disabled = !canNavigate;
+    els.ftpManagerForwardBtn.disabled = !canNavigate;
+    els.ftpManagerBackBtn.title = index > 0
+      ? 'Return to the previous remote folder.'
+      : 'You are at the starting folder. Open a subfolder to create Back history.';
+    els.ftpManagerForwardBtn.title = index < history.length - 1
+      ? 'Reopen the next folder in your browsing history.'
+      : 'No forward folder yet. Use Back after visiting another folder.';
   }
   function managerRecordNavigation(segments) {
     const next = segments.slice();
@@ -4406,7 +4413,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   async function managerNavigateHistory(delta) {
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
     const index = state.ftpManagerHistoryIndex + delta;
-    if (index < 0 || index >= state.ftpManagerHistory.length) return;
+    if (index < 0) {
+      managerSetActivity('You are at the starting folder. Open a subfolder to use Back.');
+      return;
+    }
+    if (index >= state.ftpManagerHistory.length) {
+      managerSetActivity('There is no forward folder yet. Visit another folder, then use Back to enable Forward.');
+      return;
+    }
     state.ftpManagerHistoryIndex = index;
     managerUpdateHistoryControls();
     await managerNavigate(state.ftpManagerHistory[index], false);
