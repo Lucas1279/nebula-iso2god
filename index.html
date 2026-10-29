@@ -388,7 +388,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
           <div><label class="f" for="ftpManagerPort">FTP port</label><input id="ftpManagerPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
           <div><label class="f" for="ftpManagerUser">FTP username</label><input id="ftpManagerUser" type="text" placeholder="Check Aurora/FreeStyle FTP settings" autocomplete="off"></div>
           <div><label class="f" for="ftpManagerPassword">FTP password</label><input id="ftpManagerPassword" type="password" autocomplete="off"></div>
-          <div style="grid-column:1/-1"><label class="f" for="ftpManagerBasePath">Starting drive / FTP path</label><input id="ftpManagerBasePath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Start at a dashboard-exposed drive such as <code>Hdd1:/</code> or <code>Usb0:/</code>; a bare <code>usb0</code> is normalized automatically. Browsing and actions stay below this starting path. Press Enter in any connection field to try the connection.</div></div>
+          <div style="grid-column:1/-1"><label class="f" for="ftpManagerBasePath">Starting drive / FTP path</label><input id="ftpManagerBasePath" type="text" value="Hdd1:/" autocomplete="off"><div class="muted tiny">Start at a dashboard-exposed drive such as <code>Hdd1:/</code> or <code>Usb0:/</code>. A bare <code>usb0</code> is interpreted as <code>Usb0:/</code> for the connection, but this field stays exactly as typed. Browsing and actions stay below this starting path. Press Enter in any connection field to try the connection.</div></div>
         </div>
         <label class="check small"><input id="ftpManagerRemember" type="checkbox"><span>Remember Xbox IP and username on this Mac/browser. The password is never saved.</span></label>
         <div class="btn-row"><button class="btn primary" id="ftpManagerConnectBtn" type="button" disabled>Connect &amp; browse</button><span class="muted" id="ftpManagerStatus" role="status" aria-live="polite">Start ftp_helper.py locally to enable the file manager.</span></div>
@@ -4448,7 +4448,6 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpManagerConnectBtn.disabled = true;
     try {
       const basePath = managerBasePathValue();
-      els.ftpManagerBasePath.value = basePath;
       els.ftpManagerStatus.textContent = 'Trying to connect to Xbox FTP at ' + basePath + '…';
       els.ftpManagerStatus.classList.remove('is-connected');
       const result = await bridgeRequest('/api/connect', {
