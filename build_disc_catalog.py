@@ -20,6 +20,8 @@ CSV_PATH = ROOT / 'data/xbox360-gamelist.csv'
 DAT_PATH = ROOT / 'data/redump-xbox360-dat.zip'
 OUT_PATH = ROOT / 'data/disc_catalog.json'
 REPORT_PATH = ROOT / 'data/disc_catalog_review.md'
+REDUMP_DATE = '2026-10-30'
+REDUMP_ENTRY_COUNT = 3733
 
 DISC_RE = re.compile(r'\b(?:disc|disk|dvd)\s*[-_ ]?\s*(\d+)\b', re.I)
 PAREN_RE = re.compile(r'\(([^)]*)\)')
@@ -156,7 +158,7 @@ def main():
     meta = {
         'schemaVersion': 1,
         'generatedFrom': [
-            {'name': 'Redump Xbox 360 DAT', 'url': 'http://redump.org/datfile/xbox360/', 'archive': 'redump-xbox360-dat.zip', 'datVersion': '2026-06-15'},
+            {'name': 'Redump Xbox 360 DAT via redump.info', 'url': 'https://redump.info/datfile/XBOX360', 'archive': 'redump-xbox360-dat.zip', 'datVersion': REDUMP_DATE, 'entryCount': REDUMP_ENTRY_COUNT},
             {'name': 'IronRingX Xbox 360 game list', 'url': 'https://github.com/IronRingX/xbox360-gamelist', 'file': 'xbox360-gamelist.csv', 'upstreamCommit': '32aae7abeff7ed47969786309739444eb5397731'},
         ],
         'identityRecordCount': len(ordered),
@@ -171,6 +173,7 @@ def main():
     # Human review artifact for every automatically proposed role assignment.
     report = [
         '# Xbox 360 disc catalogue build review', '',
+        f'- Redump DAT snapshot: {REDUMP_DATE}; source lists {REDUMP_ENTRY_COUNT} media entries.',
         f'- CSV source rows parsed: {len(rows)}; exact Title ID + Media ID records: {len(ordered)}.',
         f'- Redump games with explicit role terms: {len(games)}.',
         f'- Automatically joined role records: {meta["explicitRoleRecords"]}; conflicting role identities: {len(conflicts)}.',

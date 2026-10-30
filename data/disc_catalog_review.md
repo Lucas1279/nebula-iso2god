@@ -1,5 +1,6 @@
 # Xbox 360 disc catalogue build review
 
+- Redump DAT snapshot: 2026-10-30; source lists 3733 media entries.
 - CSV source rows parsed: 4047; exact Title ID + Media ID records: 2577.
 - Redump games with explicit role terms: 51.
 - Automatically joined role records: 31; conflicting role identities: 0.
@@ -17,7 +18,7 @@
 | 41560920 | 7B22125D | Guitar Hero Live (Disc 1) | RF | 1 | playable | Guitar Hero Live (USA, Europe) (En,Fr,De,Es,It) (Disc 1) (Game Disc) |
 | 43430814 | 0F61AFF2 | Dragon's Dogma: Dark Arisen (Disc 1) | RF | 1 | playable | Dragon's Dogma - Dark Arisen (World) (En,Ja,Fr,De,Es,It) (Disc 1) (Game Disc) |
 | 43430814 | 596DD4A7 | Dragon's Dogma: Dark Arisen (Disc 2) | RF | 2 | install | Dragon's Dogma - Dark Arisen (World) (Disc 2) (Install Disc) |
-| 43430819 | 4EA1CC2E | Resident Evil 6 (Disc 1) | RF | 1 | playable | Resident Evil 6 (Germany) (Disc 1) (Game Disc); Resident Evil 6 (World) (En,Ja,Fr,De,Es,It,Pt,Pl,Ru) (Disc 1) (Game) |
+| 43430819 | 4EA1CC2E | Resident Evil 6 (Disc 1) | RF | 1 | playable | Resident Evil 6 (Germany) (En,Fr,De,Es,It,Pt,Pl,Ru) (Disc 1) (Game Disc); Resident Evil 6 (World) (En,Ja,Fr,De,Es,It,Pt,Pl,Ru) (Disc 1) (Game) |
 | 45410949 | 7C44607E | Dragon Age: Origins Ultimate Edition (Disc 2) (Unofficial DB Name) | PAL | 2 | install | Dragon Age - Origins - Ultimate Edition (USA, Europe) (Disc 2) (Additional Content Packs Install Disc) |
 | 45410950 | 511536A8 | Battlefield 3 (Disc 2) | PAL, NTSC/U | 2 | playable | Battlefield 3 (Japan, Korea) (En,Ja,Zh,Ko) (Disc 2) (Single-Play) |
 | 454109E0 | 2B4E0DEA | Battlefield Hardline (Disc 1) | RF | 1 | install | Battlefield Hardline (World) (En,Ja,Fr,De,Es,It,Pt,Zh,Ko,Pl,Ru,Cs) (Disc 1) (Install-Multiplayer) |
@@ -25,10 +26,10 @@
 | 4D53084D | 0670AEF8 | Forza Motorsport 3 (Disc 2) | PAL | 2 | install | Forza Motorsport 3 (Europe, Australia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 3 (Japan, Asia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 3 (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) |
 | 4D53084D | 0CC8C158 | Forza Motorsport 3 (Disc 1) | NTSC/U | 1 | playable | Forza Motorsport 3 (Europe, Australia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc); Forza Motorsport 3 (Japan, Asia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc); Forza Motorsport 3 (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc) |
 | 4D53084D | 1235FA6A | Forza Motorsport 3 (Disc 2) | NTSC/U | 2 | install | Forza Motorsport 3 (Europe, Australia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 3 (Japan, Asia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 3 (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) |
-| 4D53084D | 4BE13908 | Forza Motorsport 3: Ultimate Collection (Disc 1) | PAL | 1 | playable | Forza Motorsport 3 - Ultimate Collection (Europe) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc); Forza Motorsport 3 - Ultimate Collection (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc) |
+| 4D53084D | 4BE13908 | Forza Motorsport 3: Ultimate Collection (Disc 1) | PAL | 1 | playable | Forza Motorsport 3 - Ultimate Collection (Europe, Australia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc); Forza Motorsport 3 - Ultimate Collection (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc) |
 | 4D53084D | 5DD89BE4 | Forza Motorsport 3 (Disc 1) | PAL | 1 | playable | Forza Motorsport 3 (Europe, Australia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc); Forza Motorsport 3 (Japan, Asia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc); Forza Motorsport 3 (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc) |
 | 4D53084D | 706E78F1 | Forza Motorsport 3 (Disc 2) | NTSC/J (Excludes China) | 2 | install | Forza Motorsport 3 (Europe, Australia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 3 (Japan, Asia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 3 (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) |
-| 4D53084D | 79276431 | Forza Motorsport 3: Ultimate Collection (Disc 2) | PAL | 2 | install | Forza Motorsport 3 - Ultimate Collection (Europe) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 3 - Ultimate Collection (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) |
+| 4D53084D | 79276431 | Forza Motorsport 3: Ultimate Collection (Disc 2) | PAL | 2 | install | Forza Motorsport 3 - Ultimate Collection (Europe, Australia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 3 - Ultimate Collection (USA) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) |
 | 4D530910 | 0F5C87F9 | Forza Motorsport 4 (Disc 2) | NTSC/U | 2 | install | Forza Motorsport 4 (Europe) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) (Rev 1); Forza Motorsport 4 (Europe, Australia) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 4 (Japan, Asia) (Disc 2) (Content Install Disc); Forza Motorsport 4 (USA) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 4 (USA) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) (Rev 1) |
 | 4D530910 | 26FF1101 | Forza Motorsport 4 (Disc 1) | NTSC/U | 1 | playable | Forza Motorsport 4 (Europe) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc) (Rev 1); Forza Motorsport 4 (Europe, Australia) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc); Forza Motorsport 4 (Japan, Asia) (Disc 1) (Play Disc); Forza Motorsport 4 (USA) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc); Forza Motorsport 4 (USA) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc) (Rev 1) |
 | 4D530910 | 527B075C | Forza Motorsport 4 (Disc 2) | PAL | 2 | install | Forza Motorsport 4 (Europe) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) (Rev 1); Forza Motorsport 4 (Europe, Australia) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 4 (Japan, Asia) (Disc 2) (Content Install Disc); Forza Motorsport 4 (USA) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc); Forza Motorsport 4 (USA) (En,Ja,Fr,De,Es,It,Nl,Pt,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) (Rev 1) |
@@ -50,7 +51,7 @@
 
 | Label | Role | Reason |
 |---|---|---|
-| Saints Row IV - National Treasure Edition (USA, Europe) (En,Fr,De,Es,It) (Disc 1) (Installation Disc) | install | no exact title/disc crosswalk |
-| Saints Row - The Third - The Full Package (Japan) (Disc 2) (Install Disc) | install | no exact title/disc crosswalk |
 | Forza Motorsport 3 - Ultimate Edition (Japan, Asia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 1) (Play Disc) | playable | no exact title/disc crosswalk |
 | Forza Motorsport 3 - Ultimate Edition (Japan, Asia) (En,Ja,Fr,De,Es,It,Zh,Ko,Pl,Ru,Cs,Hu) (Disc 2) (Content Install Disc) | install | no exact title/disc crosswalk |
+| Saints Row - The Third - The Full Package (Japan) (Disc 2) (Install Disc) | install | no exact title/disc crosswalk |
+| Saints Row IV - National Treasure Edition (USA, Europe) (En,Fr,De,Es,It) (Disc 1) (Installation Disc) | install | no exact title/disc crosswalk |

@@ -23,6 +23,9 @@ class DiscCatalogTests(unittest.TestCase):
     def test_catalogue_has_exact_keyed_identity_records(self):
         self.assertEqual(self.catalog['identityRecordCount'], len(self.records))
         self.assertGreaterEqual(len(self.records), 2500)
+        source = self.catalog['generatedFrom'][0]
+        self.assertEqual(source['datVersion'], '2026-10-30')
+        self.assertEqual(source['entryCount'], 3733)
         for key, record in self.records.items():
             self.assertRegex(key, r'^[0-9A-F]{8}:[0-9A-F]{8}$')
             self.assertEqual(key, record['titleId'] + ':' + record['mediaId'])
