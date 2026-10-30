@@ -8,6 +8,7 @@ import os
 import secrets
 import shutil
 import socket
+import subprocess
 import sys
 import tempfile
 import threading
@@ -25,6 +26,10 @@ LOCK = threading.Lock()
 CONFIG = None
 ACTIVE = {}
 DRAG_EXPORTS = {}
+LOCAL_OUTPUT_SESSIONS = {}
+LOCAL_OUTPUT_FILES = {}
+LOCAL_OUTPUT_SESSION_TTL = 12 * 60 * 60
+LOCAL_OUTPUT_MAX_FILE = 20 * 1024 * 1024 * 1024
 DRAG_EXPORT_MAX_BYTES = 64 * 1024 * 1024
 DRAG_EXPORT_TTL_SECONDS = 15 * 60
 
@@ -71,6 +76,89 @@ def clean_name(value):
     if len(name.encode("utf-8")) > 255:
         raise ValueError("File or folder name is too long.")
     return name
+
+def mac_local_folder_picker_available():
+    return sys.platform == "darwin" and shutil.which("osascript") is not None
+
+
+def choose_local_output_folder():
+    """Open the macOS native folder picker for Safari/local-helper output."""
+    if not mac_local_folder_picker_available():
+        raise RuntimeError("The native folder picker is available only from the macOS local helper.")
+    script = 'POSIX path of (choose folder with prompt "Choose the GOD output folder")'
+    result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=300)
+    if result.returncode:
+        detail = (result.stderr or result.stdout or "").strip()
+        if "-128" in detail or "User canceled" in detail or "user canceled" in detail:
+            return None
+        raise RuntimeError(detail or "The macOS folder picker failed.")
+    raw_path = result.stdout.strip()
+    if not raw_path:
+        return None
+    root = Path(raw_path).expanduser().resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError("The selected output destination is not a folder.")
+    return root
+
+
+def clean_local_output_segments(segments):
+    clean_segments(segments)
+    return [clean_name(segment) for segment in segments]
+
+
+def get_local_output_session(session_id):
+    now = time.time()
+    with LOCK:
+        session = LOCAL_OUTPUT_SESSIONS.get(str(session_id))
+        if not session:
+            raise ValueError("The chosen output folder session expired; choose the folder again.")
+        if session.get("expires", 0) <= now:
+            LOCAL_OUTPUT_SESSIONS.pop(str(session_id), None)
+            raise ValueError("The chosen output folder session expired; choose the folder again.")
+        session["expires"] = now + LOCAL_OUTPUT_SESSION_TTL
+        return dict(session)
+
+
+def local_output_target(session, segments, create_parents=False):
+    segments = clean_local_output_segments(segments)
+    root = Path(session["root"]).resolve(strict=True)
+    current = root
+    for index, segment in enumerate(segments[:-1]):
+        current = current / segment
+        if current.is_symlink():
+            raise ValueError("Output paths cannot follow symbolic links.")
+        if create_parents:
+            current.mkdir(exist_ok=True)
+        elif not current.exists():
+            return current.joinpath(*segments[index + 1:])
+        elif not current.is_dir():
+            raise ValueError("An output path component is not a folder.")
+        current = current.resolve(strict=True)
+        try:
+            current.relative_to(root)
+        except ValueError as exc:
+            raise ValueError("Output path escapes the selected folder.") from exc
+    target = current / segments[-1]
+    if target.is_symlink():
+        raise ValueError("Output files cannot replace symbolic links.")
+    try:
+        target.parent.resolve(strict=True).relative_to(root)
+    except ValueError as exc:
+        raise ValueError("Output path escapes the selected folder.") from exc
+    return target
+
+
+def release_local_output_session(session_id):
+    ident = str(session_id or "")
+    with LOCK:
+        LOCAL_OUTPUT_SESSIONS.pop(ident, None)
+        items = [(file_id, item) for file_id, item in list(LOCAL_OUTPUT_FILES.items()) if item.get("sessionId") == ident]
+        for file_id, _item in items:
+            LOCAL_OUTPUT_FILES.pop(file_id, None)
+    for _file_id, item in items:
+        try: os.unlink(item["tmp"])
+        except OSError: pass
+    return len(items)
 
 
 def cleanup_expired_drag_exports():
@@ -254,7 +342,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         # Avoid flooding Terminal with the live progress polling and 4 MiB data chunks.
         if (self.path.startswith("/api/file/chunk?") or self.path.startswith("/api/file/status?")
-                or self.path.startswith("/api/drag-export/chunk?") or self.path.startswith("/api/drag-export/file/")):
+                or self.path.startswith("/api/drag-export/chunk?") or self.path.startswith("/api/drag-export/file/")
+                or self.path.startswith("/api/local-output/file/chunk?")):
             return
         # Never log request bodies or FTP credentials.
         print("[bridge] " + (fmt % args))
@@ -325,7 +414,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if parsed.path.startswith("/vendor/"):
             return self._serve_vendor_asset(parsed.path)
         if parsed.path == "/api/token":
-            return send_json(self, 200, {"token": TOKEN})
+            return send_json(self, 200, {"token": TOKEN, "localFolderPickerAvailable": mac_local_folder_picker_available()})
         if parsed.path == "/api/status":
             return send_json(self, 200, {"connected": CONFIG is not None})
         if parsed.path == "/api/file/status":
@@ -385,6 +474,123 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
         parsed = urllib.parse.urlparse(self.path)
         try:
+            if parsed.path == "/api/local-output/pick":
+                json.loads(self._body().decode("utf-8") or "{}")
+                root = choose_local_output_folder()
+                if root is None:
+                    return send_json(self, 200, {"cancelled": True})
+                ident = secrets.token_urlsafe(32)
+                with LOCK:
+                    LOCAL_OUTPUT_SESSIONS[ident] = {"root": str(root), "name": root.name or str(root),
+                                                    "expires": time.time() + LOCAL_OUTPUT_SESSION_TTL}
+                return send_json(self, 200, {"cancelled": False, "sessionId": ident,
+                                             "name": root.name or str(root)})
+
+            if parsed.path == "/api/local-output/check":
+                data = json.loads(self._body().decode("utf-8"))
+                session = get_local_output_session(data.get("sessionId", ""))
+                paths = data.get("paths")
+                if not isinstance(paths, list) or len(paths) > 4096:
+                    raise ValueError("Invalid output path check.")
+                found = []
+                for segments in paths:
+                    target = local_output_target(session, segments, create_parents=False)
+                    found.append(target.exists())
+                return send_json(self, 200, {"exists": found})
+
+            if parsed.path == "/api/local-output/remove":
+                data = json.loads(self._body().decode("utf-8"))
+                session = get_local_output_session(data.get("sessionId", ""))
+                segments = clean_local_output_segments(data.get("segments"))
+                target = local_output_target(session, segments, create_parents=False)
+                if target.is_symlink():
+                    raise ValueError("Output paths cannot remove symbolic links.")
+                if target.is_dir():
+                    if data.get("recursive", False) is True:
+                        shutil.rmtree(target)
+                    else:
+                        target.rmdir()
+                    removed = True
+                elif target.is_file():
+                    target.unlink()
+                    removed = True
+                else:
+                    removed = False
+                return send_json(self, 200, {"ok": True, "removed": removed})
+
+            if parsed.path == "/api/local-output/release":
+                data = json.loads(self._body().decode("utf-8"))
+                removed_files = release_local_output_session(data.get("sessionId", ""))
+                return send_json(self, 200, {"ok": True, "abortedFiles": removed_files})
+
+            if parsed.path == "/api/local-output/file/begin":
+                data = json.loads(self._body().decode("utf-8"))
+                session_id = str(data.get("sessionId", ""))
+                session = get_local_output_session(session_id)
+                segments = clean_local_output_segments(data.get("segments"))
+                expected = int(data.get("size", -1))
+                if expected < 0 or expected > LOCAL_OUTPUT_MAX_FILE:
+                    raise ValueError("Invalid local output file size.")
+                target = local_output_target(session, segments, create_parents=True)
+                if target.exists() and target.is_dir():
+                    raise ValueError("An output file path is already a folder.")
+                with LOCK:
+                    if len(LOCAL_OUTPUT_FILES) >= 16:
+                        raise ValueError("Too many local output files are active; finish or cancel the current conversion first.")
+                fd, tmp = tempfile.mkstemp(prefix="nebula-local-output-", suffix=".part", dir=str(target.parent))
+                os.close(fd)
+                ident = secrets.token_urlsafe(32)
+                with LOCK:
+                    LOCAL_OUTPUT_FILES[ident] = {"tmp": tmp, "target": str(target), "root": session["root"],
+                                                 "sessionId": session_id, "expected": expected, "written": 0}
+                return send_json(self, 200, {"id": ident})
+
+            if parsed.path == "/api/local-output/file/chunk":
+                ident = urllib.parse.parse_qs(parsed.query).get("id", [""])[0]
+                body = self._body()
+                with LOCK:
+                    item = LOCAL_OUTPUT_FILES.get(ident)
+                    if not item:
+                        raise ValueError("No active local output file exists.")
+                    if item["written"] + len(body) > item["expected"]:
+                        raise ValueError("Received more bytes than expected for this output file.")
+                    with open(item["tmp"], "ab") as output:
+                        output.write(body)
+                    item["written"] += len(body)
+                    written = item["written"]
+                return send_json(self, 200, {"written": written})
+
+            if parsed.path == "/api/local-output/file/finish":
+                data = json.loads(self._body().decode("utf-8"))
+                ident = str(data.get("id", ""))
+                with LOCK:
+                    item = LOCAL_OUTPUT_FILES.get(ident)
+                    if not item:
+                        raise ValueError("No active local output file exists.")
+                    if item["written"] != item["expected"]:
+                        raise ValueError("The local output file is incomplete.")
+                    session = LOCAL_OUTPUT_SESSIONS.get(item["sessionId"])
+                    if not session or session.get("expires", 0) <= time.time():
+                        raise ValueError("The chosen output folder session expired; choose the folder again.")
+                    root = Path(item["root"]).resolve(strict=True)
+                    target = Path(item["target"])
+                    if target.is_symlink():
+                        raise ValueError("Output files cannot replace symbolic links.")
+                    target.parent.resolve(strict=True).relative_to(root)
+                    os.replace(item["tmp"], target)
+                    LOCAL_OUTPUT_FILES.pop(ident, None)
+                return send_json(self, 200, {"ok": True, "bytes": item["written"]})
+
+            if parsed.path == "/api/local-output/file/abort":
+                data = json.loads(self._body().decode("utf-8"))
+                ident = str(data.get("id", ""))
+                with LOCK:
+                    item = LOCAL_OUTPUT_FILES.pop(ident, None)
+                if item:
+                    try: os.unlink(item["tmp"])
+                    except OSError: pass
+                return send_json(self, 200, {"ok": True})
+
             if parsed.path == "/api/drag-export/begin":
                 cleanup_expired_drag_exports()
                 data = json.loads(self._body().decode("utf-8"))
@@ -846,7 +1052,7 @@ def cleanup_stale_staging_files():
     removed = 0
     try:
         temp_root = Path(tempfile.gettempdir())
-        for pattern in ("nebula-ftp-*.part", "nebula-download-*.part", "nebula-drag-export-*.part"):
+        for pattern in ("nebula-ftp-*.part", "nebula-download-*.part", "nebula-drag-export-*.part", "nebula-local-output-*.part"):
             for path in temp_root.glob(pattern):
                 try:
                     if path.is_file():
@@ -890,7 +1096,10 @@ def main():
         with LOCK:
             drag_exports = list(DRAG_EXPORTS.values())
             DRAG_EXPORTS.clear()
-        for item in drag_exports:
+            local_output_files = list(LOCAL_OUTPUT_FILES.values())
+            LOCAL_OUTPUT_FILES.clear()
+            LOCAL_OUTPUT_SESSIONS.clear()
+        for item in drag_exports + local_output_files:
             try: os.unlink(item["tmp"])
             except OSError: pass
         print("Stopped.")
