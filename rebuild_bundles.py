@@ -17,7 +17,7 @@ UPDATE = ROOT / 'NebulaISO2GOD-Website-Download-Update'
 
 def embedded_command_payload() -> bytes:
     tar_bytes = io.BytesIO()
-    paths = [ROOT / 'index.html', ROOT / 'ftp_helper.py', ROOT / 'README_FTP.md', ROOT / 'data/disc_catalog.json']
+    paths = [ROOT / 'index.html', ROOT / 'ftp_helper.py', ROOT / 'README_FTP.md', ROOT / 'data/disc_catalog.json', ROOT / 'data/redump_inventory.json']
     paths.extend(sorted((ROOT / 'vendor').rglob('*')))
     with tarfile.open(fileobj=tar_bytes, mode='w:gz', format=tarfile.PAX_FORMAT) as tar:
         for path in paths:
@@ -60,17 +60,19 @@ def rebuild_timeout_bundle() -> None:
         members = [(info, old.read(info.filename)) for info in old.infolist()]
     tmp = TIMEOUT.with_suffix('.tmp.zip')
     with zipfile.ZipFile(tmp, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as out:
-        catalog_written = False
+        written_assets = set()
+        asset_files = ('disc_catalog.json', 'redump_inventory.json')
         for info, data in members:
             name = info.filename
             if name.endswith('/index.html'):
                 data = (ROOT / 'index.html').read_bytes()
-            elif name.endswith('/data/disc_catalog.json'):
-                if catalog_written:
+            elif any(name.endswith('/data/' + asset) for asset in asset_files):
+                asset = next(asset for asset in asset_files if name.endswith('/data/' + asset))
+                if asset in written_assets:
                     continue
-                data = (ROOT / 'data/disc_catalog.json').read_bytes()
-                catalog_written = True
-            elif name.endswith('/ftp_helper.py'):
+                data = (ROOT / 'data' / asset).read_bytes()
+                written_assets.add(asset)
+            elif name.endswith('/ftp_helper.py'): 
                 data = (ROOT / 'ftp_helper.py').read_bytes()
             elif name.endswith('/README_FTP.md'):
                 data = (ROOT / 'README_FTP.md').read_bytes()
@@ -82,9 +84,10 @@ def rebuild_timeout_bundle() -> None:
             new_info.external_attr = info.external_attr
             new_info.flag_bits = info.flag_bits
             out.writestr(new_info, data)
-        if not catalog_written:
-            site_prefix = next(info.filename.rsplit('index.html', 1)[0] for info, _ in members if info.filename.endswith('/index.html'))
-            out.write(ROOT / 'data/disc_catalog.json', site_prefix + 'data/disc_catalog.json')
+        site_prefix = next(info.filename.rsplit('index.html', 1)[0] for info, _ in members if info.filename.endswith('/index.html'))
+        for asset in asset_files:
+            if asset not in written_assets:
+                out.write(ROOT / 'data' / asset, site_prefix + 'data/' + asset)
     tmp.replace(TIMEOUT)
 
 
@@ -92,7 +95,7 @@ def rebuild_windows_bundle() -> None:
     """Package the current site/helper with a Windows batch launcher."""
     prefix = 'Nebula ISO2GOD Windows Helper/'
     files = [ROOT / 'index.html', ROOT / 'ftp_helper.py', ROOT / 'README_FTP.md',
-             ROOT / 'README_WINDOWS.txt', ROOT / 'Start Nebula ISO2GOD.bat', ROOT / 'data/disc_catalog.json']
+             ROOT / 'README_WINDOWS.txt', ROOT / 'Start Nebula ISO2GOD.bat', ROOT / 'data/disc_catalog.json', ROOT / 'data/redump_inventory.json']
     files.extend(sorted((ROOT / 'vendor').rglob('*')))
     with zipfile.ZipFile(WINDOWS, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as out:
         for path in files:
@@ -111,13 +114,14 @@ def update_deployment_copy() -> None:
         shutil.copy2(ROOT / name, UPDATE / name)
     (UPDATE / 'data').mkdir(exist_ok=True)
     shutil.copy2(ROOT / 'data/disc_catalog.json', UPDATE / 'data/disc_catalog.json')
+    shutil.copy2(ROOT / 'data/redump_inventory.json', UPDATE / 'data/redump_inventory.json')
     if (ROOT / 'vendor').exists():
         if (UPDATE / 'vendor').exists(): shutil.rmtree(UPDATE / 'vendor')
         shutil.copytree(ROOT / 'vendor', UPDATE / 'vendor')
 
 
 def rebuild_full_pages_zip() -> None:
-    files = [ROOT / 'index.html', ROOT / 'ftp_helper.py', ROOT / 'README.md', ROOT / 'README_FTP.md', ROOT / 'UPLOAD_TO_GITHUB.txt', ROOT / 'build_disc_catalog.py', ROOT / 'rebuild_bundles.py', ROOT / 'test_disc_catalog.py', ROOT / 'data/disc_catalog.json', ROOT / 'data/disc_catalog_review.md', ROOT / 'data/redump-xbox360-dat.zip', ROOT / 'data/xbox360-gamelist.csv', ONE_FIXED, ONE_PLAIN, TIMEOUT, WINDOWS]
+    files = [ROOT / 'index.html', ROOT / 'ftp_helper.py', ROOT / 'README.md', ROOT / 'README_FTP.md', ROOT / 'UPLOAD_TO_GITHUB.txt', ROOT / 'build_disc_catalog.py', ROOT / 'rebuild_bundles.py', ROOT / 'test_disc_catalog.py', ROOT / 'data/disc_catalog.json', ROOT / 'data/redump_inventory.json', ROOT / 'data/disc_catalog_review.md', ROOT / 'data/redump-xbox360-dat.zip', ROOT / 'data/xbox360-gamelist.csv', ONE_FIXED, ONE_PLAIN, TIMEOUT, WINDOWS]
     files.extend(sorted((ROOT / 'vendor').rglob('*')))
     with zipfile.ZipFile(FULL, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as out:
         for path in files:

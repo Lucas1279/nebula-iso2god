@@ -1,10 +1,11 @@
 # Xbox 360 disc catalogue build review
 
-- Redump DAT snapshot: 2026-10-30; source lists 3733 media entries.
-- CSV source rows parsed: 4047; exact Title ID + Media ID records: 2577.
-- Redump games with explicit role terms: 51.
-- Automatically joined role records: 31; conflicting role identities: 0.
-- Labeled Redump entries not joined: 4.
+- Redump DAT snapshot: 2026-10-30 01-28-06; complete inventory entries: 3733.
+- CSV source rows parsed: 4047; exact Title ID + Media ID identities: 2577 across 1610 Title IDs.
+- Full inventory entries with title+disc candidate joins (audit only): 312; distinct candidate identity keys: 196.
+- Redump entries with explicit role terms: 51.
+- Automatic exact role records: 31; conflicting role identities: 0.
+- Explicitly labeled Redump entries not joined: 4.
 
 ## Automatic role assignments (review before shipping)
 
