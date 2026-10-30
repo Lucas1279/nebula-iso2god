@@ -662,7 +662,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
       <p class="muted small" id="outputModeNote" style="line-height:1.6"></p>
 
       <div class="setup" id="folderSetup" hidden>
-        <strong>Pick the folder that will receive the <span class="kbd">Content</span> folder</strong> — for example the root of a USB stick, or an empty folder on your PC. Safari uses the macOS folder picker and local helper to stream files. A <span class="kbd">README_INSTALL_ON_XBOX.txt</span> is written next to it.
+        <strong>Pick the folder that will receive the <span class="kbd">Content</span> folder</strong> — for example the root of a USB stick, or an empty folder on your PC. Safari uses the macOS folder picker and local helper to stream the GOD files directly into the folder you choose.
         <div class="btn-row"><button class="btn" id="chooseFolderBtn" type="button">Choose output folder…</button><span class="muted" id="folderName"></span></div>
       </div>
       <div class="setup" id="gameFolderSetup" hidden><strong>Choose the parent folder for a new extracted game folder.</strong> Nebula creates a separate, timestamped folder and leaves the ISO untouched. Copy that extracted game folder to your JTAG/RGH console and launch the game’s appropriate XEX. This does not auto-load plugin XEX files.
@@ -672,7 +672,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
         <div class="btn-row"><button class="btn" id="chooseZipBtn" type="button">Choose ZIP destination…</button><span class="muted" id="zipName"></span></div>
       </div>
       <div class="setup" id="filesSetup" hidden>
-        <span id="filesSetupText">No setup needed. When conversion finishes, download buttons for the header, every <span class="kbd">Data####</span> part and a README will appear below. Your browser may ask you to allow multiple downloads.</span>
+        <span id="filesSetupText">No setup needed. When conversion finishes, download buttons for the header and every <span class="kbd">Data####</span> part will appear below. Your browser may ask you to allow multiple downloads.</span>
       </div>
       <div class="setup" id="ftpSetup" hidden>
         <strong>Xbox FTP connection (same home network only)</strong>
@@ -1755,47 +1755,6 @@ const Iso2GodEngine = (() => {
   /* ------------------------------------------------------------------ */
   /* Conversion                                                          */
   /* ------------------------------------------------------------------ */
-  function conversionReadme(analysis, layout, plan, title) {
-    const x = analysis.executionInfo;
-    const lines = [
-      `${title} — Xbox 360 Games on Demand (GOD) package`,
-      '='.repeat(58),
-      '',
-      `Title ID : ${layout.titleHex}`,
-      `Media ID : ${hex32(x.mediaId)}`,
-      `Disc     : ${x.discNumber || 1} of ${x.discCount || 1}`,
-      `Container: ${layout.headerName}`,
-      `Parts    : ${plan.partCount} data file(s)`,
-      '',
-      'HOW TO INSTALL ON A MODDED (JTAG/RGH) XBOX 360',
-      '-' .repeat(58),
-      '1. Copy the "Content" folder to the root of your Xbox 360 HDD',
-      '   (or copy the Title ID folder into an existing',
-      '   Hdd1:\\Content\\0000000000000000\\ folder by FTP/USB).',
-      '   The final layout on the console must be:',
-      '',
-      `   Hdd1:\\Content\\0000000000000000\\${layout.titleHex}\\${layout.typeFolder}\\${layout.headerName}`,
-      `   Hdd1:\\Content\\0000000000000000\\${layout.titleHex}\\${layout.typeFolder}\\${layout.headerName}.data\\Data0000 ...`,
-      '',
-      '2. In Aurora/FreeStyle Dash, rescan your content path',
-      '   (Settings > Content > Scan, or press the rescan option).',
-      '   The game also appears in the stock NXE/My Games list on a',
-      '   modded console because GOD is the official download format.',
-      '',
-      'NOTES',
-      '- Like every Iso2God package, the LIVE header signature is blank,',
-      '  so this only boots on a JTAG/RGH (signature checks patched).',
-      '  It will NOT work on a retail, unmodded console.',
-      '- Keep the header file and its matching .data folder together',
-      '  and do not rename anything inside the .data folder.',
-      '- Only install backups of games you own.',
-      '',
-      'Converted locally in your browser with Nebula ISO2GOD.',
-      'No part of the ISO was uploaded anywhere.',
-    ];
-    return new TextEncoder().encode(lines.join('\r\n') + '\r\n');
-  }
-
   async function convert(reader, analysis, options, writer, callbacks = {}) {
     const trimMode = options.trimMode === 'none' ? 'none' : 'end';
     const title = (options.gameTitle || '').trim();
@@ -1928,12 +1887,6 @@ const Iso2GodEngine = (() => {
       await writer.write(header);
       written += HEADER_SIZE;
       await writer.endFile();
-      if (options.includeReadme !== false) {
-        const readme = conversionReadme(analysis, layout, plan, title || layout.titleHex);
-        await writer.beginFile(['README_INSTALL_ON_XBOX.txt'], readme.length);
-        await writer.write(readme);
-        await writer.endFile();
-      }
       await writer.finish();
     } catch (err) {
       if (writer.abort) { try { await writer.abort(err); } catch (_) {} }
@@ -3166,7 +3119,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (plan.partCount > shown) tree += '    … ' + (plan.partCount - shown) + ' more part(s), last is Data' + String(plan.partCount - 1).padStart(4, '0') + ' (' + fmtBytes(plan.partSizes[plan.partCount - 1]) + ')\n';
     els.outputTree.textContent = tree;
     state.zipSuggestedName = (o.gameTitle || layout.titleHex).replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 80) + ' [GOD].zip';
-    $('filesSetupText').innerHTML = 'No setup needed. When conversion finishes, download buttons for the header, every <span class="kbd">Data####</span> part and a README will appear below. Your browser may ask you to allow multiple downloads.';
+    $('filesSetupText').innerHTML = 'No setup needed. When conversion finishes, download buttons for the header and every <span class="kbd">Data####</span> part will appear below. Your browser may ask you to allow multiple downloads.';
     $('ftpSetupIntro').textContent = 'Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. Do not expose FTP to the internet or set up port forwarding. The ISO stays in your browser; the helper sends only the finished GOD files to the Xbox.';
     return { plan, layout, options: o };
   }
@@ -4944,17 +4897,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         this.aborted = true;
         await this.zipWriter.abort();
       },
-      itemWriter(batchIndex) {
+      itemWriter() {
         const ctx = this;
         return {
-          beginFile(segments, expectedSize) {
-            const actual = segments.slice();
-            const leaf = actual[actual.length - 1];
-            if (actual.length === 1 && leaf === 'README_INSTALL_ON_XBOX.txt') {
-              actual[0] = 'README_INSTALL_ON_XBOX_' + String(batchIndex + 1).padStart(2, '0') + '.txt';
-            }
-            return ctx.zipWriter.beginFile(actual, expectedSize);
-          },
+          beginFile: (segments, expectedSize) => ctx.zipWriter.beginFile(segments, expectedSize),
           write: chunk => ctx.zipWriter.write(chunk),
           endFile: () => ctx.zipWriter.endFile(),
           finish: async () => {},
@@ -8732,7 +8678,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     } else if (state.outputMode === 'ftp') {
       where = 'Uploaded the GOD package to your Xbox over FTP. Rescan the Content path in Aurora/FreeStyle Dash after the transfer completes.';
     } else {
-      where = 'Download every file below, recreate the folder layout shown next to each one exactly, then copy the <strong>Content</strong> folder to your Xbox 360 drive. A README with the same layout is included below.';
+      where = 'Download the header and Data parts below, recreate the folder layout shown next to each one exactly, then copy the <strong>Content</strong> folder to your Xbox 360 drive.';
     }
     if (result.kind === 'extracted-game-folder') {
       where = 'Created a new folder named <strong>' + esc(state.gameOutputName) + '</strong> inside “' + esc(state.gameDirHandle.name) + '”. Copy that folder to a JTAG/RGH console and launch the game using the correct game XEX.';
