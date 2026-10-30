@@ -94,6 +94,52 @@ def remove_drag_export(ident):
     return item
 
 
+def parse_ftp_available_bytes(reply):
+    """Parse the numeric byte count from the optional FTP AVBL extension."""
+    import re
+    for line in str(reply or "").splitlines():
+        match = re.match(r"^\s*213[ -]\s*(.*?)\s*$", line)
+        if not match:
+            continue
+        payload = match.group(1)
+        value = re.fullmatch(r"([0-9][0-9,]*)(?:\s*(?:bytes?|b))?(?:\s+(?:available|free))?", payload, re.I)
+        if value:
+            try:
+                return int(value.group(1).replace(",", ""))
+            except ValueError:
+                pass
+    return None
+
+
+def ftp_available_bytes(ftp):
+    """Query AVBL when supported; standard FTP has no universal disk-space API."""
+    try:
+        current = ftp.pwd()
+    except Exception:
+        current = ""
+    commands = ["AVBL"]
+    if current:
+        commands.append("AVBL " + current)
+    control = getattr(ftp, "sock", None)
+    original_timeout = None
+    try:
+        if control is not None:
+            original_timeout = control.gettimeout()
+            control.settimeout(min(original_timeout, 5) if original_timeout else 5)
+        for command in commands:
+            try:
+                result = parse_ftp_available_bytes(ftp.sendcmd(command))
+            except (AttributeError, ftplib.error_perm):
+                continue
+            if result is not None:
+                return result
+        return None
+    finally:
+        if control is not None:
+            try: control.settimeout(original_timeout)
+            except OSError: pass
+
+
 def ftp_cwd(ftp, cfg, segments):
     ftp.cwd(cfg["basePath"])
     for segment in segments:
@@ -521,6 +567,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     if data_sock is not None:
                         try: data_sock.close()
                         except Exception: pass
+                    try: ftp.quit()
+                    except Exception: pass
+
+            if parsed.path == "/api/fs/storage":
+                data = json.loads(self._body().decode("utf-8"))
+                segments = clean_segments(data.get("segments"), allow_empty=True)
+                cfg = CONFIG
+                if not cfg:
+                    raise ValueError("Connect to the Xbox FTP server first.")
+                ftp = ftp_login(cfg)
+                try:
+                    ftp_cwd(ftp, cfg, segments)
+                    available_bytes = ftp_available_bytes(ftp)
+                    return send_json(self, 200, {"ok": True, "availableBytes": available_bytes})
+                finally:
                     try: ftp.quit()
                     except Exception: pass
 

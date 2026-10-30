@@ -282,6 +282,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-manager-location{min-width:150px;flex:0 0 190px;line-height:1.25}
 .ftp-manager-location>strong{display:block;font-size:.84rem;letter-spacing:.02em}
 .ftp-manager-location #ftpManagerLocation{font-size:.8rem;overflow-wrap:anywhere}
+.ftp-manager-storage{display:inline-block;margin-top:5px;padding:3px 7px;border:1px solid rgba(125,211,252,.2);border-radius:999px;background:rgba(56,189,248,.07);overflow-wrap:anywhere}
 .ftp-manager-location .ftp-breadcrumbs{gap:4px;margin-top:4px}
 .ftp-manager-location .ftp-breadcrumbs button{padding:3px 7px;font-size:.74rem}
 .ftp-manager-actions{justify-content:flex-end;flex:1 1 700px;gap:6px;margin-top:0}
@@ -316,7 +317,7 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-manager-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:210px;margin-top:12px;padding:84px 20px 38px;border-radius:20px;text-align:center;color:var(--muted);cursor:default}
 .ftp-manager-drop strong{color:var(--text)}
 .ftp-manager-table tr.remote-drop-target{border-color:#34d399!important;background:rgba(52,211,153,.15)!important}.ftp-manager-table tr.dragging-remote-file{opacity:.48}
-.ftp-manager-table-wrap{max-height:min(56vh,620px);overflow:auto;border:1px solid var(--line);border-radius:12px}
+.ftp-manager-table-wrap{max-height:min(56vh,620px);overflow:auto;overscroll-behavior:contain;border:1px solid var(--line);border-radius:12px}
 .ftp-manager-table{width:100%;border-collapse:collapse;min-width:570px}
 .ftp-manager-table th,.ftp-manager-table td{padding:9px 10px;border-bottom:1px solid rgba(145,170,255,.12);text-align:left;vertical-align:middle;font-size:.84rem}
 .ftp-manager-table th{position:sticky;top:0;z-index:1;background:#101a34;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
@@ -460,7 +461,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
       </div>
       <div class="setup ftp-manager-browser" id="ftpManagerBrowser" hidden style="margin-top:12px">
         <div class="ftp-manager-toolbar">
-          <div class="ftp-manager-location"><strong>Remote location</strong><div id="ftpManagerLocation" class="muted small"></div><div id="ftpManagerBreadcrumbs" class="ftp-breadcrumbs" aria-label="Remote folder path"></div></div>
+          <div class="ftp-manager-location"><strong>Remote location</strong><div id="ftpManagerLocation" class="muted small"></div><div id="ftpManagerBreadcrumbs" class="ftp-breadcrumbs" aria-label="Remote folder path"></div><div id="ftpManagerStorageInfo" class="ftp-manager-storage muted tiny" aria-live="polite" title="Free space is shown only if the Xbox FTP server supports the optional AVBL command.">Free space: not checked</div></div>
           <div class="btn-row ftp-manager-actions" role="toolbar" aria-label="Remote file actions">
             <button class="btn small" id="ftpManagerUpBtn" type="button" aria-label="Go up one folder" title="Go to the parent folder">↑ Up</button>
             <button class="btn small" id="ftpManagerRefreshBtn" type="button" aria-label="Refresh remote listing" title="Refresh the current remote folder">↻ Refresh</button>
@@ -2133,7 +2134,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
     rawArchiveInput: $('rawArchiveInput'), rawArchiveBrowseBtn: $('rawArchiveBrowseBtn'), rawArchiveStatus: $('rawArchiveStatus'), rawArchiveProgressWrap: $('rawArchiveProgressWrap'), rawArchiveProgressBar: $('rawArchiveProgressBar'), rawArchiveCancelBtn: $('rawArchiveCancelBtn'),
     taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), taskPsxMode: $('taskPsxMode'), taskSnesMode: $('taskSnesMode'), taskModsMode: $('taskModsMode'), taskFtpMode: $('taskFtpMode'), heroIsoIntro: $('heroIsoIntro'), heroPsxIntro: $('heroPsxIntro'), heroSnesIntro: $('heroSnesIntro'), heroModsIntro: $('heroModsIntro'), heroFtpIntro: $('heroFtpIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), psxSteps: $('psxSteps'), snesSteps: $('snesSteps'), modsSteps: $('modsSteps'), ftpManagerSteps: $('ftpManagerSteps'), supportBadges: $('supportBadges'), appBuildLabel: $('appBuildLabel'), footerBuildLabel: $('footerBuildLabel'),
-    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerCopyDesktopBtn: $('ftpManagerCopyDesktopBtn'), ftpManagerPrepareDragBtn: $('ftpManagerPrepareDragBtn'), ftpManagerEditBtn: $('ftpManagerEditBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerModal: $('ftpManagerModal'), ftpManagerModalCard: $('ftpManagerModalCard'), ftpManagerModalTitle: $('ftpManagerModalTitle'), ftpManagerModalMessage: $('ftpManagerModalMessage'), ftpManagerPromptWrap: $('ftpManagerPromptWrap'), ftpManagerPromptInput: $('ftpManagerPromptInput'), ftpManagerEditorWrap: $('ftpManagerEditorWrap'), ftpManagerEditorText: $('ftpManagerEditorText'), ftpManagerModalCancel: $('ftpManagerModalCancel'), ftpManagerModalConfirm: $('ftpManagerModalConfirm'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerJumpPath: $('ftpManagerJumpPath'), ftpManagerJumpBtn: $('ftpManagerJumpBtn'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'), ftpManagerArchiveProgressWrap: $('ftpManagerArchiveProgressWrap'), ftpManagerArchiveProgressBar: $('ftpManagerArchiveProgressBar'), ftpManagerArchiveStatus: $('ftpManagerArchiveStatus'), ftpManagerArchiveCancelBtn: $('ftpManagerArchiveCancelBtn'),
+    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerStorageInfo: $('ftpManagerStorageInfo'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerCopyDesktopBtn: $('ftpManagerCopyDesktopBtn'), ftpManagerPrepareDragBtn: $('ftpManagerPrepareDragBtn'), ftpManagerEditBtn: $('ftpManagerEditBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerModal: $('ftpManagerModal'), ftpManagerModalCard: $('ftpManagerModalCard'), ftpManagerModalTitle: $('ftpManagerModalTitle'), ftpManagerModalMessage: $('ftpManagerModalMessage'), ftpManagerPromptWrap: $('ftpManagerPromptWrap'), ftpManagerPromptInput: $('ftpManagerPromptInput'), ftpManagerEditorWrap: $('ftpManagerEditorWrap'), ftpManagerEditorText: $('ftpManagerEditorText'), ftpManagerModalCancel: $('ftpManagerModalCancel'), ftpManagerModalConfirm: $('ftpManagerModalConfirm'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerJumpPath: $('ftpManagerJumpPath'), ftpManagerJumpBtn: $('ftpManagerJumpBtn'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'), ftpManagerArchiveProgressWrap: $('ftpManagerArchiveProgressWrap'), ftpManagerArchiveProgressBar: $('ftpManagerArchiveProgressBar'), ftpManagerArchiveStatus: $('ftpManagerArchiveStatus'), ftpManagerArchiveCancelBtn: $('ftpManagerArchiveCancelBtn'),
     snesContentCard: $('snesContentCard'), snesDropZone: $('snesDropZone'), snesRomInput: $('snesRomInput'), snesArchiveInput: $('snesArchiveInput'), snesChooseRomsBtn: $('snesChooseRomsBtn'), snesChooseArchiveBtn: $('snesChooseArchiveBtn'), snesClearRomsBtn: $('snesClearRomsBtn'), snesRomSummary: $('snesRomSummary'), snesRomList: $('snesRomList'), snesArchiveStatus: $('snesArchiveStatus'), snesArchiveProgressWrap: $('snesArchiveProgressWrap'), snesArchiveProgressBar: $('snesArchiveProgressBar'), snesArchiveCancelBtn: $('snesArchiveCancelBtn'), snesFtpPreset: $('snesFtpPreset'), snesFtpPath: $('snesFtpPath'), snesFtpRomDir: $('snesFtpRomDir'), snesFtpHost: $('snesFtpHost'), snesFtpPort: $('snesFtpPort'), snesFtpUser: $('snesFtpUser'), snesFtpPassword: $('snesFtpPassword'), rememberFtpSnes: $('rememberFtpSnes'), snesFtpConnectBtn: $('snesFtpConnectBtn'), snesFtpStatus: $('snesFtpStatus'), snesUploadBtn: $('snesUploadBtn'), snesFtpLive: $('snesFtpLive'), snesFtpLiveBar: $('snesFtpLiveBar'), snesFtpLiveText: $('snesFtpLiveText'), snesFtpRetryActions: $('snesFtpRetryActions'), snesFtpRetryBtn: $('snesFtpRetryBtn'), snesFtpCancelBtn: $('snesFtpCancelBtn'),
     rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawOverallLiveText: $('rawOverallLiveText'), rawOverallLiveBar: $('rawOverallLiveBar'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
     modsPanel: $('modsPanel'), modsChooseFilesBtn: $('modsChooseFilesBtn'), modsChooseFolderBtn: $('modsChooseFolderBtn'), modsClearBtn: $('modsClearBtn'), modsFilesInput: $('modsFilesInput'), modsFolderInput: $('modsFolderInput'), modsDropZone: $('modsDropZone'), modsStatus: $('modsStatus'), modsResultsWrap: $('modsResultsWrap'), modsResultsSummary: $('modsResultsSummary'), modsResultsBody: $('modsResultsBody'), modsWarning: $('modsWarning'),
@@ -5391,6 +5392,27 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpManagerSelectAll.checked = visible.length > 0 && selectedVisible.length === visible.length;
     els.ftpManagerSelectAll.indeterminate = selectedVisible.length > 0 && selectedVisible.length < visible.length;
   }
+  async function managerRefreshStorageInfo() {
+    if (!state.ftpManagerConnected) return;
+    const path = state.ftpManagerSegments.slice();
+    els.ftpManagerStorageInfo.textContent = 'Free space: checking…';
+    els.ftpManagerStorageInfo.title = 'Checking whether the FTP server reports free bytes using AVBL.';
+    try {
+      const result = await bridgeRequest('/api/fs/storage', { segments: path });
+      if (managerPathKey(path) !== managerPathKey(state.ftpManagerSegments)) return;
+      if (result.availableBytes != null && Number.isFinite(Number(result.availableBytes)) && Number(result.availableBytes) >= 0) {
+        els.ftpManagerStorageInfo.textContent = 'Free: ' + fmtBytes(Number(result.availableBytes)) + ' available';
+        els.ftpManagerStorageInfo.title = 'Free space reported by the Xbox FTP server for the current remote path.';
+      } else {
+        els.ftpManagerStorageInfo.textContent = 'Free space: not reported';
+        els.ftpManagerStorageInfo.title = 'This FTP server does not support the optional AVBL free-space command.';
+      }
+    } catch (err) {
+      if (managerPathKey(path) !== managerPathKey(state.ftpManagerSegments)) return;
+      els.ftpManagerStorageInfo.textContent = 'Free space: unavailable';
+      els.ftpManagerStorageInfo.title = 'Could not check free space: ' + (err.message || String(err));
+    }
+  }
   async function managerRefresh() {
     if (!state.ftpManagerConnected) throw new Error('Connect to the Xbox FTP server first.');
     const result = await bridgeRequest('/api/fs/list', { segments: state.ftpManagerSegments });
@@ -5401,6 +5423,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     ftpManagerSelectionAnchor = '';
     managerRenderEntries();
     managerUpdateFolderSummary();
+    managerRefreshStorageInfo();
   }
   async function managerNavigate(segments, recordHistory = true) {
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
