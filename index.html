@@ -583,7 +583,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <dt>Contents</dt><dd id="dFiles">—</dd>
         </dl>
       </div>
-      <div class="warn-note small" id="gtaVInstallNotice" hidden style="margin-top:12px"><strong>GTA V Disc 1 install content detected.</strong> This is not the playable GOD disc. The ISO workflow will extract the original <code>Content/0000000000000000/545408A7/00000002</code> files unchanged into their required console path. Convert Disc 2 separately as GOD. For FTP batch, select both ISOs together; for folder output, use the same destination for both discs. For ZIP output, select both ISOs together to put both outputs in one ZIP, then extract and merge its Content folder.</div>
+      <div class="warn-note small" id="gtaVInstallNotice" hidden style="margin-top:12px"><strong>Xbox install/content data detected.</strong> This is not a playable GOD disc. Its Content files will be extracted unchanged to their recognized console path. Pair it with the playable disc in the same batch when possible; placeholder paths require you to confirm the paired game Title ID. Playable discs remain separate GOD packages.</div>
 
       <div class="setup workflow-mode-hidden" id="modsPanel" style="margin-top:14px">
         <strong>🧩 Inspect mod files</strong>
@@ -958,7 +958,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <p><strong>Will it work on an unmodded/retail Xbox 360?</strong> No. Microsoft’s RSA private key signs real
           Marketplace GODs; Iso2God-style packages have a blank signature and only boot where signature checks are patched
           (JTAG/RGH with DashLaunch). That is a console restriction, not something any converter can bypass.</p>
-          <p><strong>Multi-disc games:</strong> the converter keeps each playable disc as its own GOD package and includes disc metadata in the container name. GTA V is a special case: the ISO tab recognizes Disc 1 by its Title ID and install-content folder, then extracts the original <code>Content\0000000000000000\545408A7\00000002</code> files unchanged; convert Disc 2 separately to GOD. Other install discs may need game-specific extraction not handled here. <em>Keep the full game partition</em> only avoids trimming an image; it does not unpack install content.</p>
+          <p><strong>Multi-disc games and install discs:</strong> each playable disc stays a separate GOD package, with disc metadata retained in its container name. The ISO workflow also detects Xbox <code>Content</code> trees on install/content discs and extracts their files without GOD repacking, preserving recognized Title ID paths. Placeholder folders such as <code>Content/FFED2000/FFFFFFFF</code> require you to provide or confirm the paired playable game’s Title ID; unfamiliar layouts are not silently remapped. If an ISO contains both an executable and Content data, choose whether it is the playable disc or install content. For a combined batch, select the ISOs together: folder and ZIP output keep all results, while FTP writes each item to its matching Content or GOD path. Some titles use game-specific layouts or swap plugins (for example, AutoSwap); this generic extraction does not configure those plugins or guarantee a game’s install requirements. <em>Keep the full game partition</em> only avoids trimming an image; it does not unpack install content.</p>
           <p><strong>The game shows as corrupted / won’t launch:</strong></p>
           <ul>
             <li>Check <em>every</em> <code>Data####</code> part copied and sizes match (all but the last are exactly 162.6&nbsp;MiB / <code>0xA290000</code> bytes).</li>
@@ -1477,12 +1477,59 @@ const Iso2GodEngine = (() => {
     const table = directoryEntry && directoryEntry.subdirectory;
     for (const entry of (table && table.entries) || []) {
       const safeName = entry.name && entry.name !== '.' && entry.name !== '..' && !/[\\/\x00-\x1f\x7f]/.test(entry.name);
-      if (!safeName) throw new Error('The GTA V install-content folder contains a path-unsafe filename; refusing to write it.');
+      if (!safeName) throw new Error('The install-content tree contains a path-unsafe filename; refusing to write it.');
       const rel = [...prefix, entry.name];
       if (entry.isDirectory) collectFilesUnderDirectory(entry, rootOffset, rel, out);
       else out.push({ name: entry.name, relativePath: rel, size: entry.size, offset: rootOffset + entry.sector * SECTOR_SIZE });
     }
     return out;
+  }
+  function findGenericInstallContent(rootTable, rootOffset, executionInfo, allowUnstructured = false) {
+    const contentRoot = findDirectoryAtPath(rootTable, ['Content']);
+    if (!contentRoot || !contentRoot.subdirectory) return null;
+    const allFiles = collectFilesUnderDirectory(contentRoot, rootOffset);
+    if (!allFiles.length) return null;
+    const isHex8 = value => /^[0-9a-f]{8}$/i.test(String(value || ''));
+    const canonical = allFiles.filter(file => file.relativePath.length >= 3 &&
+      file.relativePath[0].toLowerCase() === '0000000000000000' && isHex8(file.relativePath[1]) && isHex8(file.relativePath[2]));
+    const shortPath = allFiles.filter(file => file.relativePath.length >= 2 &&
+      isHex8(file.relativePath[0]) && isHex8(file.relativePath[1]) && file.relativePath[0].toUpperCase() !== 'FFED2000');
+    const placeholder = allFiles.filter(file => file.relativePath.length >= 2 &&
+      file.relativePath[0].toUpperCase() === 'FFED2000' && file.relativePath[1].toUpperCase() === 'FFFFFFFF');
+    if (!canonical.length && !shortPath.length && !placeholder.length && !allowUnstructured) return null;
+    let files = allFiles.map(file => ({ ...file, outputSegments: ['Content', ...file.relativePath] }));
+    let titleIds = Array.from(new Set(canonical.map(file => file.relativePath[1].toUpperCase())));
+    if (!titleIds.length) titleIds = Array.from(new Set(shortPath.map(file => file.relativePath[0].toUpperCase())));
+    const suggestedTitleId = executionInfo && executionInfo.titleId && executionInfo.titleId !== 0 &&
+      hex32(executionInfo.titleId).toUpperCase() !== 'FFED2000' ? hex32(executionInfo.titleId).toUpperCase() : '';
+    let needsTitleIdMap = false;
+    if (placeholder.length) {
+      needsTitleIdMap = true;
+      files = allFiles.map(file => file.relativePath[0].toUpperCase() === 'FFED2000' && file.relativePath[1].toUpperCase() === 'FFFFFFFF'
+        ? { ...file, outputSegments: null } : { ...file, outputSegments: ['Content', ...file.relativePath] });
+    } else if (shortPath.length && !canonical.length) {
+      files = allFiles.filter(file => isHex8(file.relativePath[0]) && isHex8(file.relativePath[1]))
+        .map(file => ({ ...file, outputSegments: ['Content', '0000000000000000', ...file.relativePath] }));
+    }
+    const titleId = titleIds.length === 1 ? titleIds[0] : (suggestedTitleId || '00000000');
+    return {
+      kind: 'install-content', displayName: 'Install/content disc', titleId,
+      discNumber: executionInfo && executionInfo.discNumber || 1,
+      discCount: executionInfo && executionInfo.discCount || 1,
+      pathSegments: ['Content'], files,
+      totalBytes: files.reduce((sum, file) => sum + file.size, 0),
+      needsTitleIdMap, suggestedTitleId,
+      needsReview: !canonical.length && !shortPath.length && !placeholder.length,
+      sourceRelativePrefix: needsTitleIdMap ? ['FFED2000', 'FFFFFFFF'] : null,
+    };
+  }
+  function installPayloadOutputSegments(payload, file) {
+    if (Array.isArray(file.outputSegments)) return file.outputSegments.slice();
+    if (payload && payload.needsTitleIdMap && payload.targetTitleId && payload.sourceRelativePrefix &&
+        file.relativePath.slice(0, payload.sourceRelativePrefix.length).every((part, index) => part.toUpperCase() === payload.sourceRelativePrefix[index])) {
+      return ['Content', '0000000000000000', payload.targetTitleId, '00000002', ...file.relativePath.slice(payload.sourceRelativePrefix.length)];
+    }
+    return [...(payload && payload.pathSegments || ['Content']), ...file.relativePath];
   }
 
   async function analyzeIso(reader, opts = {}) {
@@ -1520,6 +1567,7 @@ const Iso2GodEngine = (() => {
     const rootTable = await readDirectoryTable(reader, rootOffset, rootDirectorySector, rootDirectorySize, stats, visited, 0);
     const findRoot = (name) => rootTable.entries.find(e => !e.isDirectory && e.name.toLowerCase() === name);
     let platform, contentType, executionInfo, executableEntry, xbeTitleName = '';
+    let installContentPayload = null, gtaVInstallPayload = null;
     const xex = findRoot('default.xex');
     const xbe = xex ? null : findRoot('default.xbe');
     if (xex) {
@@ -1527,40 +1575,45 @@ const Iso2GodEngine = (() => {
     } else if (xbe) {
       platform = 'xbox'; contentType = 0x5000; executableEntry = xbe;
     } else {
-      throw new Error('No default.xex (Xbox 360) or default.xbe (original Xbox) executable in the root of the image. Disc images must have one — this may be a content/install package rather than a game disc ISO, or the image may be corrupt.');
+      installContentPayload = findGenericInstallContent(rootTable, rootOffset, null, true);
+      if (!installContentPayload) throw new Error('No default.xex or default.xbe executable and no extractable Content folder were found. This ISO may be corrupt or use an unsupported install-disc layout.');
+      platform = 'xbox360'; contentType = 0x7000; executableEntry = null;
+      const fallbackTitleId = /^[0-9a-f]{8}$/i.test(installContentPayload.titleId) ? parseInt(installContentPayload.titleId, 16) : 0;
+      executionInfo = { mediaId: 0, version: 0, baseVersion: 0, titleId: fallbackTitleId, platform: 0, executableType: 0, discNumber: 1, discCount: 1 };
     }
-    const exeBase = rootOffset + executableEntry.sector * SECTOR_SIZE;
-    if (exeBase + executableEntry.size > reader.size) throw new Error('The ' + executableEntry.name + ' file extent runs past the end of the image — the ISO looks truncated.');
-    const exeRead = (off, len) => reader.readAt(exeBase + off, len);
-    if (platform === 'xbox360') {
-      executionInfo = await parseXex(exeRead, executableEntry.size);
-    } else {
-      const r = await parseXbe(exeRead, executableEntry.size);
-      executionInfo = r.executionInfo; xbeTitleName = r.xbeTitleName;
+    if (executableEntry) {
+      const exeBase = rootOffset + executableEntry.sector * SECTOR_SIZE;
+      if (exeBase + executableEntry.size > reader.size) throw new Error('The ' + executableEntry.name + ' file extent runs past the end of the image — the ISO looks truncated.');
+      const exeRead = (off, len) => reader.readAt(exeBase + off, len);
+      if (platform === 'xbox360') {
+        executionInfo = await parseXex(exeRead, executableEntry.size);
+      } else {
+        const r = await parseXbe(exeRead, executableEntry.size);
+        executionInfo = r.executionInfo; xbeTitleName = r.xbeTitleName;
+      }
     }
-    if (!executionInfo.titleId) throw new Error('The executable reports a Title ID of 00000000, so a valid GOD content path cannot be built.');
-    let gtaVInstallPayload = null;
-    if (platform === 'xbox360' && hex32(executionInfo.titleId) === GTAV_TITLE_ID_HEX) {
+    if (!executionInfo.titleId && !installContentPayload) throw new Error('The executable reports a Title ID of 00000000, so a valid GOD content path cannot be built.');
+    if (platform === 'xbox360' && executionInfo.titleId && hex32(executionInfo.titleId) === GTAV_TITLE_ID_HEX) {
       const payloadDir = findDirectoryAtPath(rootTable, GTAV_INSTALL_CONTENT_PATH);
       if (payloadDir && payloadDir.subdirectory) {
         const files = collectFilesUnderDirectory(payloadDir, rootOffset);
         if (files.length) gtaVInstallPayload = {
-          titleId: GTAV_TITLE_ID_HEX,
-          discNumber: executionInfo.discNumber || 1,
-          discCount: executionInfo.discCount || 1,
-          pathSegments: GTAV_INSTALL_CONTENT_PATH.slice(),
-          files,
+          kind: 'gta-v-install-content', displayName: 'GTA V Disc 1 install content', titleId: GTAV_TITLE_ID_HEX,
+          discNumber: executionInfo.discNumber || 1, discCount: executionInfo.discCount || 1,
+          pathSegments: GTAV_INSTALL_CONTENT_PATH.slice(), files,
           totalBytes: files.reduce((sum, file) => sum + file.size, 0),
         };
       }
     }
+    if (!installContentPayload && platform === 'xbox360' && gtaVInstallPayload) installContentPayload = gtaVInstallPayload;
+    if (!installContentPayload && platform === 'xbox360') installContentPayload = findGenericInstallContent(rootTable, rootOffset, executionInfo, true);
     return {
       isoType, rootOffset, volumeSize,
       rootDirectorySector, rootDirectorySize,
       imageCreationTime: volumeSector.subarray(28, 36),
       platform, contentType, executionInfo, executableEntry, xbeTitleName,
       directoryTree: rootTable,
-      gtaVInstallPayload,
+      installContentPayload, gtaVInstallPayload,
       rootEntries: rootTable.entries.map(e => ({ name: e.name, size: e.size, isDirectory: e.isDirectory })),
       stats: {
         files: stats.files, directories: stats.directories,
@@ -1902,24 +1955,24 @@ const Iso2GodEngine = (() => {
     };
   }
 
-  async function extractGtaVInstallPayload(reader, analysis, writer, callbacks = {}) {
-    const payload = analysis && analysis.gtaVInstallPayload;
-    if (!payload || !payload.files || !payload.files.length) throw new Error('This ISO does not contain the recognized GTA V Disc 1 install-content folder.');
+  async function extractInstallContentPayload(reader, analysis, writer, callbacks = {}) {
+    const payload = analysis && analysis.installContentPayload;
+    if (!payload || !payload.files || !payload.files.length) throw new Error('This ISO does not contain an extractable Xbox Content tree.');
     const log = callbacks.onLog || (() => {});
     const progress = callbacks.onProgress || (() => {});
     const isCancelled = callbacks.isCancelled || (() => false);
     const checkCancel = () => {
-      if (isCancelled()) { const e = new Error('GTA V install-content extraction cancelled.'); e.name = 'AbortError'; throw e; }
+      if (isCancelled()) { const e = new Error('Install-content extraction cancelled.'); e.name = 'AbortError'; throw e; }
     };
-    const base = payload.pathSegments.slice();
-    if (callbacks.stripContentPrefix && base[0] === 'Content' && base[1] === '0000000000000000') base.splice(0, 2);
     const chunkSize = 4 * 1024 * 1024;
     let completed = 0;
     try {
       for (let i = 0; i < payload.files.length; i++) {
         const file = payload.files[i];
         checkCancel();
-        const segments = [...base, ...file.relativePath];
+        let segments = installPayloadOutputSegments(payload, file);
+        if (!segments) throw new Error('A target Title ID is required before this install content can be written.');
+        if (callbacks.stripContentPrefix && segments[0] === 'Content' && segments[1] === '0000000000000000') segments = segments.slice(2);
         log(`Extracting ${segments.join('/')} (${i + 1}/${payload.files.length})…`);
         await writer.beginFile(segments, file.size);
         let offset = 0;
@@ -1937,10 +1990,10 @@ const Iso2GodEngine = (() => {
           await writer.write(chunk);
           offset += length;
           completed += length;
-          progress({ phase: 'extract', phaseLabel: 'Extracting GTA V install content', done: completed, total: payload.totalBytes, overall: payload.totalBytes ? completed / payload.totalBytes : 1 });
+          progress({ phase: 'extract', phaseLabel: 'Extracting install content', done: completed, total: payload.totalBytes, overall: payload.totalBytes ? completed / payload.totalBytes : 1 });
         }
         await writer.endFile();
-        if (file.size === 0) progress({ phase: 'extract', phaseLabel: 'Extracting GTA V install content', done: completed, total: payload.totalBytes, overall: payload.totalBytes ? completed / payload.totalBytes : 1 });
+        if (file.size === 0) progress({ phase: 'extract', phaseLabel: 'Extracting install content', done: completed, total: payload.totalBytes, overall: payload.totalBytes ? completed / payload.totalBytes : 1 });
       }
       await writer.finish();
     } catch (err) {
@@ -1949,12 +2002,10 @@ const Iso2GodEngine = (() => {
     }
     progress({ phase: 'done', phaseLabel: 'Install content extracted', done: payload.totalBytes, total: payload.totalBytes, overall: 1 });
     return {
-      kind: 'gta-v-install-content',
-      layout: { titleHex: payload.titleId, typeFolder: '00000002', headerName: 'GTA V Disc 1 install content', headerSegments: base },
-      files: payload.files.map(file => ({ segments: [...base, ...file.relativePath], size: file.size })),
-      totalBytes: payload.totalBytes,
-      fileCount: payload.files.length,
-      installPath: base.join('/'),
+      kind: 'install-content', titleId: payload.targetTitleId || payload.titleId,
+      displayName: payload.displayName, files: payload.files.map(file => ({ segments: installPayloadOutputSegments(payload, file), size: file.size })),
+      totalBytes: payload.totalBytes, fileCount: payload.files.length,
+      installPath: payload.pathSegments.join('/'),
     };
   }
 
@@ -2064,7 +2115,7 @@ const Iso2GodEngine = (() => {
     sha1, sha1Into, Crc32, crc32Of,
     makeBlobReader, analyzeIso, calculatePlan, buildLayout, buildConHeader,
     iso2godContainerName, makeHeaderTemplate,
-    ZipWriter, CollectWriter, convert, extractGtaVInstallPayload, buildExtractedGameFolder, hex32, hex,
+    ZipWriter, CollectWriter, convert, extractInstallContentPayload, installPayloadOutputSegments, buildExtractedGameFolder, hex32, hex,
     _internal: { parseXex, parseXbe, checkVolumeAt },
   };
 })();
@@ -2141,7 +2192,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     ftpToken: null, ftpConnected: false, rawFtpConnected: false, snesFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerHistory: [[]], ftpManagerHistoryIndex: 0, ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpArchiveTargetSegments: [], ftpActiveStageId: null, ftpManagerBasePath: 'Usb1', ftpManagerCwd: '', rawUploading: false, snesBusy: false, snesFtpActive: false, snesRoms: [], rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
     modsFiles: [], modsReplacements: [], modsReady: false, modsTargetIndex: new Map(),
     converting: false, cancelRequested: false,
-    batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0,
+    batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0, batchKnownTitleIds: [],
     result: null, collectedFiles: [], zipBlob: null, zipBlobName: '', batchZipContext: null,
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
@@ -2877,7 +2928,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.zipSetup.hidden = mode !== 'zip';
     els.filesSetup.hidden = mode !== 'files';
     els.ftpSetup.hidden = mode !== 'ftp';
-    const installMode = !!(state.analysis && state.analysis.gtaVInstallPayload && state.taskMode !== 'mods');
+    const installMode = !!(state.analysis && state.analysis.installContentPayload && state.taskMode !== 'mods');
     if (mode === 'game-folder') {
       els.outputModeNote.textContent = 'Builds a normal extracted game folder for a JTAG/RGH console. Resized replacements and new companion files are copied into their game-relative paths. This does not inject into proprietary archives or make plugin-only XEX files auto-load; use only a game-specific package intended to launch with the game.';
       $('outputDestinationHeading').textContent = '💾 3 · Where should the extracted game folder go?';
@@ -2890,10 +2941,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     $('outputDestinationHeading').textContent = '💾 3 · Where should the GOD package go?';
     if (state.analysis) refreshPlanAndTree();
     if (installMode) {
-      $('modeFolderDesc').textContent = hasDirPicker ? 'Writes original Disc 1 install files into their required Content path in the folder you choose.' : 'Writes the original install files to the folder chosen with the macOS picker; the local helper streams them to disk.';
+      $('modeFolderDesc').textContent = hasDirPicker ? 'Writes the install disc’s original Content files into the chosen folder.' : 'Streams original install files into the folder chosen with the local helper.';
       $('modeZipDesc').textContent = 'A ZIP of the untouched install files at their exact Xbox Content path.';
       $('modeFilesDesc').textContent = 'Each original install file downloads separately with its full Xbox destination path.';
-      $('modeFtpDesc').textContent = 'Uploads original install files to the GTA V Content path on your Xbox.';
+      $('modeFtpDesc').textContent = 'Uploads original install files to the Content paths detected in the ISO.';
       $('downloadsInstructions').textContent = 'These are original install-content files, not GOD parts. Recreate each full Content path shown beside the download; merge the Content folder onto the console drive.';
     } else {
       $('modeFolderDesc').textContent = hasDirPicker ? 'Writes Content\\… straight to a folder/USB you choose. Streams to disk — safest for huge games. Chrome/Edge.' : 'Writes Content\\… to a folder chosen with the macOS picker, streamed through the local helper.';
@@ -2903,10 +2954,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       $('downloadsInstructions').innerHTML = 'Create the folders exactly as shown in the path on each row. The <span class="kbd">.data</span> folder name must match the header file name, and parts must stay named <span class="kbd">Data0000</span>, <span class="kbd">Data0001</span>, …';
     }
     els.outputModeNote.textContent = installMode
-      ? (mode === 'folder' ? 'Writes the required Content\\0000000000000000\\545408A7\\00000002 install files unchanged into the folder you choose; merge its Content folder onto the console drive.'
-        : mode === 'zip' ? 'Creates a ZIP containing the untouched Disc 1 files at their required Content path. Extract it and merge the Content folder onto the console drive.'
+      ? (mode === 'folder' ? 'Writes the install disc’s Content tree unchanged into the folder you choose; merge its Content folder onto the console drive.'
+        : mode === 'zip' ? 'Creates a ZIP containing the install disc’s untouched Content files. Extract it and merge the Content folder onto the console drive.'
         : mode === 'files' ? 'Each extracted file is offered separately with its complete console destination path. Recreate those folders exactly.'
-        : 'Uploads the untouched install-content files under Usb1/Content/0000000000000000/545408A7/00000002 by default. FTP is unencrypted; use only on your trusted home LAN.')
+        : 'Uploads the install-content files to their detected Content paths under the configured FTP base. FTP is unencrypted; use only on your trusted home LAN.')
       : mode === 'folder' ? 'Best option: the Content folder is written straight to disk as it converts (nothing is held in memory), and that folder can go directly onto your console drive/USB.'
       : mode === 'zip' ? (hasSavePicker
           ? 'The whole Content folder is streamed into one ZIP (stored, with ZIP64 for >4 GiB games). Extract it and copy the Content folder to your console.'
@@ -2971,7 +3022,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.batchSummary.textContent = count + ' ISO' + (count === 1 ? '' : 's') + ' queued' + skippedNote;
     }
     els.batchNote.textContent = (count > 1
-      ? 'GTA V Disc 1 install files are extracted to 00000002; playable discs become separate GOD packages. ' + outputDescription
+      ? 'Install/content discs are extracted unchanged to their Content paths; playable discs become separate GOD packages. ' + outputDescription
       : outputDescription);
     const rows = document.createDocumentFragment();
     state.batchFiles.forEach((file, index) => {
@@ -3010,10 +3061,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (ok && state.outputMode === 'game-folder' && !state.gameDirHandle) { ok = false; hint = 'Choose a parent folder for the extracted game output first.'; }
     if (ok && state.outputMode === 'zip' && hasSavePicker && !state.zipHandle) { ok = false; hint = 'Choose where to save the ZIP first.'; }
     if (ok && state.outputMode === 'ftp' && !state.ftpConnected) { ok = false; hint = 'Test the Xbox FTP connection first.'; }
-    if (ok && state.taskMode === 'mods' && state.analysis && state.analysis.gtaVInstallPayload) { ok = false; hint = 'This is GTA V Disc 1 install content. Switch to Convert an ISO to extract it; Mods mode is for the playable disc.'; }
+    if (ok && state.taskMode === 'mods' && state.analysis && state.analysis.installContentPayload) { ok = false; hint = 'This ISO is identified as install/content data, not a playable game disc. Switch to Convert an ISO to extract its Content files.'; }
     if (ok && state.taskMode === 'mods' && !state.modsReady) { ok = false; hint = state.outputMode === 'game-folder' ? 'Select at least one safe mod file for the extracted game folder.' : 'Select an ISO and validate at least one same-size mod replacement first.'; }
     els.convertBtn.disabled = !ok;
-    const batchLabel = state.taskMode === 'mods' ? (state.outputMode === 'game-folder' ? 'Build extracted modded game folder' : 'Build modded GOD') : (batchCount > 1 ? (state.outputMode === 'folder' ? 'Convert ' + batchCount + ' ISOs to folder' : state.outputMode === 'zip' ? 'Create one ZIP for ' + batchCount + ' ISOs' : state.outputMode === 'ftp' ? 'Convert & upload ' + batchCount + ' ISOs' : 'Convert ' + batchCount + ' ISOs') : (state.analysis && state.analysis.gtaVInstallPayload ? 'Extract GTA V Disc 1 install content' : 'Convert ISO → GOD'));
+    const batchLabel = state.taskMode === 'mods' ? (state.outputMode === 'game-folder' ? 'Build extracted modded game folder' : 'Build modded GOD') : (batchCount > 1 ? (state.outputMode === 'folder' ? 'Convert ' + batchCount + ' ISOs to folder' : state.outputMode === 'zip' ? 'Create one ZIP for ' + batchCount + ' ISOs' : state.outputMode === 'ftp' ? 'Convert & upload ' + batchCount + ' ISOs' : 'Convert ' + batchCount + ' ISOs') : (state.analysis && state.analysis.installContentPayload ? 'Extract install/content disc' : 'Convert ISO → GOD'));
     els.convertBtn.textContent = state.batchRunning ? 'Batch ' + (state.batchIndex + 1) + '/' + batchCount + ' running…'
       : state.converting ? 'Converting…' : state.batchFinished ? 'Batch finished' : (hint || batchLabel);
     updateBatchHint();
@@ -3034,8 +3085,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function ftpInstallPayloadTargetPath(payload) {
     const configuredBase = els.ftpPath.value.trim() || 'Usb1';
-    const relativeSegments = ftpBaseIsContentRoot(configuredBase) ? payload.pathSegments.slice(2) : payload.pathSegments;
-    return configuredBase.replace(/[\\/]+$/g, '') + '/' + relativeSegments.join('/');
+    const base = configuredBase.replace(/[\\/]+$/g, '');
+    if (payload && payload.kind === 'gta-v-install-content') {
+      const folderSegments = ftpBaseIsContentRoot(configuredBase) ? payload.pathSegments.slice(2) : payload.pathSegments;
+      return base + '/' + folderSegments.join('/');
+    }
+    return ftpBaseIsContentRoot(configuredBase) ? base : base + '/Content';
   }
   function currentOptions() {
     let gameTitle = els.titleInput.value.trim();
@@ -3058,30 +3113,30 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function refreshPlanAndTree() {
     if (!state.analysis) return;
     const o = currentOptions();
-    const payload = state.analysis.gtaVInstallPayload;
+    const payload = state.analysis.installContentPayload;
     const installMode = !!payload && state.taskMode !== 'mods';
     const installPayloadDetected = !!payload;
     if (els.gtaVInstallNotice) {
       els.gtaVInstallNotice.hidden = !installPayloadDetected;
       els.gtaVInstallNotice.innerHTML = state.taskMode === 'mods'
-        ? '<strong>GTA V Disc 1 install content detected.</strong> This is not the playable game disc. Switch to <strong>Convert an ISO</strong> to extract the original <code>Content/0000000000000000/545408A7/00000002</code> files. Mods mode only builds a replacement GOD for a playable game disc.'
-        : '<strong>GTA V Disc 1 install content detected.</strong> This is not the playable GOD disc. The ISO workflow will extract the original <code>Content/0000000000000000/545408A7/00000002</code> files unchanged into their required console path. Convert Disc 2 separately as GOD. For FTP batch, select both ISOs together; for folder output, use the same destination for both discs. For ZIP output, select both ISOs together to put both outputs in one ZIP, then extract and merge its Content folder.';
+        ? '<strong>Install/content disc detected.</strong> This is not a playable game disc. Switch to <strong>Convert an ISO</strong> to extract its Content tree; Mods mode only builds a replacement GOD for a playable disc.'
+        : '<strong>Install/content disc detected.</strong> The site will extract its Content tree unchanged rather than turn it into a GOD. Select playable discs in the same batch to create separate GOD packages. If a path uses placeholder IDs, you will be asked for the paired game Title ID.';
     }
     $('paddingOptions').hidden = installPayloadDetected;
     const ftpBaseAlreadyHasContentPath = state.outputMode === 'ftp' && ftpBaseIsContentRoot(els.ftpPath.value);
     $('contentPrefixOption').hidden = installPayloadDetected || ftpBaseAlreadyHasContentPath;
     $('godEstimates').hidden = installPayloadDetected;
-    $('outputDestinationHeading').textContent = installMode ? '💾 3 · Save or upload GTA V install content' : '💾 3 · Where should the GOD package go?';
+    $('outputDestinationHeading').textContent = installMode ? '💾 3 · Save or upload install/content files' : '💾 3 · Where should the GOD package go?';
     if (installMode) {
-      const layout = { titleHex: payload.titleId, typeFolder: '00000002', headerName: 'GTA V Disc 1 install content', headerSegments: payload.pathSegments.slice() };
-      const lines = [payload.pathSegments.join('/') + '/   ← extracted unchanged from Disc 1'];
-      for (const file of payload.files.slice(0, 24)) lines.push('  ' + [...payload.pathSegments, ...file.relativePath].join('/') + '   (' + fmtBytes(file.size) + ')');
+      const layout = { titleHex: payload.titleId || '00000000', typeFolder: '00000002', headerName: payload.displayName || 'Install content', headerSegments: payload.pathSegments.slice() };
+      const lines = ['Content/   ← extracted unchanged; no GOD repacking'];
+      for (const file of payload.files.slice(0, 24)) lines.push('  ' + (E.installPayloadOutputSegments(payload, file) || ['Content', ...file.relativePath]).join('/') + '   (' + fmtBytes(file.size) + ')');
       if (payload.files.length > 24) lines.push('  … ' + (payload.files.length - 24) + ' more file(s)');
       lines.push('', payload.files.length + ' file(s) · ' + fmtBytes(payload.totalBytes) + ' total; no GOD repacking.');
       els.outputTree.textContent = lines.join('\n');
-      state.zipSuggestedName = 'GTA V Disc 1 install content.zip';
-      if (state.outputMode === 'files') $('filesSetupText').textContent = 'No setup needed. Download each extracted install-content file below and recreate the exact Content path shown beside it. Merge the Content folder onto the console drive.';
-      if (state.outputMode === 'ftp') $('ftpSetupIntro').textContent = 'Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. The helper will place the untouched Disc 1 install files directly under ' + ftpInstallPayloadTargetPath(payload) + '. This ISO is not sent to the Xbox.';
+      state.zipSuggestedName = (payload.displayName || 'Xbox install content') + '.zip';
+      if (state.outputMode === 'files') $('filesSetupText').textContent = 'Download the extracted Content files below, recreate the displayed paths, and merge the Content folder onto the console drive.';
+      if (state.outputMode === 'ftp') $('ftpSetupIntro').textContent = 'Enable FTP in Aurora/FreeStyle Dash and use the console’s LAN IP. The helper will copy the install-content files to ' + ftpInstallPayloadTargetPath(payload) + '. The ISO itself is not sent to the Xbox.';
       updateConvertEnabled();
       return { plan: null, layout, options: o, installPayload: payload };
     }
@@ -3134,13 +3189,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     set('dFileName', file.name);
     set('dFileSize', fmtBytes(file.size) + ' (' + file.size.toLocaleString() + ' bytes)');
     set('dIsoType', a.isoType.name + ' — game partition at 0x' + a.rootOffset.toString(16).toUpperCase());
-    set('dPlatform', a.platform === 'xbox' ? 'Original Xbox (default.xbe)' : 'Xbox 360 (default.xex)');
+    set('dPlatform', a.platform === 'xbox' ? 'Original Xbox (default.xbe)' : a.executableEntry ? 'Xbox 360 (default.xex)' : 'Xbox 360 install/content disc');
     set('dTitleId', E.hex32(x.titleId));
     set('dMediaId', E.hex32(x.mediaId));
     set('dDisc', (x.discNumber || 1) + ' of ' + (x.discCount || 1));
     set('dExeInfo', 'Version 0x' + E.hex32(x.version) + ' · platform byte ' + x.platform + ' · type ' + x.executableType);
     set('dFiles', a.stats.files.toLocaleString() + ' file(s), ' + a.stats.directories.toLocaleString() + ' folder(s), ' + fmtBytes(a.stats.fileBytes) + ' of file data');
-    set('dExe', a.executableEntry.name + ' (' + fmtBytes(a.executableEntry.size) + ', sector ' + a.executableEntry.sector + ')');
+    set('dExe', a.executableEntry ? a.executableEntry.name + ' (' + fmtBytes(a.executableEntry.size) + ', sector ' + a.executableEntry.sector + ')' : 'No default.xex — install/content data only');
     const rootList = a.rootEntries.slice(0, 14).map(e => (e.isDirectory ? '📁 ' : '📄 ') + e.name).join(' · ');
     set('dRoot', rootList + (a.rootEntries.length > 14 ? '   … +' + (a.rootEntries.length - 14) + ' more' : ''));
     const dbName = findGameName(E.hex32(x.titleId));
@@ -3156,6 +3211,43 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     els.detailsCard.hidden = false;
     refreshPlanAndTree();
+  }
+
+  function prepareInstallContentAnalysis(file, analysis) {
+    const payload = analysis && analysis.installContentPayload;
+    if (!payload || payload.kind === 'gta-v-install-content') return;
+    if (analysis.executableEntry && !payload.roleConfirmed) {
+      const role = window.prompt(
+        'This ISO has both an Xbox executable and an Xbox Content tree. Type I to extract the install/content files, or P to treat it as a playable disc and convert it to GOD. The site will not combine these two roles in one output.',
+        'I');
+      if (role === null) throw new Error('Disc role selection canceled; no output was written.');
+      const normalized = role.trim().toLowerCase();
+      if (normalized === 'p' || normalized === 'play') { analysis.installContentPayload = null; return; }
+      if (normalized !== 'i' && normalized !== 'install') throw new Error('Enter I for install/content disc or P for playable disc; no output was written.');
+      payload.roleConfirmed = true;
+    }
+    if (payload.needsReview && !payload.reviewConfirmed) {
+      const ok = window.confirm('This ISO has a Content folder but no recognized install-path structure. Extract its Content tree exactly as found? If its folders are game-specific placeholders, the Xbox may need a title/path correction.');
+      if (!ok) throw new Error('Install-content extraction canceled; no output was written.');
+      payload.reviewConfirmed = true;
+    }
+    if (payload.needsTitleIdMap) {
+      const known = Array.from(new Set(state.batchKnownTitleIds || []));
+      const suggestion = known.length === 1 ? known[0] : (payload.suggestedTitleId || '');
+      const answer = window.prompt(
+        'This install disc stores files under Content/FFED2000/FFFFFFFF. Enter the paired playable game’s 8-digit Title ID so the files can be placed under Content/0000000000000000/<TitleID>/00000002. Leave blank or cancel to stop safely.',
+        suggestion);
+      if (answer === null || !answer.trim()) throw new Error('A paired game Title ID is required for this install disc; no output was written.');
+      const titleId = answer.trim().replace(/^0x/i, '').toUpperCase();
+      if (!/^[0-9A-F]{8}$/.test(titleId) || titleId === '00000000' || titleId === 'FFED2000') throw new Error('Enter a valid 8-digit game Title ID; no output was written.');
+      payload.targetTitleId = titleId;
+      for (const fileInfo of payload.files) {
+        if (fileInfo.relativePath.length >= 2 && fileInfo.relativePath[0].toUpperCase() === 'FFED2000' && fileInfo.relativePath[1].toUpperCase() === 'FFFFFFFF') {
+          fileInfo.outputSegments = ['Content', '0000000000000000', titleId, '00000002', ...fileInfo.relativePath.slice(2)];
+        }
+      }
+      payload.needsTitleIdMap = false;
+    }
   }
 
   /* ---------------- import ---------------- */
@@ -3189,7 +3281,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           els.phaseLabel.textContent = 'Scanning for the game partition… ' + fmtBytes(done) + ' / ' + fmtBytes(total);
         },
       });
+      prepareInstallContentAnalysis(file, analysis);
       state.analysis = analysis;
+      if (state.batchRunning && !analysis.installContentPayload && analysis.executionInfo && analysis.executionInfo.titleId) {
+        const id = E.hex32(analysis.executionInfo.titleId).toUpperCase();
+        if (!(state.batchKnownTitleIds || []).includes(id)) state.batchKnownTitleIds.push(id);
+      }
       populateDetails(file, analysis);
       setMode(state.outputMode);
       log('Found ' + analysis.isoType.name + ' image: Title ID ' + E.hex32(analysis.executionInfo.titleId) +
@@ -8315,7 +8412,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   async function existingInstallPayloadCount(rootHandle, payload) {
     let count = 0;
     for (const file of payload.files) {
-      const segments = [...payload.pathSegments, ...file.relativePath];
+      const segments = E.installPayloadOutputSegments(payload, file);
+      if (!segments) continue;
       try {
         const dir = await navigateDir(rootHandle, segments.slice(0, -1), false);
         await dir.getFileHandle(segments[segments.length - 1], { create: false });
@@ -8325,7 +8423,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     return count;
   }
   async function existingLocalInstallPayloadCount(payload) {
-    const paths = payload.files.map(file => [...payload.pathSegments, ...file.relativePath]);
+    const paths = payload.files.map(file => E.installPayloadOutputSegments(payload, file)).filter(Boolean);
     let count = 0;
     for (let offset = 0; offset < paths.length; offset += 512) {
       const result = await bridgeRequest('/api/local-output/check', {
@@ -8339,7 +8437,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   async function startSingleConversion() {
     clearError();
     if (!state.analysis || state.converting) return;
-    if (state.taskMode === 'mods' && state.analysis.gtaVInstallPayload) { showError('This is GTA V Disc 1 install content, not the playable game disc. Switch to Convert an ISO to extract it to the required Content path.'); return; }
+    if (state.taskMode === 'mods' && state.analysis.installContentPayload) { showError('This ISO is install/content data, not a playable disc. Switch to Convert an ISO to extract its Content files.'); return; }
     if (state.taskMode === 'mods' && !state.modsReady) { showError(state.outputMode === 'game-folder' ? 'Inspect the mod files and confirm at least one safe file overlay before building.' : 'Inspect the mod files and confirm at least one existing ISO file has an exact-path, same-size replacement before building.'); return; }
     if (state.taskMode === 'mods' && state.outputMode === 'game-folder' && !state.gameDirHandle) { showError('Choose a parent folder for the extracted game output first.'); return; }
     const { plan, layout, options, installPayload } = refreshPlanAndTree();
@@ -8347,8 +8445,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const gameFolderMode = state.taskMode === 'mods' && state.outputMode === 'game-folder';
     if (!options.gameTitle) options.gameTitle = layout ? layout.titleHex : E.hex32(state.analysis.executionInfo.titleId);
     const conversionReader = state.taskMode === 'mods' ? makeModsOverlayReader() : state.reader;
-    if (installPayloadMode && state.outputMode === 'ftp' && !window.confirm('Upload GTA V Disc 1 install content directly into ' + ftpInstallPayloadTargetPath(installPayload) + '? Existing files at matching paths may be overwritten. Continue?')) {
-      log('GTA V install-content upload canceled before FTP output; existing Xbox files were not touched.');
+    if (installPayloadMode && state.outputMode === 'ftp' && !window.confirm('Upload ' + (installPayload.displayName || 'install content') + ' directly into ' + ftpInstallPayloadTargetPath(installPayload) + '? Existing files at matching paths may be overwritten. Continue?')) {
+      log('Install-content upload canceled before FTP output; existing Xbox files were not touched.');
       return;
     }
     if (state.taskMode === 'mods' && state.outputMode === 'ftp' && !window.confirm('The modded GOD uses the same Title ID/Media ID container name as the original game. FTP may overwrite an existing GOD package at this destination. Continue?')) {
@@ -8374,8 +8472,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           if (perm !== 'granted') throw new Error('The browser did not grant write access to that folder.');
           if (installPayloadMode) {
             const existingCount = await existingInstallPayloadCount(state.dirHandle, installPayload);
-            if (existingCount && !window.confirm(existingCount + ' GTA V install-content file(s) already exist at the destination. Replace matching files with the original Disc 1 copies?')) {
-              log('GTA V install-content extraction stopped — existing files kept.'); return;
+            if (existingCount && !window.confirm(existingCount + ' install/content file(s) already exist at the destination. Replace files at matching mapped Content paths with the ISO copies?')) {
+              log('Install-content extraction stopped — existing files kept.'); return;
             }
           } else if (await existingGodCheck(state.dirHandle, layout)) {
             const ok = window.confirm(
@@ -8388,8 +8486,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         } else if (state.localFolderSession && state.localFolderPickerAvailable) {
           if (installPayloadMode) {
             const existingCount = await existingLocalInstallPayloadCount(installPayload);
-            if (existingCount && !window.confirm(existingCount + ' GTA V install-content file(s) already exist at the destination. Replace matching files with the original Disc 1 copies?')) {
-              log('GTA V install-content extraction stopped — existing files kept.'); return;
+            if (existingCount && !window.confirm(existingCount + ' install/content file(s) already exist at the destination. Replace files at matching mapped Content paths with the ISO copies?')) {
+              log('Install-content extraction stopped — existing files kept.'); return;
             }
           } else if (await existingLocalGodCheck(layout)) {
             const ok = window.confirm(
@@ -8456,7 +8554,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }, 1000);
     els.doneCard.hidden = true;
     els.progressCard.classList.remove('is-complete');
-    $('progressH').textContent = installPayloadMode ? '✨ GTA V install-content extraction progress' : gameFolderMode ? '✨ Extracted modded game-folder progress' : '✨ Conversion progress';
+    $('progressH').textContent = installPayloadMode ? '✨ Install/content extraction progress' : gameFolderMode ? '✨ Extracted modded game-folder progress' : '✨ Conversion progress';
     els.progressCard.hidden = false;
     setBarProgress(els.overallBar, 0, { snap: true }); setBarProgress(els.phaseBar, 0, { snap: true }); els.overallPct.textContent = '0%';
     positionCompletionUfo('overallBar', 0);
@@ -8466,7 +8564,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     updateConvertEnabled();
     if (!state.batchRunning || state.batchIndex === 0) scrollCardIntoView(els.progressCard, { block: 'center', delay: 80 });
     log(installPayloadMode
-      ? 'Extracting GTA V Disc 1 install content from "' + state.file.name + '" unchanged to ' + installPayload.pathSegments.join('/') + '/.'
+      ? 'Extracting install/content files from "' + state.file.name + '" to the Xbox Content tree without GOD repacking.'
       : gameFolderMode ? 'Extracting the game ISO and overlaying ' + state.modsReplacements.length + ' game-specific mod file(s) into a new XEX game folder.'
       : (state.taskMode === 'mods' ? 'Building modded GOD from "' : 'Converting "') + state.file.name + '" → ' + options.gameTitle + ' [' + layout.titleHex + ']');
     if (state.taskMode === 'mods' && !gameFolderMode) log('Applying ' + state.modsReplacements.length + ' approved same-size file replacement(s); the original ISO and mod files remain unchanged.');
@@ -8477,7 +8575,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const callbacks = { onLog: log, onProgress, isCancelled: () => state.cancelRequested,
         stripContentPrefix: installPayloadMode && state.outputMode === 'ftp' && ftpBaseIsContentRoot(els.ftpPath.value) };
       const result = installPayloadMode
-        ? await E.extractGtaVInstallPayload(state.reader, state.analysis, writer, callbacks)
+        ? await E.extractInstallContentPayload(state.reader, state.analysis, writer, callbacks)
         : gameFolderMode
           ? await E.buildExtractedGameFolder(state.reader, state.analysis, state.modsReplacements, writer, callbacks)
           : await E.convert(conversionReader, state.analysis, options, writer, callbacks);
@@ -8489,7 +8587,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         state.zipBlobName = state.zipSuggestedName || 'game [GOD].zip';
       }
       log(installPayloadMode
-        ? 'GTA V Disc 1 install content extracted unchanged (' + result.fileCount + ' file(s), ' + fmtBytes(result.totalBytes) + ') in ' + mins + '.'
+        ? 'Install content extracted unchanged (' + result.fileCount + ' file(s), ' + fmtBytes(result.totalBytes) + ') in ' + mins + '.'
         : gameFolderMode ? 'Extracted game folder built (' + result.fileCount + ' files, ' + result.replacedCount + ' replacements, ' + result.addedCount + ' additions) in ' + mins + '.'
         : (state.taskMode === 'mods' ? 'Modded GOD build finished in ' : 'Conversion finished in ') + mins + (installPayloadMode ? '' : '. Master hash-table root: ' + result.mhtHashHex));
       els.phaseLabel.textContent = 'Done ✓';
@@ -8551,6 +8649,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     clearError();
     state.batchZipContext = zipContext;
     state.batchRunning = true;
+    state.batchKnownTitleIds = [];
+    if (state.analysis && !state.analysis.installContentPayload && state.analysis.executionInfo && state.analysis.executionInfo.titleId) state.batchKnownTitleIds.push(E.hex32(state.analysis.executionInfo.titleId).toUpperCase());
     state.batchFinished = false;
     state.batchIndex = 0;
     state.batchCompleted = 0;
@@ -8572,7 +8672,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         if (state.cancelRequested || !state.analysis) break;
         const planInfo = refreshPlanAndTree();
         const destination = planInfo.installPayload
-          ? planInfo.installPayload.pathSegments.join('/') + '/' + planInfo.installPayload.files.map(file => file.relativePath.join('/')).sort().join('|')
+          ? planInfo.installPayload.files.map(file => E.installPayloadOutputSegments(planInfo.installPayload, file).join('/')).sort().join('|')
           : planInfo.layout.headerSegments.join('/');
         if (destinations.has(destination)) {
           showError('Two selected ISOs produce the same output destination (' + destination + '). Remove the duplicate ISO and start again; any completed output remains.');
@@ -8638,7 +8738,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const destination = state.outputMode === 'folder' ? 'the chosen folder'
         : state.outputMode === 'zip' ? 'one combined ZIP'
           : 'Xbox FTP';
-      log('Batch complete: all ' + files.length + ' disc images were processed sequentially to ' + destination + '; detected GTA V install content was extracted to 00000002 and playable discs were converted to GOD.');
+      log('Batch complete: all ' + files.length + ' disc images were processed sequentially to ' + destination + '; detected install/content trees were extracted to their Content paths and playable discs were converted to separate GOD packages.');
     } else if (state.cancelRequested) {
       log('Batch cancelled after ' + state.batchCompleted + ' completed ISO(s).');
     } else {
@@ -8683,14 +8783,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (result.kind === 'extracted-game-folder') {
       where = 'Created a new folder named <strong>' + esc(state.gameOutputName) + '</strong> inside “' + esc(state.gameDirHandle.name) + '”. Copy that folder to a JTAG/RGH console and launch the game using the correct game XEX.';
       els.doneSummary.innerHTML = '<strong>Extracted modded game folder</strong> [Title ID ' + E.hex32(result.titleId) + ', Media ID ' + E.hex32(result.mediaId) + ']: ' + result.fileCount + ' files, ' + result.replacedCount + ' replaced, ' + result.addedCount + ' added; ' + fmtBytes(result.totalBytes) + '. ' + where + '<br><span class="muted">This is a packaging step, not a menu generator. A plugin XEX or sidecar DLL does not load automatically; use only a title-update-compatible package intended to load from the game. No console test was performed.</span>';
-    } else if (result.kind === 'gta-v-install-content') {
+    } else if (result.kind === 'install-content') {
       if (state.outputMode === 'folder') where = 'Saved into the "<strong>' + esc(state.dirHandle ? state.dirHandle.name : state.localFolderSession.name) + '</strong>" folder as original files under the exact Content path. Merge the Content folder onto the console drive.';
       else if (state.outputMode === 'zip' && state.zipBlob) where = state.batchFiles.length > 1 ? 'The combined ZIP with all selected ISO outputs is ready. Extract it and merge its Content folder onto the console drive.' : 'The ZIP is ready. Extract it and merge its Content folder onto the console drive.';
       else if (state.outputMode === 'zip') where = state.batchFiles.length > 1 ? 'Saved the combined ZIP as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and merge its Content folder onto the console drive.' : 'Saved as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and merge its Content folder onto the console drive.';
-      else if (state.outputMode === 'ftp') where = 'Uploaded the unchanged install files directly into the GTA V Content path on the Xbox.';
+      else if (state.outputMode === 'ftp') where = 'Uploaded the unchanged install files under ' + esc(ftpInstallPayloadTargetPath(state.analysis.installContentPayload)) + ' on the Xbox; each file retains its mapped Content-tree path.';
       else where = 'Download each file below and recreate the full paths shown; merge the Content folder onto the console drive.';
-      els.doneSummary.innerHTML = '<strong>GTA V Disc 1 install content</strong> [545408A7] extracted unchanged: ' + result.fileCount + ' file(s), ' + fmtBytes(result.totalBytes) + '. ' + where +
-        '<br><span class="muted">Destination: Hdd1:\\' + esc(result.installPath.replace(/\//g, '\\')) + '\\… &nbsp;·&nbsp; This is install data, not a playable GOD. Convert Disc 2 separately to GOD. Requires a JTAG/RGH console.</span>';
+      els.doneSummary.innerHTML = '<strong>' + esc(result.displayName || 'Xbox install/content disc') + '</strong> extracted unchanged: ' + result.fileCount + ' file(s), ' + fmtBytes(result.totalBytes) + '. ' + where +
+        '<br><span class="muted">Content output only; this is not a playable GOD package. Merge the Content folder onto the console drive and scan the correct content path in Aurora.</span>';
     } else {
       els.doneSummary.innerHTML =
         '<strong>' + esc(options.gameTitle) + '</strong> [' + layout.titleHex + '] ' + (state.taskMode === 'mods' ? 'rebuilt with mod replacements in ' : 'converted in ') + esc(durationText) + ': ' +
