@@ -519,7 +519,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
       <div class="drop" id="dropZone" role="group" aria-label="Choose or drop Xbox 360 ISO images and 7z archives">
         <div class="big" aria-hidden="true">💿</div>
         <div class="t">Drag &amp; drop multiple ISOs and/or .7z archives here</div>
-        <div class="s">XGD2 · XGD3 · XGD1 · trimmed XISO/XSF images are detected automatically<br>(original Xbox <span class="kbd">default.xbe</span> images are converted as Xbox Original GODs too)<br>Multiple ISOs appear in a visible queue and convert sequentially to one chosen folder or over FTP.</div>
+        <div class="s">XGD2 · XGD3 · XGD1 · trimmed XISO/XSF images are detected automatically<br>(original Xbox <span class="kbd">default.xbe</span> images are converted as Xbox Original GODs too)<br>Multiple ISOs appear in a visible queue and convert sequentially to one chosen folder, one ZIP, or over FTP.</div>
         <div class="btn-row" style="justify-content:center">
           <button class="btn primary" id="browseBtn" type="button">Browse for ISO(s)…</button>
           <button class="btn" id="archiveBrowseBtn" type="button">Choose .7z archive(s)…</button>
@@ -583,7 +583,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <dt>Contents</dt><dd id="dFiles">—</dd>
         </dl>
       </div>
-      <div class="warn-note small" id="gtaVInstallNotice" hidden style="margin-top:12px"><strong>GTA V Disc 1 install content detected.</strong> This is not the playable GOD disc. The ISO workflow will extract the original <code>Content/0000000000000000/545408A7/00000002</code> files unchanged into their required console path. Convert Disc 2 separately as GOD. For FTP batch, select both ISOs together; for folder output, use the same destination for both discs. For ZIP output, make separate ZIPs, then extract and merge their Content folders.</div>
+      <div class="warn-note small" id="gtaVInstallNotice" hidden style="margin-top:12px"><strong>GTA V Disc 1 install content detected.</strong> This is not the playable GOD disc. The ISO workflow will extract the original <code>Content/0000000000000000/545408A7/00000002</code> files unchanged into their required console path. Convert Disc 2 separately as GOD. For FTP batch, select both ISOs together; for folder output, use the same destination for both discs. For ZIP output, select both ISOs together to put both outputs in one ZIP, then extract and merge its Content folder.</div>
 
       <div class="setup workflow-mode-hidden" id="modsPanel" style="margin-top:14px">
         <strong>🧩 Inspect mod files</strong>
@@ -2191,7 +2191,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     modsFiles: [], modsReplacements: [], modsReady: false, modsTargetIndex: new Map(),
     converting: false, cancelRequested: false,
     batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0,
-    result: null, collectedFiles: [], zipBlob: null, zipBlobName: '',
+    result: null, collectedFiles: [], zipBlob: null, zipBlobName: '', batchZipContext: null,
     wakeLock: null,
     phaseStart: 0, phaseKey: '', startTime: 0, lastProgressPaint: 0,
     lastOverall: 0, elapsedTimer: null, ftpActivity: '', ftpRetryPending: false, ftpRetryResolver: null,
@@ -2993,7 +2993,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ? (state.dirHandle ? 'Output folder: ' + state.dirHandle.name : 'Choose a destination folder before converting.')
       : state.outputMode === 'ftp'
         ? 'Output: Xbox FTP' + (state.ftpConnected ? ' (connected)' : ' (connection required)')
-        : 'Multi-ISO batches support Save GOD to a folder or FTP; choose one of those output modes.';
+        : state.outputMode === 'zip'
+          ? (hasSavePicker ? (state.zipHandle ? 'Output: one ZIP containing all queued ISOs (' + state.zipHandle.name + ')' : 'Choose where to save the combined ZIP before converting.') : 'Output: one combined ZIP browser download')
+          : 'Multi-ISO batches support Save GOD to a folder, one combined ZIP, or FTP.';
     const skippedNote = state.batchSkipped ? ' · ' + state.batchSkipped + ' unsupported file(s) ignored' : '';
     if (count === 0) {
       els.batchSummary.textContent = 'No supported ISO files queued' + skippedNote + '. Choose .iso, .xiso, .xsf, .img, or .bin files.';
@@ -3049,7 +3051,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const batchCount = state.batchFiles.length;
     let ok = !!state.analysis && !state.converting && !state.batchRunning && (state.taskMode === 'mods' || !state.batchFinished) && !state.rawUploading && !state.psxBusy && !state.snesBusy && !state.archiveBusy;
     let hint = state.archiveBusy ? 'Extracting .7z archive…' : '';
-    if (ok && state.taskMode !== 'mods' && batchCount > 1 && !['ftp', 'folder'].includes(state.outputMode)) { ok = false; hint = 'Choose Save GOD to a folder or FTP for a multi-ISO batch.'; }
+    if (ok && state.taskMode !== 'mods' && batchCount > 1 && !['ftp', 'folder', 'zip'].includes(state.outputMode)) { ok = false; hint = 'Choose Save GOD to a folder, Download one ZIP, or FTP for a multi-ISO batch.'; }
     if (ok && state.outputMode === 'folder' && !state.dirHandle) { ok = false; hint = 'Choose an output folder first.'; }
     if (ok && state.outputMode === 'game-folder' && !state.gameDirHandle) { ok = false; hint = 'Choose a parent folder for the extracted game output first.'; }
     if (ok && state.outputMode === 'zip' && hasSavePicker && !state.zipHandle) { ok = false; hint = 'Choose where to save the ZIP first.'; }
@@ -3057,7 +3059,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (ok && state.taskMode === 'mods' && state.analysis && state.analysis.gtaVInstallPayload) { ok = false; hint = 'This is GTA V Disc 1 install content. Switch to Convert an ISO to extract it; Mods mode is for the playable disc.'; }
     if (ok && state.taskMode === 'mods' && !state.modsReady) { ok = false; hint = state.outputMode === 'game-folder' ? 'Select at least one safe mod file for the extracted game folder.' : 'Select an ISO and validate at least one same-size mod replacement first.'; }
     els.convertBtn.disabled = !ok;
-    const batchLabel = state.taskMode === 'mods' ? (state.outputMode === 'game-folder' ? 'Build extracted modded game folder' : 'Build modded GOD') : (batchCount > 1 ? (state.outputMode === 'folder' ? 'Convert ' + batchCount + ' ISOs to folder' : state.outputMode === 'ftp' ? 'Convert & upload ' + batchCount + ' ISOs' : 'Convert ' + batchCount + ' ISOs') : (state.analysis && state.analysis.gtaVInstallPayload ? 'Extract GTA V Disc 1 install content' : 'Convert ISO → GOD'));
+    const batchLabel = state.taskMode === 'mods' ? (state.outputMode === 'game-folder' ? 'Build extracted modded game folder' : 'Build modded GOD') : (batchCount > 1 ? (state.outputMode === 'folder' ? 'Convert ' + batchCount + ' ISOs to folder' : state.outputMode === 'zip' ? 'Create one ZIP for ' + batchCount + ' ISOs' : state.outputMode === 'ftp' ? 'Convert & upload ' + batchCount + ' ISOs' : 'Convert ' + batchCount + ' ISOs') : (state.analysis && state.analysis.gtaVInstallPayload ? 'Extract GTA V Disc 1 install content' : 'Convert ISO → GOD'));
     els.convertBtn.textContent = state.batchRunning ? 'Batch ' + (state.batchIndex + 1) + '/' + batchCount + ' running…'
       : state.converting ? 'Converting…' : state.batchFinished ? 'Batch finished' : (hint || batchLabel);
     updateBatchHint();
@@ -3109,7 +3111,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.gtaVInstallNotice.hidden = !installPayloadDetected;
       els.gtaVInstallNotice.innerHTML = state.taskMode === 'mods'
         ? '<strong>GTA V Disc 1 install content detected.</strong> This is not the playable game disc. Switch to <strong>Convert an ISO</strong> to extract the original <code>Content/0000000000000000/545408A7/00000002</code> files. Mods mode only builds a replacement GOD for a playable game disc.'
-        : '<strong>GTA V Disc 1 install content detected.</strong> This is not the playable GOD disc. The ISO workflow will extract the original <code>Content/0000000000000000/545408A7/00000002</code> files unchanged into their required console path. Convert Disc 2 separately as GOD. For FTP batch, select both ISOs together; for folder output, use the same destination for both discs. For ZIP output, make separate ZIPs, then extract and merge their Content folders.';
+        : '<strong>GTA V Disc 1 install content detected.</strong> This is not the playable GOD disc. The ISO workflow will extract the original <code>Content/0000000000000000/545408A7/00000002</code> files unchanged into their required console path. Convert Disc 2 separately as GOD. For FTP batch, select both ISOs together; for folder output, use the same destination for both discs. For ZIP output, select both ISOs together to put both outputs in one ZIP, then extract and merge its Content folder.';
     }
     $('paddingOptions').hidden = installPayloadDetected;
     const ftpBaseAlreadyHasContentPath = state.outputMode === 'ftp' && ftpBaseIsContentRoot(els.ftpPath.value);
@@ -4838,7 +4840,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   els.chooseZipBtn.addEventListener('click', async () => {
     try {
-      const name = state.zipSuggestedName || 'game [GOD].zip';
+      const name = state.batchFiles.length > 1 ? 'Nebula ISO2GOD Batch (' + state.batchFiles.length + ' ISOs).zip' : (state.zipSuggestedName || 'game [GOD].zip');
       const handle = await window.showSaveFilePicker({
         suggestedName: name,
         types: [{ description: 'ZIP archive containing the GOD package', accept: { 'application/zip': ['.zip'] } }],
@@ -4879,6 +4881,45 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
     async finish() {}
     async abort() { if (this.writable) { try { await this.writable.abort(); } catch (_) {} this.writable = null; } }
+  }
+  async function createBatchZipContext(fileCount) {
+    let parts = null;
+    let sink;
+    if (hasSavePicker) {
+      if (!state.zipHandle) throw new Error('Choose where to save the combined ZIP first.');
+      const writable = await state.zipHandle.createWritable();
+      sink = { write: chunk => writable.write(chunk), close: () => writable.close(), abort: () => writable.abort() };
+    } else {
+      parts = [];
+      sink = { write: async chunk => { parts.push(chunk); }, close: async () => {}, abort: async () => { parts = []; } };
+    }
+    const zipWriter = new E.ZipWriter(sink);
+    const context = {
+      zipWriter, parts, finished: false, aborted: false, fileCount,
+      async abort() {
+        if (this.finished || this.aborted) return;
+        this.aborted = true;
+        await this.zipWriter.abort();
+      },
+      itemWriter(batchIndex) {
+        const ctx = this;
+        return {
+          beginFile(segments, expectedSize) {
+            const actual = segments.slice();
+            const leaf = actual[actual.length - 1];
+            if (actual.length === 1 && leaf === 'README_INSTALL_ON_XBOX.txt') {
+              actual[0] = 'README_INSTALL_ON_XBOX_' + String(batchIndex + 1).padStart(2, '0') + '.txt';
+            }
+            return ctx.zipWriter.beginFile(actual, expectedSize);
+          },
+          write: chunk => ctx.zipWriter.write(chunk),
+          endFile: () => ctx.zipWriter.endFile(),
+          finish: async () => {},
+          abort: async () => ctx.abort(),
+        };
+      },
+    };
+    return context;
   }
   async function existingGodCheck(rootHandle, layout) {
     // Returns true if a previous package with the same container name exists.
@@ -8331,7 +8372,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         }
         writer = new DirectoryWriter(state.dirHandle);
       } else if (state.outputMode === 'zip') {
-        if (hasSavePicker && state.zipHandle) {
+        if (state.batchRunning && state.batchZipContext) {
+          writer = state.batchZipContext.itemWriter(state.batchIndex);
+        } else if (hasSavePicker && state.zipHandle) {
           const writable = await state.zipHandle.createWritable();
           writer = new E.ZipWriter({
             write: (chunk) => writable.write(chunk),
@@ -8421,7 +8464,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.phaseLabel.textContent = 'Done ✓';
       els.progressCard.classList.add('is-complete');
       setBarProgress(els.overallBar, 1, { snap: true }); setBarProgress(els.phaseBar, 1, { snap: true }); els.overallPct.textContent = '100%';
-      renderDone(options, result, mins);
+      const deferBatchZipDone = state.batchRunning && state.outputMode === 'zip' && !!state.batchZipContext;
+      if (!deferBatchZipDone) renderDone(options, result, mins);
       if (!state.batchRunning) await cleanupArchiveImportsAfterSuccess();
     } catch (err) {
       console.error(err);
@@ -8456,11 +8500,25 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       showError('Test the Xbox FTP connection first, then start the batch.');
       return;
     }
-    if (!['folder', 'ftp'].includes(state.outputMode)) {
-      showError('Multi-ISO batches support Save GOD to a folder or Xbox FTP. Choose one of those output modes.');
+    if (state.outputMode === 'zip' && hasSavePicker && !state.zipHandle) {
+      showError('Choose where to save the combined ZIP first.');
       return;
     }
+    if (!['folder', 'ftp', 'zip'].includes(state.outputMode)) {
+      showError('Multi-ISO batches support Save GOD to a folder, one combined ZIP, or Xbox FTP. Choose one of those output modes.');
+      return;
+    }
+    let zipContext = null;
+    if (state.outputMode === 'zip') {
+      try {
+        zipContext = await createBatchZipContext(files.length);
+      } catch (err) {
+        showError('Could not prepare the combined ZIP: ' + (err && err.message ? err.message : String(err)));
+        return;
+      }
+    }
     clearError();
+    state.batchZipContext = zipContext;
     state.batchRunning = true;
     state.batchFinished = false;
     state.batchIndex = 0;
@@ -8498,6 +8556,37 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         updateBatchHint();
       }
     } finally {
+      if (zipContext) {
+        if (state.batchCompleted === files.length && !state.cancelRequested && state.result) {
+          els.cancelBtn.disabled = true;
+          els.cancelBtn.textContent = 'Finalizing ZIP…';
+          try {
+            await zipContext.zipWriter.finish();
+            if (zipContext.parts) {
+              state.zipBlob = new Blob(zipContext.parts, { type: 'application/zip' });
+              state.zipBlobName = state.zipHandle ? state.zipHandle.name : 'Nebula ISO2GOD Batch (' + files.length + ' ISOs).zip';
+            }
+            zipContext.finished = true;
+            log('Combined ZIP finalized with outputs for all ' + files.length + ' ISOs.');
+          } catch (err) {
+            showError('Could not finish the combined ZIP: ' + (err && err.message ? err.message : String(err)));
+            log('BATCH ZIP FAILED: ' + (err && err.message ? err.message : String(err)));
+            state.batchCompleted = Math.max(0, files.length - 1);
+            state.result = null;
+            try { await zipContext.abort(); } catch (_) {}
+          }
+        } else {
+          state.zipBlob = null;
+          state.zipBlobName = '';
+          if (state.batchCompleted === files.length) {
+            state.batchCompleted = Math.max(0, files.length - 1);
+            state.result = null;
+          }
+          try { await zipContext.abort(); } catch (_) {}
+          log('The combined ZIP was discarded because the batch did not finish; no partial archive should be used.');
+        }
+        state.batchZipContext = null;
+      }
       state.batchRunning = false;
       state.batchFinished = true;
       state.batchEndTime = Date.now();
@@ -8509,9 +8598,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       await releaseWakeLock();
     }
     if (state.batchCompleted === files.length) {
+      if (state.outputMode === 'zip' && state.result) {
+        const finalInfo = refreshPlanAndTree();
+        renderDone(finalInfo.options, state.result, fmtDuration(Date.now() - state.startTime));
+      }
       await cleanupArchiveImportsAfterSuccess();
       scrollCardIntoView(els.doneCard, { delay: 650 });
-      log('Batch complete: all ' + files.length + ' disc images were processed sequentially to ' + (state.outputMode === 'folder' ? 'the chosen folder' : 'Xbox FTP') + '; detected GTA V install content was extracted to 00000002 and playable discs were converted to GOD.');
+      const destination = state.outputMode === 'folder' ? 'the chosen folder'
+        : state.outputMode === 'zip' ? 'one combined ZIP'
+          : 'Xbox FTP';
+      log('Batch complete: all ' + files.length + ' disc images were processed sequentially to ' + destination + '; detected GTA V install content was extracted to 00000002 and playable discs were converted to GOD.');
     } else if (state.cancelRequested) {
       log('Batch cancelled after ' + state.batchCompleted + ' completed ISO(s).');
     } else {
@@ -8541,9 +8637,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       where = 'Saved into the "<strong>' + esc(state.dirHandle.name) + '</strong>" folder you chose. ' +
         'Copy its <strong>Content</strong> folder to the root of your Xbox 360 drive (merging folders), then rescan in Aurora/FSD.';
     } else if (state.outputMode === 'zip' && state.zipBlob) {
-      where = 'Your ZIP is ready — use the big download button below, extract it, and copy the <strong>Content</strong> folder to your Xbox 360 drive.';
+      where = state.batchFiles.length > 1
+        ? 'Your combined ZIP with all ' + state.batchFiles.length + ' ISO outputs is ready — use the big download button below, extract it, and copy the <strong>Content</strong> folder to your Xbox 360 drive.'
+        : 'Your ZIP is ready — use the big download button below, extract it, and copy the <strong>Content</strong> folder to your Xbox 360 drive.';
     } else if (state.outputMode === 'zip') {
-      where = 'Saved as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and copy the <strong>Content</strong> folder to your Xbox 360 drive.';
+      where = state.batchFiles.length > 1
+        ? 'Saved the combined ZIP as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and copy the <strong>Content</strong> folder to your Xbox 360 drive.'
+        : 'Saved as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and copy the <strong>Content</strong> folder to your Xbox 360 drive.';
     } else if (state.outputMode === 'ftp') {
       where = 'Uploaded the GOD package to your Xbox over FTP. Rescan the Content path in Aurora/FreeStyle Dash after the transfer completes.';
     } else {
@@ -8554,8 +8654,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.doneSummary.innerHTML = '<strong>Extracted modded game folder</strong> [Title ID ' + E.hex32(result.titleId) + ', Media ID ' + E.hex32(result.mediaId) + ']: ' + result.fileCount + ' files, ' + result.replacedCount + ' replaced, ' + result.addedCount + ' added; ' + fmtBytes(result.totalBytes) + '. ' + where + '<br><span class="muted">This is a packaging step, not a menu generator. A plugin XEX or sidecar DLL does not load automatically; use only a title-update-compatible package intended to load from the game. No console test was performed.</span>';
     } else if (result.kind === 'gta-v-install-content') {
       if (state.outputMode === 'folder') where = 'Saved into the "<strong>' + esc(state.dirHandle.name) + '</strong>" folder as original files under the exact Content path. Merge the Content folder onto the console drive.';
-      else if (state.outputMode === 'zip' && state.zipBlob) where = 'The ZIP is ready. Extract it and merge its Content folder onto the console drive.';
-      else if (state.outputMode === 'zip') where = 'Saved as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and merge its Content folder onto the console drive.';
+      else if (state.outputMode === 'zip' && state.zipBlob) where = state.batchFiles.length > 1 ? 'The combined ZIP with all selected ISO outputs is ready. Extract it and merge its Content folder onto the console drive.' : 'The ZIP is ready. Extract it and merge its Content folder onto the console drive.';
+      else if (state.outputMode === 'zip') where = state.batchFiles.length > 1 ? 'Saved the combined ZIP as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and merge its Content folder onto the console drive.' : 'Saved as "<strong>' + esc(state.zipHandle.name) + '</strong>". Extract it and merge its Content folder onto the console drive.';
       else if (state.outputMode === 'ftp') where = 'Uploaded the unchanged install files directly into the GTA V Content path on the Xbox.';
       else where = 'Download each file below and recreate the full paths shown; merge the Content folder onto the console drive.';
       els.doneSummary.innerHTML = '<strong>GTA V Disc 1 install content</strong> [545408A7] extracted unchanged: ' + result.fileCount + ' file(s), ' + fmtBytes(result.totalBytes) + '. ' + where +
