@@ -1,17 +1,18 @@
 Nebula ISO2GOD — Full GitHub Pages Website Build
 
-This archive is the complete site-root build for Lucas1279/nebula-iso2god. It includes the updated index.html, vendor files, FTP helper/readme, and the current launcher/helper ZIP downloads linked by the page.
+This archive is the complete site-root build for Lucas1279/nebula-iso2god. It includes the updated index.html, vendor files, FTP helper/readme, and the current Windows and Mac helper ZIP downloads linked by the page.
 
 Upload through GitHub's website (no GitHub Desktop required):
 1. Download and extract this archive on your computer.
 2. Open https://github.com/Lucas1279/nebula-iso2god and select the branch used by GitHub Pages.
 3. Choose Add file → Upload files.
-4. Upload the extracted files and folders into the repository root, replacing the matching files. Keep the complete vendor/ folder and both linked ZIP download assets.
+4. Upload the extracted files and folders into the repository root, replacing the matching files. Keep the complete vendor/ folder and all three linked ZIP download assets.
 5. Commit the changes to that branch. Do not upload this outer full-build ZIP as the only file.
 6. Wait for GitHub Pages to redeploy at https://lucas1279.github.io/nebula-iso2god/.
 
-All download buttons use relative links to these current root-level assets, so keep both files in the repository:
+All download buttons use relative links to these current root-level assets, so keep all three files in the repository:
 - nebula-iso2god-timeout-fix.zip
 - Nebula-ISO2GOD-One-File-Fixed.zip
+- Nebula-ISO2GOD-Windows-Helper.zip
 
 The FTP helper is a local Mac program; GitHub Pages hosts the static website but does not run the Python helper. Follow README_FTP.md for local helper setup. FTP is unencrypted; use it only on a trusted LAN.
