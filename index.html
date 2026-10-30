@@ -332,6 +332,17 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-manager-empty{padding:22px;text-align:center;color:var(--muted)}
 .ftp-manager-table input[type=checkbox]{width:17px;height:17px;accent-color:#38bdf8}
 .ftp-manager-modal[hidden],#ftpManagerPromptWrap[hidden],#ftpManagerEditorWrap[hidden]{display:none!important}
+.disc-role-modal{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:18px;background:rgba(2,4,18,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.disc-role-modal[hidden]{display:none!important}
+.disc-role-card{width:min(560px,100%);padding:24px;border:1px solid rgba(130,180,255,.45);border-radius:22px;background:radial-gradient(600px 260px at 0% 0%,rgba(106,83,224,.2),transparent 68%),radial-gradient(460px 220px at 100% 0%,rgba(0,187,224,.13),transparent 66%),linear-gradient(155deg,rgba(13,19,48,.98),rgba(5,8,25,.99));box-shadow:0 26px 90px rgba(0,0,0,.66),0 0 35px rgba(102,142,255,.14);color:var(--text)}
+.disc-role-kicker{font-size:.73rem;font-weight:800;letter-spacing:.16em;color:#a5e8ff;text-transform:uppercase}
+.disc-role-card h2{margin:9px 0 7px;font-size:1.35rem;letter-spacing:-.02em}
+.disc-role-file{margin:13px 0 8px;padding:11px 13px;border:1px solid rgba(140,170,255,.28);border-radius:12px;background:rgba(4,8,24,.78);font-size:.9rem;font-weight:700;line-height:1.45;overflow-wrap:anywhere;color:#e9e9ff}
+.disc-role-choice{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;min-height:70px;padding:13px 16px;text-align:left;line-height:1.35}
+.disc-role-choice small{font-size:.82rem;font-weight:500;color:var(--muted)}
+.disc-role-actions{display:grid;gap:10px;margin-top:17px}
+.disc-role-cancel{margin-top:13px;width:100%}
+@media(max-width:540px){.disc-role-card{padding:19px}.disc-role-card h2{font-size:1.2rem}}
 .ftp-manager-modal{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:18px;background:rgba(2,6,20,.78);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
 .ftp-manager-modal-card{width:min(560px,100%);max-height:min(90vh,900px);overflow:auto;padding:22px;border:1px solid rgba(125,211,252,.38);border-radius:20px;background:radial-gradient(500px 200px at 0% 0%,rgba(56,189,248,.13),transparent 65%),linear-gradient(145deg,rgba(13,20,48,.99),rgba(5,9,27,.99));box-shadow:0 28px 90px rgba(0,0,0,.72),0 0 34px rgba(56,189,248,.12)}
 .ftp-manager-modal-card.is-wide{width:min(960px,100%)}
@@ -403,7 +414,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.9 · build 2026-10-29</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.10 · build 2026-10-30</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -578,6 +589,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <dt>Title ID</dt><dd><code id="dTitleId">—</code></dd>
           <dt>Media ID</dt><dd><code id="dMediaId">—</code></dd>
           <dt>Disc</dt><dd id="dDisc">—</dd>
+          <dt>Disc catalogue</dt><dd id="dDiscCatalog">—</dd>
           <dt>Executable</dt><dd id="dExe">—</dd>
           <dt>Exe info</dt><dd id="dExeInfo">—</dd>
           <dt>Contents</dt><dd id="dFiles">—</dd>
@@ -958,7 +970,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <p><strong>Will it work on an unmodded/retail Xbox 360?</strong> No. Microsoft’s RSA private key signs real
           Marketplace GODs; Iso2God-style packages have a blank signature and only boot where signature checks are patched
           (JTAG/RGH with DashLaunch). That is a console restriction, not something any converter can bypass.</p>
-          <p><strong>Multi-disc games and install discs:</strong> each playable disc stays a separate GOD package, with disc metadata retained in its container name. The ISO workflow also detects Xbox <code>Content</code> trees on install/content discs and extracts their files without GOD repacking, preserving recognized Title ID paths. Placeholder folders such as <code>Content/FFED2000/FFFFFFFF</code> require you to provide or confirm the paired playable game’s Title ID; unfamiliar layouts are not silently remapped. If an ISO contains both an executable and Content data, choose whether it is the playable disc or install content. For a combined batch, select the ISOs together: folder and ZIP output keep all results, while FTP writes each item to its matching Content or GOD path. Some titles use game-specific layouts or swap plugins (for example, AutoSwap); this generic extraction does not configure those plugins or guarantee a game’s install requirements. <em>Keep the full game partition</em> only avoids trimming an image; it does not unpack install content.</p>
+          <p><strong>Multi-disc games and install discs:</strong> playable discs stay separate GOD packages; recognized install/content discs are extracted to the console’s <code>Content</code> tree. The parser reads the XEX Title ID, Media ID, disc number/count, and XDVDFS tree. The bundled offline catalogue exact-matches Title ID + Media ID against 2,577 Xbox 360 disc identities in the <a href="https://github.com/IronRingX/xbox360-gamelist" target="_blank" rel="noopener noreferrer">IronRingX game list</a>. Explicit role rules are bridged from the <a href="http://redump.org/datfile/xbox360/" target="_blank" rel="noopener noreferrer">Redump Xbox 360 DAT</a> (2026-06-15) by exact normalized game-title + disc-number joins; the current release has 31 exact Media-ID role records (16 playable, 15 install) across 13 title IDs, plus the separately researched Halo 4 Disc 1/2 rule. The catalogue also recognizes game/disc names and regions where the source provides them, even if the disc role is unknown. This is broad partial coverage, not “any disc”: both upstream sources are incomplete, CSV rows without Media IDs cannot be exact-matched, and role labels can be ambiguous or absent. Any unknown or conflicting executable-disc role—including single-disc entries without role evidence—and executable-plus-Content layouts use the themed chooser, which shows the ISO filename. The app never decides a role from disc number alone; it also refuses GOD output when a known installer lacks an extractable Content tree. Placeholder folders such as <code>Content/FFED2000/FFFFFFFF</code> still need the paired game’s Title ID. Dropping a multi-disc set together applies checks to every ISO. Folder and ZIP keep outputs separate; FTP routes each item to its GOD or Content path. Some titles need game-specific layouts or swap plugins, which generic extraction does not configure. <em>Keep the full game partition</em> only avoids trimming an image; it does not unpack install content. The local generator and review report are included with the source build so catalogue updates can be checked before shipping.</p>
           <p><strong>The game shows as corrupted / won’t launch:</strong></p>
           <ul>
             <li>Check <em>every</em> <code>Data####</code> part copied and sizes match (all but the last are exactly 162.6&nbsp;MiB / <code>0xA290000</code> bytes).</li>
@@ -967,7 +979,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
             <li>Verify your source ISO is a clean rip (not already an extracted folder, a GOD, or a PC ISO9660 file).</li>
           </ul>
           <p><strong>Browser notes:</strong> Chrome/Edge provide browser-native folder saving and streaming ZIPs. Safari on macOS can save directly to a chosen folder when opened through the updated local helper; otherwise Safari/Firefox use ZIP or individual downloads, which can be memory-hungry for multi-GB games. Conversion speed is mostly SHA-1 hashing on one CPU core plus your disk speed.</p>
-          <p><strong>Privacy:</strong> by default the converter runs in your browser and makes no network requests. FTP upload is optional and requires the local helper; it sends the completed GOD files to the Xbox over your home LAN. FTP credentials are held in helper memory only while it runs. Do not expose the Xbox FTP server to the public internet.</p>
+          <p><strong>Privacy:</strong> ISO analysis and conversion run in your browser; the page loads its bundled disc catalogue from the same site, but does not send your ISO or game files to a server. FTP upload is optional and requires the local helper; it sends completed GOD/content files to the Xbox over your home LAN. FTP credentials are held in helper memory only while it runs. Do not expose the Xbox FTP server to the public internet.</p>
           <p><strong>Original Xbox games:</strong> images containing <code>default.xbe</code> are written as Xbox Original
           packages (<code>00005000</code>). Playing them still needs the console’s Xbox backwards-compatibility files/hacked
           compatibility partition — the GOD is only the container.</p>
@@ -1000,6 +1012,20 @@ body.ftp-manager-dialog-open{overflow:hidden}
           when the <code>.bin</code> is highlighted; it does not create Aurora artwork.</p>
         </div>
     </details>
+    <div class="disc-role-modal" id="discRoleModal" hidden>
+      <section class="disc-role-card" role="dialog" aria-modal="true" aria-labelledby="discRoleTitle" aria-describedby="discRoleDescription">
+        <div class="disc-role-kicker">Nebula · Disc check</div>
+        <h2 id="discRoleTitle">How should this disc be handled?</h2>
+        <p id="discRoleDescription" class="muted small" style="line-height:1.55;margin:0">The ISO contains both an executable and Xbox Content files. Choose the disc’s role.</p>
+        <div class="disc-role-file" id="discRoleFileName"></div>
+        <div class="muted tiny" id="discRoleMetadata"></div>
+        <div class="disc-role-actions">
+          <button class="btn primary disc-role-choice" id="discRolePlayable" type="button">Playable game disc <small>Convert this disc to its own GOD package.</small></button>
+          <button class="btn disc-role-choice" id="discRoleInstall" type="button">Install/content disc <small>Extract its Content files to the console path; do not build a GOD.</small></button>
+        </div>
+        <button class="btn small disc-role-cancel" id="discRoleCancel" type="button">Cancel batch setup</button>
+      </section>
+    </div>
     <div class="ftp-manager-modal" id="ftpManagerModal" hidden>
       <section class="ftp-manager-modal-card" id="ftpManagerModalCard" role="dialog" aria-modal="true" aria-labelledby="ftpManagerModalTitle" aria-describedby="ftpManagerModalMessage">
         <div class="ftp-manager-modal-kicker">NEBULA · XBOX FTP</div>
@@ -1014,7 +1040,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.9 · build 2026-10-29</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.10 · build 2026-10-30</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -2179,8 +2205,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.9.3';
-  const APP_BUILD = '2026-10-29';
+  const APP_VERSION = '1.9.10';
+  const APP_BUILD = '2026-10-30';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
   if (els.footerBuildLabel) els.footerBuildLabel.textContent = APP_BUILD_LABEL;
@@ -2824,6 +2850,32 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  /* ---------------- offline Xbox 360 disc catalogue ---------------- */
+  let discCatalog = null;
+  const discCatalogReady = (async () => {
+    try {
+      const response = await fetch(new URL('./data/disc_catalog.json', document.baseURI), { cache: 'force-cache' });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const data = await response.json();
+      if (!data || data.schemaVersion !== 1 || !data.records || typeof data.records !== 'object') throw new Error('Unsupported catalogue schema');
+      discCatalog = data.records;
+      return true;
+    } catch (error) {
+      console.warn('Offline Xbox 360 disc catalogue unavailable; role chooser remains active.', error);
+      return false;
+    }
+  })();
+  function getDiscCatalogRecord(analysis) {
+    if (!discCatalog || !analysis || !analysis.executionInfo || analysis.platform !== 'xbox360') return null;
+    const titleId = E.hex32(analysis.executionInfo.titleId).toUpperCase();
+    const mediaId = E.hex32(analysis.executionInfo.mediaId).toUpperCase();
+    if (!/^[0-9A-F]{8}$/.test(titleId) || !/^[0-9A-F]{8}$/.test(mediaId) || titleId === '00000000' || mediaId === '00000000') return null;
+    return discCatalog[titleId + ':' + mediaId] || null;
+  }
+  function discRecordDisplayName(record) {
+    return String(record && record.name || '').replace(/\s*\((?:disc|disk|dvd)\s*\d+\)/ig, '').trim();
+  }
+
   /* ---------------- title database ---------------- */
   let titleDb = null;
   function findGameName(titleHex) {
@@ -3118,9 +3170,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const installPayloadDetected = !!payload;
     if (els.gtaVInstallNotice) {
       els.gtaVInstallNotice.hidden = !installPayloadDetected;
+      const autoRoleNote = payload && payload.roleSource === 'built-in title/disc guide' && payload.roleSourceUrl
+        ? '<strong>' + esc(payload.displayName || 'Install/content disc') + ' identified automatically.</strong> Matched by Title ID and disc metadata using the built-in guide. <a href="' + esc(payload.roleSourceUrl) + '" target="_blank" rel="noopener noreferrer">View the rule source</a>. '
+        : '';
       els.gtaVInstallNotice.innerHTML = state.taskMode === 'mods'
         ? '<strong>Install/content disc detected.</strong> This is not a playable game disc. Switch to <strong>Convert an ISO</strong> to extract its Content tree; Mods mode only builds a replacement GOD for a playable disc.'
-        : '<strong>Install/content disc detected.</strong> The site will extract its Content tree unchanged rather than turn it into a GOD. Select playable discs in the same batch to create separate GOD packages. If a path uses placeholder IDs, you will be asked for the paired game Title ID.';
+        : autoRoleNote + '<strong>Install/content disc detected.</strong> The site will extract its Content tree unchanged rather than turn it into a GOD. Select playable discs in the same batch to create separate GOD packages. If a path uses placeholder IDs, you will be asked for the paired game Title ID.';
     }
     $('paddingOptions').hidden = installPayloadDetected;
     const ftpBaseAlreadyHasContentPath = state.outputMode === 'ftp' && ftpBaseIsContentRoot(els.ftpPath.value);
@@ -3193,15 +3248,26 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     set('dTitleId', E.hex32(x.titleId));
     set('dMediaId', E.hex32(x.mediaId));
     set('dDisc', (x.discNumber || 1) + ' of ' + (x.discCount || 1));
+    const discRecord = a.discCatalogMatch;
+    const curatedRole = knownDiscRoleForIso(file, a);
+    const resolvedRole = a.resolvedDiscRole || (curatedRole && curatedRole.role) || '';
+    set('dDiscCatalog', discRecord
+      ? discRecord.name + (discRecord.regions && discRecord.regions.length ? ' · ' + discRecord.regions.join(', ') : '') + ' · ' + (resolvedRole === 'install' ? 'install/content' : resolvedRole === 'playable' ? 'playable' : 'role unknown')
+      : curatedRole
+        ? curatedRole.title + ' · curated rule: ' + (resolvedRole === 'install' ? 'install/content' : 'playable')
+        : 'No exact Title ID + Media ID match; role is not catalogued.');
     set('dExeInfo', 'Version 0x' + E.hex32(x.version) + ' · platform byte ' + x.platform + ' · type ' + x.executableType);
     set('dFiles', a.stats.files.toLocaleString() + ' file(s), ' + a.stats.directories.toLocaleString() + ' folder(s), ' + fmtBytes(a.stats.fileBytes) + ' of file data');
     set('dExe', a.executableEntry ? a.executableEntry.name + ' (' + fmtBytes(a.executableEntry.size) + ', sector ' + a.executableEntry.sector + ')' : 'No default.xex — install/content data only');
     const rootList = a.rootEntries.slice(0, 14).map(e => (e.isDirectory ? '📁 ' : '📄 ') + e.name).join(' · ');
     set('dRoot', rootList + (a.rootEntries.length > 14 ? '   … +' + (a.rootEntries.length - 14) + ' more' : ''));
-    const dbName = findGameName(E.hex32(x.titleId));
+    const catalogName = discRecordDisplayName(discRecord);
+    const dbName = catalogName || findGameName(E.hex32(x.titleId));
     if (dbName) {
       els.titleInput.value = dbName.slice(0, 63);
-      els.titleSource.textContent = 'Display name found in the built-in Title ID database — edit it if you want a different name on the dashboard.';
+      els.titleSource.textContent = catalogName
+        ? 'Disc identified by exact Title ID + Media ID in the bundled offline catalogue — edit the dashboard name if you want.'
+        : 'Display name found in the built-in Title ID database — edit it if you want a different name on the dashboard.';
     } else if (a.xbeTitleName) {
       els.titleInput.value = a.xbeTitleName.slice(0, 63);
       els.titleSource.textContent = 'Display name read from the default.xbe certificate.';
@@ -3213,18 +3279,106 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     refreshPlanAndTree();
   }
 
-  function prepareInstallContentAnalysis(file, analysis) {
+  function knownDiscRoleForIso(file, analysis) {
+    if (!analysis || !analysis.executableEntry) return null;
+    const catalogRecord = analysis.discCatalogMatch || getDiscCatalogRecord(analysis);
+    if (catalogRecord && (catalogRecord.role === 'install' || catalogRecord.role === 'playable')) {
+      return {
+        role: catalogRecord.role,
+        title: discRecordDisplayName(catalogRecord) || findGameName(E.hex32(analysis.executionInfo.titleId)) || 'Xbox 360 game',
+        discNumber: Number(catalogRecord.discNumber) || Number(analysis.executionInfo.discNumber) || 1,
+        source: 'exact Title ID + Media ID offline catalogue',
+        sourceUrl: 'https://redump.org/datfile/xbox360/',
+      };
+    }
+    // Retain the separately researched Halo 4 rule when an exact role-labelled
+    // Media ID record is absent. Disc number is used only inside this title rule.
+    const titleId = E.hex32(analysis.executionInfo.titleId).toUpperCase();
+    const knownRules = { '4D530919': { name: 'Halo 4', roles: { 1: 'playable', 2: 'install' }, sourceUrl: 'https://www.se7ensins.com/forums/threads/tutorial-how-to-play-halo-4-on-jtag-rgh-disc-2-error-fix-noob-tutorial.799558/' } };
+    const rule = knownRules[titleId];
+    if (!rule) return null;
+    const filenameMatch = String(file && file.name || '').match(/(?:disc|disk|dvd)\s*[-_ ]?\s*(\d+)/i);
+    const fileDisc = filenameMatch ? Number(filenameMatch[1]) : 0;
+    const info = analysis.executionInfo || {};
+    const metadataDisc = Number(info.discNumber) || 0;
+    const metadataCount = Number(info.discCount) || 0;
+    const discNumber = metadataCount > 1 && metadataDisc > 0 ? metadataDisc : (fileDisc || metadataDisc);
+    const role = rule.roles[discNumber];
+    return role ? { role, title: rule.name, discNumber, source: 'built-in title/disc guide', sourceUrl: rule.sourceUrl } : null;
+  }
+
+  function showDiscRoleDialog(file, analysis) {
+    const modal = $('discRoleModal');
+    const info = analysis.executionInfo || {};
+    const titleId = E.hex32(info.titleId).toUpperCase();
+    const record = analysis.discCatalogMatch || getDiscCatalogRecord(analysis);
+    const gameName = discRecordDisplayName(record) || findGameName(titleId) || 'Unknown game';
+    const mediaId = E.hex32(info.mediaId).toUpperCase();
+    $('discRoleFileName').textContent = file.name || 'Unnamed ISO';
+    $('discRoleMetadata').textContent = gameName + ' · Title ID ' + titleId + ' · Media ID ' + mediaId + ' · Disc ' + (info.discNumber || 1) + ' of ' + (info.discCount || 1) + (record && record.role === 'unknown' ? ' · catalogue conflict: choose manually' : ' · role not catalogued');
+    modal.hidden = false;
+    document.body.classList.add('modal-open');
+    return new Promise(resolve => {
+      let settled = false;
+      const finish = role => {
+        if (settled) return;
+        settled = true;
+        modal.hidden = true;
+        document.body.classList.remove('modal-open');
+        document.removeEventListener('keydown', onKeyDown, true);
+        $('discRolePlayable').removeEventListener('click', choosePlayable);
+        $('discRoleInstall').removeEventListener('click', chooseInstall);
+        $('discRoleCancel').removeEventListener('click', chooseCancel);
+        resolve(role);
+      };
+      const choosePlayable = () => finish('playable');
+      const chooseInstall = () => finish('install');
+      const chooseCancel = () => finish(null);
+      const onKeyDown = event => {
+        if (event.key === 'Escape') { event.preventDefault(); finish(null); }
+      };
+      $('discRolePlayable').addEventListener('click', choosePlayable);
+      $('discRoleInstall').addEventListener('click', chooseInstall);
+      $('discRoleCancel').addEventListener('click', chooseCancel);
+      document.addEventListener('keydown', onKeyDown, true);
+      $('discRolePlayable').focus();
+    });
+  }
+
+  async function prepareInstallContentAnalysis(file, analysis) {
+    await discCatalogReady;
+    analysis.discCatalogMatch = getDiscCatalogRecord(analysis);
     const payload = analysis && analysis.installContentPayload;
-    if (!payload || payload.kind === 'gta-v-install-content') return;
-    if (analysis.executableEntry && !payload.roleConfirmed) {
-      const role = window.prompt(
-        'This ISO has both an Xbox executable and an Xbox Content tree. Type I to extract the install/content files, or P to treat it as a playable disc and convert it to GOD. The site will not combine these two roles in one output.',
-        'I');
-      if (role === null) throw new Error('Disc role selection canceled; no output was written.');
-      const normalized = role.trim().toLowerCase();
-      if (normalized === 'p' || normalized === 'play') { analysis.installContentPayload = null; return; }
-      if (normalized !== 'i' && normalized !== 'install') throw new Error('Enter I for install/content disc or P for playable disc; no output was written.');
+    const known = knownDiscRoleForIso(file, analysis);
+    analysis.resolvedDiscRole = known ? known.role : '';
+    if (!payload) {
+      if (known && known.role === 'install') {
+        throw new Error((known.title || 'This disc') + ' is identified as install/content media, but no extractable Xbox Content tree was found. It was not converted to GOD. This installer may use an unsupported title-specific layout.');
+      }
+      if (!analysis.executableEntry) return;
+      if (known && known.role === 'playable') return;
+      const selectedRole = await showDiscRoleDialog(file, analysis);
+      if (!selectedRole) throw new Error('Disc role selection canceled; no output was written.');
+      analysis.resolvedDiscRole = selectedRole;
+      if (selectedRole === 'install') {
+        throw new Error('You marked this as an install/content disc, but no extractable Xbox Content tree was found. No GOD was created; this disc may need a title-specific installer workflow.');
+      }
+      return;
+    }
+    if (!analysis.executableEntry) {
       payload.roleConfirmed = true;
+    } else if (!payload.roleConfirmed) {
+      const role = known ? known.role : await showDiscRoleDialog(file, analysis);
+      if (!role) throw new Error('Disc role selection canceled; no output was written.');
+      analysis.resolvedDiscRole = role;
+      payload.roleSource = known ? known.source : 'user selection';
+      if (known && known.sourceUrl) payload.roleSourceUrl = known.sourceUrl;
+      payload.roleConfirmed = true;
+      if (role === 'playable') { analysis.installContentPayload = null; return; }
+      if (known) {
+        payload.displayName = known.title + ' Disc ' + known.discNumber + ' install content';
+        payload.titleId = E.hex32(analysis.executionInfo.titleId).toUpperCase();
+      }
     }
     if (payload.needsReview && !payload.reviewConfirmed) {
       const ok = window.confirm('This ISO has a Content folder but no recognized install-path structure. Extract its Content tree exactly as found? If its folders are game-specific placeholders, the Xbox may need a title/path correction.');
@@ -3232,8 +3386,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       payload.reviewConfirmed = true;
     }
     if (payload.needsTitleIdMap) {
-      const known = Array.from(new Set(state.batchKnownTitleIds || []));
-      const suggestion = known.length === 1 ? known[0] : (payload.suggestedTitleId || '');
+      const knownIds = Array.from(new Set(state.batchKnownTitleIds || []));
+      const suggestion = knownIds.length === 1 ? knownIds[0] : (payload.suggestedTitleId || '');
       const answer = window.prompt(
         'This install disc stores files under Content/FFED2000/FFFFFFFF. Enter the paired playable game’s 8-digit Title ID so the files can be placed under Content/0000000000000000/<TitleID>/00000002. Leave blank or cancel to stop safely.',
         suggestion);
@@ -3281,7 +3435,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
           els.phaseLabel.textContent = 'Scanning for the game partition… ' + fmtBytes(done) + ' / ' + fmtBytes(total);
         },
       });
-      prepareInstallContentAnalysis(file, analysis);
+      await prepareInstallContentAnalysis(file, analysis);
       state.analysis = analysis;
       if (state.batchRunning && !analysis.installContentPayload && analysis.executionInfo && analysis.executionInfo.titleId) {
         const id = E.hex32(analysis.executionInfo.titleId).toUpperCase();
