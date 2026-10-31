@@ -414,7 +414,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.12 · build 2026-10-30</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.13 · build 2026-10-31</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -1040,7 +1040,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.12 · build 2026-10-30</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.13 · build 2026-10-31</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -2205,8 +2205,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.9.12';
-  const APP_BUILD = '2026-10-30';
+  const APP_VERSION = '1.9.13';
+  const APP_BUILD = '2026-10-31';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
   if (els.footerBuildLabel) els.footerBuildLabel.textContent = APP_BUILD_LABEL;
@@ -6090,19 +6090,27 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     let completed = 0;
     try {
       for (const entry of selected) {
-        managerSetActivity('Importing from Xbox ' + (completed + 1) + '/' + selected.length + ': ' + entry.name);
-        const blob = await bridgeDownload('/api/fs/download', { segments: [...state.ftpManagerSegments, entry.name] });
-        const url = URL.createObjectURL(blob);
+        managerSetActivity('Preparing Xbox download ' + (completed + 1) + '/' + selected.length + ': ' + entry.name);
+        // Use a short-lived, one-use local download ticket and let the browser
+        // stream the attachment directly. This avoids buffering large/binary save
+        // files in a Blob and keeps extensionless Xbox save names unchanged.
+        const ticket = await bridgeRequest('/api/fs/download-ticket', {
+          segments: [...state.ftpManagerSegments, entry.name]
+        });
         const link = document.createElement('a');
-        link.href = url; link.download = entry.name; link.style.display = 'none';
-        document.body.appendChild(link); link.click(); link.remove();
-        window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+        link.href = ticket.url;
+        link.download = ticket.name || entry.name;
+        link.rel = 'noreferrer';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
         completed++;
-        if (completed < selected.length) await new Promise(resolve => setTimeout(resolve, 350));
+        if (completed < selected.length) await new Promise(resolve => setTimeout(resolve, 500));
       }
-      managerSetActivity('Imported ' + completed + ' file(s) to your browser’s Downloads folder.');
+      managerSetActivity('Started browser download for ' + completed + ' file(s). Check your browser’s Downloads list.');
     } catch (err) {
-      managerSetActivity('Import stopped after ' + completed + ' file(s): ' + (err.message || String(err)), true);
+      managerSetActivity('Could not start Xbox download after ' + completed + ' file(s): ' + (err.message || String(err)), true);
     } finally { managerSetBusy(false); managerUpdateSelectionControls(); }
   }
   async function managerCopySelectedToDesktop() {

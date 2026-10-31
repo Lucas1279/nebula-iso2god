@@ -32,6 +32,8 @@ LOCAL_OUTPUT_SESSION_TTL = 12 * 60 * 60
 LOCAL_OUTPUT_MAX_FILE = 20 * 1024 * 1024 * 1024
 DRAG_EXPORT_MAX_BYTES = 64 * 1024 * 1024
 DRAG_EXPORT_TTL_SECONDS = 15 * 60
+DOWNLOAD_TICKETS = {}
+DOWNLOAD_TICKET_TTL_SECONDS = 5 * 60
 
 
 def send_json(handler, status, obj):
@@ -385,9 +387,93 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _stream_remote_file(self, segments, cfg, max_bytes):
+        """Stream one Xbox file as an attachment without changing its name or bytes."""
+        parent, name = segments[:-1], clean_name(segments[-1])
+        ftp = ftp_login(cfg)
+        data_sock = None
+        headers_sent = False
+        try:
+            ftp_cwd(ftp, cfg, parent)
+            ftp.timeout = 12
+            control = getattr(ftp, "sock", None)
+            if control is not None:
+                control.settimeout(12)
+            entry = next((item for item in ftp_list_entries(ftp) if item["name"] == name), None)
+            if not entry:
+                raise ValueError("That remote item no longer exists; refresh the folder.")
+            if entry["type"] != "file":
+                raise ValueError("Only selected files can be imported; open folders and select the files inside.")
+            if int(entry.get("size", 0) or 0) > max_bytes:
+                raise ValueError("That file exceeds the requested import size limit.")
+
+            # ftplib's transfercmd does not switch to binary mode by itself.
+            # Xbox game saves are opaque bytes (often extensionless), so TYPE I
+            # is required to prevent ASCII newline conversion/corruption.
+            ftp.voidcmd("TYPE I")
+            ftp.timeout = TRANSFER_IDLE_TIMEOUT
+            if control is not None:
+                control.settimeout(TRANSFER_IDLE_TIMEOUT)
+            data_sock = ftp.transfercmd("RETR " + name)
+
+            fallback_name = "".join(ch if ch.isascii() and 32 <= ord(ch) < 127 and ch not in ('"', '\\') else "_" for ch in name) or "download"
+            encoded_name = urllib.parse.quote(name, safe="")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Transfer-Encoding", "chunked")
+            self.send_header("Content-Disposition", f"attachment; filename=\"{fallback_name}\"; filename*=UTF-8''{encoded_name}")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            headers_sent = True
+
+            downloaded = 0
+            while True:
+                block = data_sock.recv(1024 * 1024)
+                if not block:
+                    break
+                downloaded += len(block)
+                if downloaded > max_bytes:
+                    raise ValueError("That file exceeds the requested import size limit.")
+                self.wfile.write((format(len(block), "X") + "\r\n").encode("ascii"))
+                self.wfile.write(block)
+                self.wfile.write(b"\r\n")
+                self.wfile.flush()
+            data_sock.close()
+            data_sock = None
+            ftp.voidresp()
+            self.wfile.write(b"0\r\n\r\n")
+            self.wfile.flush()
+        except Exception:
+            if headers_sent:
+                # The browser will reject a truncated chunked response.
+                self.close_connection = True
+                return
+            raise
+        finally:
+            if data_sock is not None:
+                try: data_sock.close()
+                except Exception: pass
+            try: ftp.quit()
+            except Exception: pass
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
-        if parsed.path.startswith("/api/drag-export/file/"):
+        if parsed.path.startswith("/api/fs/download-file/"):
+            ident = urllib.parse.unquote(parsed.path.rsplit("/", 1)[-1])
+            now = time.time()
+            with LOCK:
+                for ticket_id, ticket in list(DOWNLOAD_TICKETS.items()):
+                    if ticket.get("expires", 0) <= now:
+                        DOWNLOAD_TICKETS.pop(ticket_id, None)
+                ticket = DOWNLOAD_TICKETS.pop(ident, None)
+            if not ticket or ticket.get("expires", 0) <= now:
+                return send_json(self, 404, {"error": "This Xbox download link expired or was already used. Select the file and import it again."})
+            try:
+                return self._stream_remote_file(ticket["segments"], ticket["config"], ticket["maxBytes"])
+            except Exception as exc:
+                return send_json(self, 400, {"error": str(exc) or exc.__class__.__name__})
+        if parsed.path.startswith("/api/drag-export/file/"): 
             cleanup_expired_drag_exports()
             ident = urllib.parse.unquote(parsed.path.rsplit("/", 1)[-1])
             with LOCK:
@@ -694,87 +780,50 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     try: ftp.quit()
                     except Exception: pass
 
+            if parsed.path == "/api/fs/download-ticket":
+                data = json.loads(self._body().decode("utf-8"))
+                segments = clean_segments(data.get("segments"))
+                with LOCK:
+                    cfg = dict(CONFIG) if CONFIG else None
+                    now = time.time()
+                    for ticket_id, ticket in list(DOWNLOAD_TICKETS.items()):
+                        if ticket.get("expires", 0) <= now:
+                            DOWNLOAD_TICKETS.pop(ticket_id, None)
+                    if not cfg:
+                        raise ValueError("Connect to the Xbox FTP server first.")
+                    ident = secrets.token_urlsafe(32)
+                    DOWNLOAD_TICKETS[ident] = {
+                        "segments": segments,
+                        "config": cfg,
+                        "maxBytes": 20 * 1024 * 1024 * 1024,
+                        "expires": now + DOWNLOAD_TICKET_TTL_SECONDS,
+                    }
+                return send_json(self, 200, {
+                    "url": "/api/fs/download-file/" + ident,
+                    "name": segments[-1],
+                    "expiresIn": DOWNLOAD_TICKET_TTL_SECONDS,
+                })
+
             if parsed.path == "/api/fs/download":
                 data = json.loads(self._body().decode("utf-8"))
                 segments = clean_segments(data.get("segments"))
-                parent, name = segments[:-1], clean_name(segments[-1])
-                cfg = CONFIG
+                with LOCK:
+                    cfg = dict(CONFIG) if CONFIG else None
                 if not cfg:
                     raise ValueError("Connect to the Xbox FTP server first.")
-                ftp = ftp_login(cfg)
-                data_sock = None
-                headers_sent = False
-                try:
-                    ftp_cwd(ftp, cfg, parent)
-                    ftp.timeout = 12
-                    control = getattr(ftp, "sock", None)
-                    if control is not None:
-                        control.settimeout(12)
-                    entry = next((item for item in ftp_list_entries(ftp) if item["name"] == name), None)
-                    if not entry:
-                        raise ValueError("That remote item no longer exists; refresh the folder.")
-                    if entry["type"] != "file":
-                        raise ValueError("Only selected files can be imported; open folders and select the files inside.")
-                    max_bytes = 20 * 1024 * 1024 * 1024
-                    requested_limit = data.get("maxBytes")
-                    if requested_limit is not None:
-                        if isinstance(requested_limit, bool):
-                            raise ValueError("Invalid download size limit.")
-                        try:
-                            requested_limit = int(requested_limit)
-                        except (TypeError, ValueError):
-                            raise ValueError("Invalid download size limit.")
-                        if requested_limit < 1 or requested_limit > max_bytes:
-                            raise ValueError("Download size limit must be between 1 byte and 20 GiB.")
-                        max_bytes = requested_limit
-                    if int(entry.get("size", 0) or 0) > max_bytes:
-                        raise ValueError("That file exceeds the requested import size limit.")
-                    # Stream the Xbox RETR response directly to the browser; no
-                    # intermediate download copy is written to Mac system storage.
-                    ftp.timeout = TRANSFER_IDLE_TIMEOUT
-                    if control is not None:
-                        control.settimeout(TRANSFER_IDLE_TIMEOUT)
-                    data_sock = ftp.transfercmd("RETR " + name)
-                    fallback_name = "".join(ch if ch.isascii() and 32 <= ord(ch) < 127 and ch not in ('"', '\\') else "_" for ch in name) or "download"
-                    encoded_name = urllib.parse.quote(name, safe="")
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/octet-stream")
-                    self.send_header("Transfer-Encoding", "chunked")
-                    self.send_header("Content-Disposition", f"attachment; filename=\"{fallback_name}\"; filename*=UTF-8''{encoded_name}")
-                    self.send_header("X-Content-Type-Options", "nosniff")
-                    self.send_header("Cache-Control", "no-store")
-                    self.end_headers()
-                    headers_sent = True
-                    downloaded = 0
-                    while True:
-                        block = data_sock.recv(1024 * 1024)
-                        if not block:
-                            break
-                        downloaded += len(block)
-                        if downloaded > max_bytes:
-                            raise ValueError("That file exceeds the 20 GiB import limit.")
-                        self.wfile.write((format(len(block), "X") + "\r\n").encode("ascii"))
-                        self.wfile.write(block)
-                        self.wfile.write(b"\r\n")
-                        self.wfile.flush()
-                    data_sock.close()
-                    data_sock = None
-                    ftp.voidresp()
-                    self.wfile.write(b"0\r\n\r\n")
-                    self.wfile.flush()
-                    return
-                except Exception:
-                    if headers_sent:
-                        # The browser will reject a truncated chunked response.
-                        self.close_connection = True
-                        return
-                    raise
-                finally:
-                    if data_sock is not None:
-                        try: data_sock.close()
-                        except Exception: pass
-                    try: ftp.quit()
-                    except Exception: pass
+                max_bytes = 20 * 1024 * 1024 * 1024
+                requested_limit = data.get("maxBytes")
+                if requested_limit is not None:
+                    if isinstance(requested_limit, bool):
+                        raise ValueError("Invalid download size limit.")
+                    try:
+                        requested_limit = int(requested_limit)
+                    except (TypeError, ValueError):
+                        raise ValueError("Invalid download size limit.")
+                    if requested_limit < 1 or requested_limit > max_bytes:
+                        raise ValueError("Download size limit must be between 1 byte and 20 GiB.")
+                    max_bytes = requested_limit
+                return self._stream_remote_file(segments, cfg, max_bytes)
 
             if parsed.path == "/api/fs/storage":
                 data = json.loads(self._body().decode("utf-8"))

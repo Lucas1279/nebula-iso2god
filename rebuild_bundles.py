@@ -121,7 +121,7 @@ def update_deployment_copy() -> None:
 
 
 def rebuild_full_pages_zip() -> None:
-    files = [ROOT / 'index.html', ROOT / 'ftp_helper.py', ROOT / 'README.md', ROOT / 'README_FTP.md', ROOT / 'UPLOAD_TO_GITHUB.txt', ROOT / 'build_disc_catalog.py', ROOT / 'rebuild_bundles.py', ROOT / 'test_disc_catalog.py', ROOT / 'data/disc_catalog.json', ROOT / 'data/redump_inventory.json', ROOT / 'data/disc_catalog_review.md', ROOT / 'data/redump-xbox360-dat.zip', ROOT / 'data/xbox360-gamelist.csv', ONE_FIXED, ONE_PLAIN, TIMEOUT, WINDOWS]
+    files = [ROOT / 'index.html', ROOT / 'ftp_helper.py', ROOT / 'README.md', ROOT / 'README_FTP.md', ROOT / 'UPLOAD_TO_GITHUB.txt', ROOT / 'build_disc_catalog.py', ROOT / 'rebuild_bundles.py', ROOT / 'test_disc_catalog.py', ROOT / 'test_ftp_helper.py', ROOT / 'data/disc_catalog.json', ROOT / 'data/redump_inventory.json', ROOT / 'data/disc_catalog_review.md', ROOT / 'data/redump-xbox360-dat.zip', ROOT / 'data/xbox360-gamelist.csv', ONE_FIXED, ONE_PLAIN, TIMEOUT, WINDOWS]
     files.extend(sorted((ROOT / 'vendor').rglob('*')))
     with zipfile.ZipFile(FULL, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as out:
         for path in files:
