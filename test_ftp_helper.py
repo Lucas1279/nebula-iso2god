@@ -218,9 +218,11 @@ class FTPRouteTests(unittest.TestCase):
         self.previous_local_sessions = ftp_helper.LOCAL_OUTPUT_SESSIONS
         self.previous_local_files = ftp_helper.LOCAL_OUTPUT_FILES
         self.previous_download_tickets = ftp_helper.DOWNLOAD_TICKETS
+        self.previous_remote_pkg_servers = ftp_helper.REMOTE_PKG_SERVERS
         ftp_helper.LOCAL_OUTPUT_SESSIONS = {}
         ftp_helper.LOCAL_OUTPUT_FILES = {}
         ftp_helper.DOWNLOAD_TICKETS = {}
+        ftp_helper.REMOTE_PKG_SERVERS = {}
         ftp_helper.CONFIG = {"host": "xbox", "port": 21, "user": "x", "password": "", "basePath": "/"}
         self.ftp_instances = []
         def make_ftp(_cfg):
@@ -239,12 +241,14 @@ class FTPRouteTests(unittest.TestCase):
         self.server.server_close()
         self.thread.join(timeout=2)
         self.login_patch.stop()
+        ftp_helper.shutdown_remote_pkg_servers()
         for item in ftp_helper.LOCAL_OUTPUT_FILES.values():
             try: Path(item["tmp"]).unlink()
             except OSError: pass
         ftp_helper.LOCAL_OUTPUT_FILES = self.previous_local_files
         ftp_helper.LOCAL_OUTPUT_SESSIONS = self.previous_local_sessions
         ftp_helper.DOWNLOAD_TICKETS = self.previous_download_tickets
+        ftp_helper.REMOTE_PKG_SERVERS = self.previous_remote_pkg_servers
         ftp_helper.CONFIG = self.previous_config
 
     def post(self, path, payload):
@@ -438,6 +442,67 @@ class FTPRouteTests(unittest.TestCase):
                 token_info = json.loads(response.read())
         self.assertEqual(token_info["token"], ftp_helper.TOKEN)
         self.assertTrue(token_info["localFolderPickerAvailable"])
+
+    def test_remote_pkg_file_server_supports_head_and_byte_ranges_without_copying_source(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "Example.pkg"
+            payload = bytes(range(256)) * 100
+            source.write_bytes(payload)
+            session = ftp_helper.start_remote_pkg_file_server(source, "127.0.0.1")
+            try:
+                with urlopen(session["url"], timeout=3) as response:
+                    self.assertEqual(response.status, 200)
+                    self.assertEqual(response.headers.get("Accept-Ranges"), "bytes")
+                    self.assertEqual(response.read(), payload)
+                request = Request(session["url"], headers={"Range": "bytes=17-39"})
+                with urlopen(request, timeout=3) as response:
+                    self.assertEqual(response.status, 206)
+                    self.assertEqual(response.headers.get("Content-Range"), f"bytes 17-39/{len(payload)}")
+                    self.assertEqual(response.read(), payload[17:40])
+                request = Request(session["url"], method="HEAD")
+                with urlopen(request, timeout=3) as response:
+                    self.assertEqual(response.status, 200)
+                    self.assertEqual(int(response.headers["Content-Length"]), len(payload))
+                self.assertTrue(source.exists())
+                self.assertEqual(source.read_bytes(), payload)
+            finally:
+                ftp_helper.stop_remote_pkg_file_server(session["id"])
+
+    def test_remote_pkg_install_posts_legacy_api_url_and_keeps_source_file(self):
+        class FakeResponse:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *_args): return False
+            def read(self, _size=-1): return b'{"status":"success","task_id":321}'
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "Game.pkg"
+            payload = b"original package bytes"
+            source.write_bytes(payload)
+            requests = []
+            def fake_open(request, timeout=None):
+                requests.append(request)
+                self.assertEqual(timeout, 20)
+                return FakeResponse()
+            with (
+                patch.object(ftp_helper, "choose_remote_pkg_file", return_value=source),
+                patch.object(ftp_helper, "remote_pkg_lan_address", return_value=("192.168.1.20", "127.0.0.1")),
+                patch.object(ftp_helper.urllib.request, "urlopen", side_effect=fake_open),
+            ):
+                result = self.post("/api/remote-pkg/install", {"host": "ps4", "port": 12800})
+            self.assertTrue(result["ok"])
+            self.assertEqual(result["taskId"], 321)
+            self.assertEqual(requests[0].full_url, "http://192.168.1.20:12800/api/install")
+            body = json.loads(requests[0].data)
+            self.assertEqual(body["type"], "direct")
+            self.assertEqual(len(body["packages"]), 1)
+            self.assertIn("Game.pkg", body["packages"][0])
+            with urlopen(body["packages"][0], timeout=3) as response:
+                self.assertEqual(response.read(), payload)
+            self.assertTrue(source.exists())
+            self.assertEqual(source.read_bytes(), payload)
+            stopped = self.post("/api/remote-pkg/stop", {"sessionId": result["sessionId"]})
+            self.assertTrue(stopped["stopped"])
 
     def test_local_native_folder_output_picks_streams_checks_and_removes_files(self):
         with tempfile.TemporaryDirectory() as temp_dir:

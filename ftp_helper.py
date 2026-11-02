@@ -5,6 +5,7 @@ import ftplib
 import http.server
 import json
 import os
+import re
 import secrets
 import shutil
 import socket
@@ -13,7 +14,9 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.error
 import urllib.parse
+import urllib.request
 import webbrowser
 from pathlib import Path
 
@@ -35,6 +38,9 @@ DRAG_EXPORT_MAX_BYTES = 64 * 1024 * 1024
 DRAG_EXPORT_TTL_SECONDS = 15 * 60
 DOWNLOAD_TICKETS = {}
 DOWNLOAD_TICKET_TTL_SECONDS = 5 * 60
+REMOTE_PKG_SERVERS = {}
+REMOTE_PKG_SERVER_IDLE_TTL_SECONDS = 6 * 60 * 60
+REMOTE_PKG_FILE_MAX_BYTES = 100 * 1024 * 1024 * 1024
 
 
 def send_json(handler, status, obj):
@@ -102,6 +108,211 @@ def choose_local_output_folder():
     if not root.is_dir():
         raise ValueError("The selected output destination is not a folder.")
     return root
+
+
+def choose_remote_pkg_file():
+    """Select an existing macOS PKG without copying it into helper staging."""
+    if not mac_local_folder_picker_available():
+        raise RuntimeError("Original-path Remote PKG sending currently requires the macOS helper and osascript.")
+    script = 'POSIX path of (choose file with prompt "Choose the PS4 .pkg file to install")'
+    result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=300)
+    if result.returncode:
+        detail = (result.stderr or result.stdout or "").strip()
+        if "-128" in detail or "User canceled" in detail or "user canceled" in detail:
+            return None
+        raise RuntimeError(detail or "The macOS file picker failed.")
+    raw_path = result.stdout.strip()
+    if not raw_path:
+        return None
+    path = Path(raw_path).expanduser().resolve(strict=True)
+    if not path.is_file() or path.suffix.lower() != ".pkg":
+        raise ValueError("Choose one regular .pkg file.")
+    size = path.stat().st_size
+    if size <= 0 or size > REMOTE_PKG_FILE_MAX_BYTES:
+        raise ValueError("The selected PKG must be non-empty and no larger than 100 GiB.")
+    return path
+
+
+def remote_pkg_lan_address(peer_host, peer_port):
+    """Find the IPv4 interface the Mac will use to reach the PS4."""
+    try:
+        peer = socket.getaddrinfo(str(peer_host), int(peer_port), socket.AF_INET, socket.SOCK_DGRAM)[0][4][0]
+        probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            probe.connect((peer, int(peer_port)))
+            local_ip = probe.getsockname()[0]
+        finally:
+            probe.close()
+    except OSError as exc:
+        raise ValueError("Could not find a Mac LAN address for the PS4. Check the PS4 IP and network.") from exc
+    if local_ip.startswith("127.") or not local_ip:
+        raise ValueError("No LAN IPv4 address was found for the PS4 connection.")
+    return peer, local_ip
+
+
+def _remote_pkg_http_handler():
+    class RemotePkgFileHandler(http.server.BaseHTTPRequestHandler):
+        protocol_version = "HTTP/1.1"
+
+        def log_message(self, _format, *_args):
+            return
+
+        def do_HEAD(self):
+            self._serve_pkg(send_body=False)
+
+        def do_GET(self):
+            self._serve_pkg(send_body=True)
+
+        def _reply(self, status, message=""):
+            body = message.encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            if body and self.command != "HEAD":
+                self.wfile.write(body)
+            self.close_connection = True
+
+        def _serve_pkg(self, send_body):
+            session = getattr(self.server, "remote_pkg_session", None)
+            if not session or urllib.parse.urlsplit(self.path).path != session["urlPath"]:
+                return self._reply(404, "Not found")
+            now = time.time()
+            with LOCK:
+                if session.get("stopped") or now >= session.get("expires", 0):
+                    return self._reply(410, "This temporary package URL has expired")
+                session["expires"] = min(session["hardExpires"], now + REMOTE_PKG_SERVER_IDLE_TTL_SECONDS)
+            path = Path(session["path"])
+            try:
+                stat = path.stat()
+                if not path.is_file() or stat.st_size != session["size"] or stat.st_mtime_ns != session["mtimeNs"]:
+                    return self._reply(409, "The selected package changed after sharing began")
+            except OSError:
+                return self._reply(410, "The selected package is no longer available")
+            size = stat.st_size
+            start, end, status = 0, max(-1, size - 1), 200
+            range_header = self.headers.get("Range", "").strip()
+            if range_header:
+                match = re.fullmatch(r"bytes=(\d*)-(\d*)", range_header)
+                if not match or "," in range_header or size == 0:
+                    self.send_response(416)
+                    self.send_header("Content-Range", f"bytes */{size}")
+                    self.send_header("Content-Length", "0")
+                    self.send_header("Accept-Ranges", "bytes")
+                    self.end_headers()
+                    self.close_connection = True
+                    return
+                first, last = match.groups()
+                if not first:
+                    suffix = int(last or "0")
+                    if suffix <= 0:
+                        start = size
+                    else:
+                        start = max(0, size - suffix)
+                    end = size - 1
+                else:
+                    start = int(first)
+                    end = min(int(last), size - 1) if last else size - 1
+                if start >= size or start > end:
+                    self.send_response(416)
+                    self.send_header("Content-Range", f"bytes */{size}")
+                    self.send_header("Content-Length", "0")
+                    self.send_header("Accept-Ranges", "bytes")
+                    self.end_headers()
+                    self.close_connection = True
+                    return
+                status = 206
+            length = max(0, end - start + 1)
+            self.send_response(status)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Length", str(length))
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Disposition", "attachment; filename*=UTF-8''" + urllib.parse.quote(path.name, safe=""))
+            if status == 206:
+                self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.close_connection = True
+            if not send_body or length == 0:
+                return
+            try:
+                with path.open("rb") as source:
+                    source.seek(start)
+                    remaining = length
+                    while remaining:
+                        chunk = source.read(min(1024 * 1024, remaining))
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+                        remaining -= len(chunk)
+            except (BrokenPipeError, ConnectionResetError, OSError):
+                return
+
+    return RemotePkgFileHandler
+
+
+def start_remote_pkg_file_server(path, local_ip):
+    path = Path(path).resolve(strict=True)
+    stat = path.stat()
+    session_id = secrets.token_urlsafe(24)
+    token = secrets.token_urlsafe(32)
+    url_path = "/pkg/" + token + "/" + urllib.parse.quote(path.name, safe="")
+    now = time.time()
+    session = {"id": session_id, "token": token, "path": str(path), "name": path.name,
+               "size": stat.st_size, "mtimeNs": stat.st_mtime_ns, "urlPath": url_path,
+               "expires": now + REMOTE_PKG_SERVER_IDLE_TTL_SECONDS,
+               "hardExpires": now + 24 * 60 * 60, "stopped": False}
+    server = http.server.ThreadingHTTPServer((local_ip, 0), _remote_pkg_http_handler())
+    server.daemon_threads = True
+    server.block_on_close = False
+    server.remote_pkg_session = session
+    session["server"] = server
+    session["thread"] = threading.Thread(target=server.serve_forever, name="remote-pkg-file-server", daemon=True)
+    with LOCK:
+        REMOTE_PKG_SERVERS[session_id] = session
+    session["thread"].start()
+    port = server.server_address[1]
+    session["url"] = f"http://{local_ip}:{port}{url_path}"
+    return session
+
+
+def stop_remote_pkg_file_server(session_id):
+    with LOCK:
+        session = REMOTE_PKG_SERVERS.pop(str(session_id), None)
+        if session:
+            session["stopped"] = True
+    if not session:
+        return False
+    server = session["server"]
+    try:
+        server.shutdown()
+    except Exception:
+        pass
+    try:
+        server.server_close()
+    except Exception:
+        pass
+    thread = session.get("thread")
+    if thread and thread.is_alive() and thread is not threading.current_thread():
+        thread.join(timeout=2)
+    return True
+
+
+def cleanup_expired_remote_pkg_servers():
+    now = time.time()
+    with LOCK:
+        expired = [key for key, item in REMOTE_PKG_SERVERS.items() if item.get("expires", 0) <= now or item.get("hardExpires", 0) <= now]
+    for key in expired:
+        stop_remote_pkg_file_server(key)
+
+
+def shutdown_remote_pkg_servers():
+    with LOCK:
+        ids = list(REMOTE_PKG_SERVERS)
+    for ident in ids:
+        stop_remote_pkg_file_server(ident)
 
 
 def clean_local_output_segments(segments):
@@ -561,6 +772,50 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
         parsed = urllib.parse.urlparse(self.path)
         try:
+            if parsed.path == "/api/remote-pkg/install":
+                data = json.loads(self._body().decode("utf-8") or "{}")
+                ps4_host = str(data.get("host", "")).strip()
+                if not ps4_host:
+                    raise ValueError("Enter the PS4 IP address first.")
+                try:
+                    rpi_port = int(data.get("port", 12800))
+                except (TypeError, ValueError) as exc:
+                    raise ValueError("Enter a valid Remote Package Installer API port.") from exc
+                if rpi_port < 1 or rpi_port > 65535:
+                    raise ValueError("Remote Package Installer port must be between 1 and 65535.")
+                pkg_path = choose_remote_pkg_file()
+                if pkg_path is None:
+                    return send_json(self, 200, {"cancelled": True})
+                peer_ip, local_ip = remote_pkg_lan_address(ps4_host, rpi_port)
+                session = start_remote_pkg_file_server(pkg_path, local_ip)
+                install_request = urllib.request.Request(
+                    f"http://{peer_ip}:{rpi_port}/api/install",
+                    data=json.dumps({"type": "direct", "packages": [session["url"]]}).encode("utf-8"),
+                    headers={"Content-Type": "application/json", "Accept": "application/json"},
+                    method="POST")
+                try:
+                    with urllib.request.urlopen(install_request, timeout=20) as response:
+                        body = response.read(1024 * 1024).decode("utf-8", "replace")
+                        try:
+                            rpi_result = json.loads(body) if body else {}
+                        except json.JSONDecodeError:
+                            rpi_result = {"message": body[:4000]}
+                        if isinstance(rpi_result, dict) and str(rpi_result.get("status", "")).lower() in ("error", "failed"):
+                            raise RuntimeError(str(rpi_result.get("message") or rpi_result.get("error") or "Remote Package Installer rejected the request."))
+                except Exception:
+                    stop_remote_pkg_file_server(session["id"])
+                    raise
+                return send_json(self, 200, {"ok": True, "sessionId": session["id"], "fileName": pkg_path.name,
+                                             "fileSize": session["size"], "localIp": local_ip,
+                                             "serverPort": session["server"].server_address[1],
+                                             "rpiPort": rpi_port, "rpiResponse": rpi_result,
+                                             "taskId": rpi_result.get("task_id") if isinstance(rpi_result, dict) else None})
+
+            if parsed.path == "/api/remote-pkg/stop":
+                data = json.loads(self._body().decode("utf-8") or "{}")
+                stopped = stop_remote_pkg_file_server(data.get("sessionId", ""))
+                return send_json(self, 200, {"ok": True, "stopped": stopped})
+
             if parsed.path == "/api/local-output/pick":
                 json.loads(self._body().decode("utf-8") or "{}")
                 root = choose_local_output_folder()
@@ -1120,6 +1375,7 @@ def drag_export_cleanup_loop():
     while True:
         time.sleep(60)
         cleanup_expired_drag_exports()
+        cleanup_expired_remote_pkg_servers()
 
 
 def main():
@@ -1130,7 +1386,7 @@ def main():
     cleanup_thread = threading.Thread(target=drag_export_cleanup_loop, name="drag-export-cleanup", daemon=True)
     cleanup_thread.start()
     print(f"Nebula ISO2GOD FTP helper is running at http://{HOST}:{PORT}/")
-    print("Loopback-only: this service is not exposed to your network or the internet.")
+    print("The control/API service is loopback-only. If Remote Package Installer is used, its temporary file server binds only to the Mac LAN address and serves the selected PKG at an unguessable URL; never port-forward that port.")
     print("Keep this window open. Press Ctrl+C to stop it.")
     try:
         if "--no-browser" not in sys.argv[1:]:
@@ -1140,6 +1396,7 @@ def main():
         pass
     finally:
         httpd.server_close()
+        shutdown_remote_pkg_servers()
         for item in list(ACTIVE.values()):
             try: os.unlink(item["tmp"])
             except OSError: pass
