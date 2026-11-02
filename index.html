@@ -300,18 +300,22 @@ body.is-working .nebula,body.is-working h1,body.is-working .credit-gradient,body
 .ftp-manager-search-input:focus{outline:2px solid rgba(110,231,255,.6);outline-offset:1px}
 .ftp-manager-list-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:10px 0 4px}
 .ftp-manager-list-nav .btn-row{margin:0}
-.ftp-manager-list-nav #ftpManagerActivity{margin:0;min-height:1.4em;max-width:100%;overflow-wrap:anywhere}
+.ftp-manager-list-nav .ftp-manager-activity-wrap{display:flex;flex:1 1 480px;min-width:min(100%,300px);flex-direction:column;align-items:flex-end;gap:5px}
+.ftp-manager-list-nav #ftpManagerActivity{margin:0;min-height:1.4em;max-width:100%;overflow-wrap:anywhere;text-align:right}
 #ftpManagerActivity.is-working,#ftpManagerActivity.is-uploading,#ftpManagerActivity.is-deleting,#ftpManagerActivity.is-success,#ftpManagerActivity.is-error{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid;border-radius:10px;font-weight:750;line-height:1.35;box-shadow:0 0 16px rgba(56,189,248,.08)}
 #ftpManagerActivity.is-working{color:#c8f7ff!important;border-color:rgba(56,189,248,.52);background:linear-gradient(105deg,rgba(14,116,144,.25),rgba(56,189,248,.12))}
-#ftpManagerActivity.is-uploading{color:#d7f4ff!important;border-color:rgba(56,189,248,.66);background:linear-gradient(105deg,rgba(8,110,160,.30),rgba(99,102,241,.20));box-shadow:0 0 18px rgba(56,189,248,.18)}
+#ftpManagerActivity.is-uploading{color:#c8ffe6!important;border-color:rgba(52,211,153,.62);background:linear-gradient(105deg,rgba(52,211,153,.18),rgba(56,189,248,.10));box-shadow:0 0 18px rgba(52,211,153,.16)}
 #ftpManagerActivity.is-deleting{color:#ffe5bd!important;border-color:rgba(251,191,36,.66);background:linear-gradient(105deg,rgba(146,64,14,.28),rgba(120,53,15,.18));box-shadow:0 0 18px rgba(251,191,36,.13)}
 #ftpManagerActivity.is-success{color:#c8ffe6!important;border-color:rgba(52,211,153,.60);background:linear-gradient(105deg,rgba(52,211,153,.18),rgba(56,189,248,.10))}
 #ftpManagerActivity.is-error{color:#ffd7de!important;border-color:rgba(248,113,113,.62);background:linear-gradient(105deg,rgba(127,29,29,.30),rgba(88,28,135,.14));box-shadow:0 0 18px rgba(248,113,113,.10)}
 #ftpManagerActivity.is-working::before{content:"⟳";color:#67e8f9}
-#ftpManagerActivity.is-uploading::before{content:"⬆";color:#7dd3fc}
+#ftpManagerActivity.is-uploading::before{content:"⬆";color:#34d399}
 #ftpManagerActivity.is-deleting::before{content:"🗑";color:#fbbf24}
 #ftpManagerActivity.is-success::before{content:"✓";color:#34d399}
 #ftpManagerActivity.is-error::before{content:"!";color:#fca5a5}
+.ftp-manager-activity-progress{width:min(100%,620px);height:8px;overflow:hidden;border:1px solid rgba(52,211,153,.34);border-radius:999px;background:rgba(255,255,255,.09);box-shadow:inset 0 1px 3px rgba(0,0,0,.3)}
+.ftp-manager-activity-progress[hidden]{display:none}
+.ftp-manager-activity-progress-bar{width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#34d399,#38bdf8);box-shadow:0 0 12px rgba(52,211,153,.36);transition:width .15s linear}
 
 .ftp-breadcrumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
 .ftp-breadcrumbs button{padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:rgba(8,14,35,.78);color:var(--text);cursor:pointer}
@@ -414,7 +418,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.14 · build 2026-11-01</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.15 · build 2026-11-01</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -513,7 +517,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
         </div>
         <div class="ftp-manager-list-nav">
           <div class="btn-row" aria-label="Folder history"><button class="btn small" id="ftpManagerBackBtn" type="button" disabled>← Back</button><button class="btn small" id="ftpManagerForwardBtn" type="button" disabled>Forward →</button></div>
-          <div class="muted small" id="ftpManagerActivity" role="status" aria-live="polite">Connect to view folder contents.</div>
+          <div class="ftp-manager-activity-wrap"><div class="muted small" id="ftpManagerActivity" role="status" aria-live="polite">Connect to view folder contents.</div><div id="ftpManagerActivityProgressWrap" class="ftp-manager-activity-progress" role="progressbar" aria-label="FTP transfer progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><div id="ftpManagerActivityProgressBar" class="ftp-manager-activity-progress-bar"></div></div></div>
         </div>
         <div class="table-wrap ftp-manager-table-wrap">
           <table class="ftp-manager-table"><thead><tr><th><input type="checkbox" id="ftpManagerSelectAll" aria-label="Select all listed items"></th><th>Name</th><th>Kind</th><th>Size</th><th>Modified</th></tr></thead><tbody id="ftpManagerTableBody"></tbody></table>
@@ -1041,7 +1045,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.14 · build 2026-11-01</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.15 · build 2026-11-01</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -2170,7 +2174,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
     rawArchiveInput: $('rawArchiveInput'), rawArchiveBrowseBtn: $('rawArchiveBrowseBtn'), rawArchiveStatus: $('rawArchiveStatus'), rawArchiveProgressWrap: $('rawArchiveProgressWrap'), rawArchiveProgressBar: $('rawArchiveProgressBar'), rawArchiveCancelBtn: $('rawArchiveCancelBtn'),
     taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), taskPsxMode: $('taskPsxMode'), taskSnesMode: $('taskSnesMode'), taskModsMode: $('taskModsMode'), taskFtpMode: $('taskFtpMode'), taskPs4FtpMode: $('taskPs4FtpMode'), heroIsoIntro: $('heroIsoIntro'), heroPsxIntro: $('heroPsxIntro'), heroSnesIntro: $('heroSnesIntro'), heroModsIntro: $('heroModsIntro'), heroFtpIntro: $('heroFtpIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), psxSteps: $('psxSteps'), snesSteps: $('snesSteps'), modsSteps: $('modsSteps'), ftpManagerSteps: $('ftpManagerSteps'), supportBadges: $('supportBadges'), appBuildLabel: $('appBuildLabel'), footerBuildLabel: $('footerBuildLabel'),
-    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerStorageInfo: $('ftpManagerStorageInfo'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerCopyDesktopBtn: $('ftpManagerCopyDesktopBtn'), ftpManagerPrepareDragBtn: $('ftpManagerPrepareDragBtn'), ftpManagerEditBtn: $('ftpManagerEditBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerModal: $('ftpManagerModal'), ftpManagerModalCard: $('ftpManagerModalCard'), ftpManagerModalTitle: $('ftpManagerModalTitle'), ftpManagerModalMessage: $('ftpManagerModalMessage'), ftpManagerPromptWrap: $('ftpManagerPromptWrap'), ftpManagerPromptInput: $('ftpManagerPromptInput'), ftpManagerEditorWrap: $('ftpManagerEditorWrap'), ftpManagerEditorText: $('ftpManagerEditorText'), ftpManagerModalCancel: $('ftpManagerModalCancel'), ftpManagerModalConfirm: $('ftpManagerModalConfirm'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerJumpPath: $('ftpManagerJumpPath'), ftpManagerJumpBtn: $('ftpManagerJumpBtn'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'), ftpManagerArchiveProgressWrap: $('ftpManagerArchiveProgressWrap'), ftpManagerArchiveProgressBar: $('ftpManagerArchiveProgressBar'), ftpManagerArchiveStatus: $('ftpManagerArchiveStatus'), ftpManagerArchiveCancelBtn: $('ftpManagerArchiveCancelBtn'),
+    ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerStorageInfo: $('ftpManagerStorageInfo'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerCopyDesktopBtn: $('ftpManagerCopyDesktopBtn'), ftpManagerPrepareDragBtn: $('ftpManagerPrepareDragBtn'), ftpManagerEditBtn: $('ftpManagerEditBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerModal: $('ftpManagerModal'), ftpManagerModalCard: $('ftpManagerModalCard'), ftpManagerModalTitle: $('ftpManagerModalTitle'), ftpManagerModalMessage: $('ftpManagerModalMessage'), ftpManagerPromptWrap: $('ftpManagerPromptWrap'), ftpManagerPromptInput: $('ftpManagerPromptInput'), ftpManagerEditorWrap: $('ftpManagerEditorWrap'), ftpManagerEditorText: $('ftpManagerEditorText'), ftpManagerModalCancel: $('ftpManagerModalCancel'), ftpManagerModalConfirm: $('ftpManagerModalConfirm'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerJumpPath: $('ftpManagerJumpPath'), ftpManagerJumpBtn: $('ftpManagerJumpBtn'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerActivityProgressWrap: $('ftpManagerActivityProgressWrap'), ftpManagerActivityProgressBar: $('ftpManagerActivityProgressBar'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'), ftpManagerArchiveProgressWrap: $('ftpManagerArchiveProgressWrap'), ftpManagerArchiveProgressBar: $('ftpManagerArchiveProgressBar'), ftpManagerArchiveStatus: $('ftpManagerArchiveStatus'), ftpManagerArchiveCancelBtn: $('ftpManagerArchiveCancelBtn'),
     snesContentCard: $('snesContentCard'), snesDropZone: $('snesDropZone'), snesRomInput: $('snesRomInput'), snesArchiveInput: $('snesArchiveInput'), snesChooseRomsBtn: $('snesChooseRomsBtn'), snesChooseArchiveBtn: $('snesChooseArchiveBtn'), snesClearRomsBtn: $('snesClearRomsBtn'), snesRomSummary: $('snesRomSummary'), snesRomList: $('snesRomList'), snesArchiveStatus: $('snesArchiveStatus'), snesArchiveProgressWrap: $('snesArchiveProgressWrap'), snesArchiveProgressBar: $('snesArchiveProgressBar'), snesArchiveCancelBtn: $('snesArchiveCancelBtn'), snesFtpPreset: $('snesFtpPreset'), snesFtpPath: $('snesFtpPath'), snesFtpRomDir: $('snesFtpRomDir'), snesFtpHost: $('snesFtpHost'), snesFtpPort: $('snesFtpPort'), snesFtpUser: $('snesFtpUser'), snesFtpPassword: $('snesFtpPassword'), rememberFtpSnes: $('rememberFtpSnes'), snesFtpConnectBtn: $('snesFtpConnectBtn'), snesFtpStatus: $('snesFtpStatus'), snesUploadBtn: $('snesUploadBtn'), snesFtpLive: $('snesFtpLive'), snesFtpLiveBar: $('snesFtpLiveBar'), snesFtpLiveText: $('snesFtpLiveText'), snesFtpRetryActions: $('snesFtpRetryActions'), snesFtpRetryBtn: $('snesFtpRetryBtn'), snesFtpCancelBtn: $('snesFtpCancelBtn'),
     rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawOverallLiveText: $('rawOverallLiveText'), rawOverallLiveBar: $('rawOverallLiveBar'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
     modsPanel: $('modsPanel'), modsChooseFilesBtn: $('modsChooseFilesBtn'), modsChooseFolderBtn: $('modsChooseFolderBtn'), modsClearBtn: $('modsClearBtn'), modsFilesInput: $('modsFilesInput'), modsFolderInput: $('modsFolderInput'), modsDropZone: $('modsDropZone'), modsStatus: $('modsStatus'), modsResultsWrap: $('modsResultsWrap'), modsResultsSummary: $('modsResultsSummary'), modsResultsBody: $('modsResultsBody'), modsWarning: $('modsWarning'),
@@ -2206,7 +2210,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.9.14';
+  const APP_VERSION = '1.9.15';
   const APP_BUILD = '2026-11-01';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -4822,7 +4826,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     setBarProgress(els.rawOverallLiveBar, fraction);
   }
   function setFtpLive(message, fraction) {
-    if (state.ftpManagerBusy) managerSetActivity(message);
+    if (state.ftpManagerBusy) managerSetActivity(message, false, fraction);
     els.ftpLive.hidden = false;
     setTextIfChanged(els.ftpLiveText, message);
     const pct = Math.max(0, Math.min(100, (Number(fraction) || 0) * 100));
@@ -5216,10 +5220,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       segments: [...layout.baseSegments, layout.headerName], recursive: false });
   }
 
+  function ftpDestinationName() { return state.ftpManagerBusy ? managerConsoleName() : 'Xbox'; }
   async function waitForFtpRetry(shortName, failure, sent, total) {
+    const target = ftpDestinationName();
     const fraction = total ? Math.max(0, Math.min(1, sent / total)) : 0;
     if (state.ftpManagerBusy) {
-      const shouldRetry = await managerConfirm('FTP failed while uploading ' + shortName + ': ' + (failure && failure.message ? failure.message : String(failure)) + '\n\nThe complete staged file is still on this computer. Restore the Xbox/LAN connection, then retry this file from the beginning or cancel.', { title: 'FTP upload paused', confirmLabel: 'Retry file' });
+      const shouldRetry = await managerConfirm('FTP failed while uploading ' + shortName + ': ' + (failure && failure.message ? failure.message : String(failure)) + '\n\nThe complete staged file is still on this computer. Restore the ' + target + '/LAN connection, then retry this file from the beginning or cancel.', { title: 'FTP upload paused', confirmLabel: 'Retry file' });
       if (!shouldRetry) { const err = new Error('FTP retry cancelled. The staged file was retained only until this upload ended.'); err.name = 'AbortError'; throw err; }
       return;
     }
@@ -5229,7 +5235,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       ? ' The SNES360 uploader already made this name FATX-safe (allowed characters and 42-character limit); if the error persists, check that the selected folder is writable and the USB drive has free space.'
       : '';
     const message = 'FTP connection failed during ' + shortName + ': ' + failureText + '.' + fatxHint +
-      ' Its complete staged copy is still on this computer. Restore the Xbox/LAN connection, keep this page and the helper open, then retry this file. FTP will resend this file from the beginning (not continue at a byte offset), replace any partial Xbox copy, and continue the conversion or upload.';
+      ' Its complete staged copy is still on this computer. Restore the ' + target + '/LAN connection, keep this page and the helper open, then retry this file. FTP will resend this file from the beginning (not continue at a byte offset), replace any partial ' + target + ' copy, and continue the conversion or upload.';
     setFtpLive(message, fraction);
     els.ftpLive.classList.add('is-retry-needed');
     els.ftpRetryBtn.hidden = false; els.ftpRetryBtn.disabled = false;
@@ -5252,7 +5258,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     log('FTP connection failed for ' + shortName + '. The local staged file is preserved; choose Retry file & continue to resume the current job without restarting it.');
     const shouldRetry = await new Promise(resolve => { state.ftpRetryResolver = resolve; });
     if (!shouldRetry) {
-      const err = new Error('FTP resume cancelled. Completed files remain on Xbox; the current file was not confirmed.');
+      const err = new Error('FTP resume cancelled. Completed files remain on ' + target + '; the current file was not confirmed.');
       err.name = 'AbortError';
       throw err;
     }
@@ -5268,8 +5274,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       this.id = r.id;
       state.ftpActiveStageId = this.id;
       const shortName = segments[segments.length - 1];
+      const target = ftpDestinationName();
       state.ftpActivity = 'staging';
-      setFtpLive('Staging ' + shortName + ' on Mac: 0 / ' + fmtBytes(expectedSize) + ' (not sent to Xbox yet)', 0);
+      setFtpLive('Staging ' + shortName + ' locally: 0 / ' + fmtBytes(expectedSize) + ' (not sent to ' + target + ' yet)', 0);
       log('Staging ' + segments.join('/') + ' for FTP transfer…');
     }
     async write(chunk) {
@@ -5280,16 +5287,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         await bridgeRequest('/api/file/chunk?id=' + encodeURIComponent(this.id), part, true);
         this.written += part.size;
         const shortName = this.segments[this.segments.length - 1];
-        setFtpLive('Staging ' + shortName + ' on Mac: ' + fmtBytes(this.written) + ' / ' + fmtBytes(this.expected) + ' (not sent to Xbox yet)', this.expected ? this.written / this.expected : 0);
+        const target = ftpDestinationName();
+        setFtpLive('Staging ' + shortName + ' locally: ' + fmtBytes(this.written) + ' / ' + fmtBytes(this.expected) + ' (not sent to ' + target + ' yet)', this.expected ? this.written / this.expected : 0);
       }
     }
     async endFile() {
       if (this.written !== this.expected) throw new Error('Staged ' + this.written + ' bytes; expected ' + this.expected + '.');
       const name = this.segments.join('/');
       const shortName = this.segments[this.segments.length - 1];
+      const target = ftpDestinationName();
       const id = this.id;
       state.ftpActivity = 'uploading';
-      setFtpLive('Connecting to Xbox to upload ' + shortName + '…', 0);
+      setFtpLive('Connecting to ' + target + ' to upload ' + shortName + '…', 0);
       while (true) {
         let finished = false, failure = null, lastSent = 0;
         let lastSampleAt = performance.now(), liveRate = 0;
@@ -5329,7 +5338,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
               }
             }
             if (status.state === 'connecting') {
-              setFtpLive('Connecting to Xbox for ' + shortName + '…', 0);
+              setFtpLive('Connecting to ' + target + ' for ' + shortName + '…', 0);
             } else if (status.state === 'uploading') {
               const frac = total ? Math.min(1, sent / total) : 0;
               const now = performance.now();
@@ -5338,10 +5347,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
                 lastSent = sent; lastSampleAt = now;
               }
               const rateLabel = liveRate ? ' • ' + fmtBytes(liveRate) + '/s' : '';
-              setFtpLive('Uploading ' + shortName + ' to Xbox: ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + rateLabel, frac);
+              setFtpLive('Uploading ' + shortName + ' to ' + target + ': ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + rateLabel, frac);
             } else if (status.state === 'done') {
               lastSent = total;
-              setFtpLive('Xbox received ' + shortName + '; waiting for FTP confirmation…', 1);
+              setFtpLive(target + ' received ' + shortName + '; waiting for FTP confirmation…', 1);
             } else if (status.state === 'error') {
               lastSent = sent;
               failure = new Error(status.error || 'FTP upload failed.');
@@ -5375,10 +5384,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       if (state.ftpActiveStageId === id) state.ftpActiveStageId = null;
       this.id = null;
       state.ftpActivity = '';
-      setFtpLive('Uploaded ' + shortName + ' to Xbox (' + fmtBytes(this.written) + ').', 1);
-      log('Uploaded ' + name + ' (' + fmtBytes(this.written) + ') to Xbox.');
+      setFtpLive('Uploaded ' + shortName + ' to ' + target + ' (' + fmtBytes(this.written) + ').', 1);
+      log('Uploaded ' + name + ' (' + fmtBytes(this.written) + ') to ' + target + '.');
     }
-    async finish() { state.ftpActivity = ''; setFtpLive('All package files uploaded to Xbox.', 1); }
+    async finish() { state.ftpActivity = ''; setFtpLive('All package files uploaded to ' + ftpDestinationName() + '.', 1); }
     async abort() {
       if (this.id) { try { await bridgeRequest('/api/file/abort', { id: this.id }); } catch (_) {} }
       if (state.ftpActiveStageId === this.id) state.ftpActiveStageId = null;
@@ -5481,7 +5490,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     invalidateFtpManager(ps4 ? 'PS4 selected; connect to the PS4 FTP server to continue.' : 'Xbox selected; reconnect to the Xbox FTP server to continue.');
   }
   function managerConsoleName() { return state.ftpManagerPlatform === 'ps4' ? 'PS4' : 'Xbox'; }
-  function managerSetActivity(message, isError = false) {
+  function managerSetActivity(message, isError = false, progress = null) {
     const text = message || '';
     const lower = String(text).toLowerCase();
     const kind = isError || /failed|stopped|could not|error/.test(lower) ? 'is-error'
@@ -5492,6 +5501,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       : '';
     els.ftpManagerActivity.textContent = text;
     els.ftpManagerActivity.style.color = '';
+    if (progress !== null && progress !== undefined && Number.isFinite(Number(progress)) && !isError) {
+      const pct = Math.max(0, Math.min(100, Number(progress) * 100));
+      els.ftpManagerActivityProgressWrap.hidden = false;
+      els.ftpManagerActivityProgressWrap.setAttribute('aria-valuenow', String(Math.round(pct)));
+      els.ftpManagerActivityProgressBar.style.width = pct + '%';
+    } else {
+      els.ftpManagerActivityProgressWrap.hidden = true;
+      els.ftpManagerActivityProgressWrap.setAttribute('aria-valuenow', '0');
+      els.ftpManagerActivityProgressBar.style.width = '0%';
+    }
     for (const cls of ['is-working', 'is-uploading', 'is-deleting', 'is-success', 'is-error']) {
       els.ftpManagerActivity.classList.toggle(cls, cls === kind);
     }
