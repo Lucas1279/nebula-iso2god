@@ -485,7 +485,7 @@ class FTPRouteTests(unittest.TestCase):
                 self.assertEqual(timeout, 20)
                 return FakeResponse()
             with (
-                patch.object(ftp_helper, "choose_remote_pkg_file", return_value=source),
+                patch.object(ftp_helper, "choose_remote_pkg_files", return_value=[source]),
                 patch.object(ftp_helper, "remote_pkg_lan_address", return_value=("192.168.1.20", "127.0.0.1")),
                 patch.object(ftp_helper.urllib.request, "urlopen", side_effect=fake_open),
             ):
@@ -503,6 +503,56 @@ class FTPRouteTests(unittest.TestCase):
             self.assertEqual(source.read_bytes(), payload)
             stopped = self.post("/api/remote-pkg/stop", {"sessionId": result["sessionId"]})
             self.assertTrue(stopped["stopped"])
+
+    def test_remote_pkg_multipart_is_sorted_and_posted_as_ordered_original_urls(self):
+        class FakeResponse:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *_args): return False
+            def read(self, _size=-1): return b'{"status":"success","task_id":654}'
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            pieces = []
+            for index in range(3):
+                path = Path(temp_dir) / f"GTA-update_{index}.pkg"
+                path.write_bytes(f"piece-{index}".encode())
+                pieces.append(path)
+            requests = []
+            def fake_open(request, timeout=None):
+                requests.append(request)
+                self.assertEqual(timeout, 20)
+                return FakeResponse()
+            with (
+                patch.object(ftp_helper, "choose_remote_pkg_files", return_value=[pieces[2], pieces[0], pieces[1]]),
+                patch.object(ftp_helper, "remote_pkg_lan_address", return_value=("192.168.1.20", "127.0.0.1")),
+                patch.object(ftp_helper.urllib.request, "urlopen", side_effect=fake_open),
+            ):
+                result = self.post("/api/remote-pkg/install", {"host": "ps4", "port": 12800})
+            self.assertTrue(result["ok"])
+            self.assertEqual(result["taskId"], 654)
+            self.assertEqual(result["fileCount"], 3)
+            self.assertEqual(result["fileNames"], [path.name for path in pieces])
+            self.assertEqual(result["fileSize"], sum(path.stat().st_size for path in pieces))
+            self.assertEqual(requests[0].full_url, "http://192.168.1.20:12800/api/install")
+            body = json.loads(requests[0].data)
+            self.assertEqual(body["type"], "direct")
+            self.assertEqual(len(body["packages"]), 3)
+            for index, package_url in enumerate(body["packages"]):
+                with urlopen(package_url, timeout=3) as response:
+                    self.assertEqual(response.read(), f"piece-{index}".encode())
+            for index, path in enumerate(pieces):
+                self.assertEqual(path.read_bytes(), f"piece-{index}".encode())
+            stopped = self.post("/api/remote-pkg/stop", {"sessionId": result["sessionId"]})
+            self.assertTrue(stopped["stopped"])
+
+    def test_remote_pkg_split_order_requires_complete_numbered_set(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            part0 = Path(temp_dir) / "patch_0.pkg"
+            part2 = Path(temp_dir) / "patch_2.pkg"
+            part0.write_bytes(b"0")
+            part2.write_bytes(b"2")
+            with self.assertRaisesRegex(ValueError, "every package piece"):
+                ftp_helper._order_remote_pkg_files([part2, part0])
 
     def test_local_native_folder_output_picks_streams_checks_and_removes_files(self):
         with tempfile.TemporaryDirectory() as temp_dir:

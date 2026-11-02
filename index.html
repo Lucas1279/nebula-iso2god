@@ -418,7 +418,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.19 · build 2026-11-02</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.20 · build 2026-11-02</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -480,9 +480,9 @@ body.ftp-manager-dialog-open{overflow:hidden}
       </div>
       <div class="setup" id="ftpManagerRemotePkgPanel" hidden style="margin-top:12px">
         <strong>Install a PKG with Remote Package Installer</strong>
-        <p class="muted small" style="margin:6px 0 10px">With the legacy Remote Package Installer open on the PS4, the PS4 pulls the selected package over HTTP and installs it. On Mac, the helper serves the original file directly from its current location—no extra PKG staging/cache copy is made, and the source is never moved or deleted. Keep the helper and sharing server running until the PS4 finishes downloading; allow its temporary LAN connection in the macOS firewall if prompted.</p>
+        <p class="muted small" style="margin:6px 0 10px">With the legacy Remote Package Installer open on the PS4, the PS4 pulls the selected package over HTTP and installs it. On Mac, the helper serves original files directly from their current locations—no extra PKG staging/cache copy is made. For a split download, select every numbered piece together; the helper submits them in piece order. Keep the helper and sharing server running until the PS4 finishes downloading; allow its temporary LAN connection in the macOS firewall if prompted.</p>
         <div class="grid2"><div><label class="f" for="ftpManagerRpiPort">Remote Package Installer API port</label><input id="ftpManagerRpiPort" type="text" value="12800" inputmode="numeric" autocomplete="off"></div></div>
-        <div class="btn-row"><button class="btn primary" id="ftpManagerRemotePkgBtn" type="button" disabled>📦 Choose .pkg &amp; install</button><button class="btn small danger" id="ftpManagerRemotePkgStopBtn" type="button" hidden>Stop serving package</button><span class="muted small" id="ftpManagerRemotePkgStatus" role="status" aria-live="polite">Start the Mac helper, enter the PS4 IP above, then choose a PKG to send.</span></div>
+        <div class="btn-row"><button class="btn primary" id="ftpManagerRemotePkgBtn" type="button" disabled>📦 Choose PKG / pieces &amp; install</button><button class="btn small danger" id="ftpManagerRemotePkgStopBtn" type="button" hidden>Stop serving package</button><span class="muted small" id="ftpManagerRemotePkgStatus" role="status" aria-live="polite">Start the Mac helper, enter the PS4 IP above, then choose one PKG or all numbered pieces.</span></div>
       </div>
       <div class="setup ftp-manager-browser" id="ftpManagerBrowser" hidden style="margin-top:12px">
         <div class="ftp-manager-toolbar">
@@ -1052,7 +1052,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.19 · build 2026-11-02</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.20 · build 2026-11-02</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -2217,7 +2217,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.9.19';
+  const APP_VERSION = '1.9.20';
   const APP_BUILD = '2026-11-02';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -6104,7 +6104,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     if (state.ftpToken && !state.localFolderPickerAvailable) {
       els.ftpManagerRemotePkgStatus.textContent = 'Direct original-file serving requires the Mac helper with osascript. FTP browsing and transfers remain available here.';
     } else if (!state.ftpToken) {
-      els.ftpManagerRemotePkgStatus.textContent = 'Start the Mac helper, enter the PS4 IP above, then choose a PKG to send.';
+      els.ftpManagerRemotePkgStatus.textContent = 'Start the Mac helper, enter the PS4 IP above, then choose one PKG or all numbered pieces.';
     }
   }
   async function managerRemotePkgInstall() {
@@ -6116,7 +6116,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       return;
     }
     state.remotePkgBusy = true;
-    els.ftpManagerRemotePkgStatus.textContent = 'Choose the original .pkg file in the Mac file picker…';
+    els.ftpManagerRemotePkgStatus.textContent = 'Choose one complete .pkg or all numbered pieces in the Mac file picker…';
     updateRemotePkgControls();
     try {
       const result = await bridgeRequest('/api/remote-pkg/install', { host, port });
@@ -6126,8 +6126,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
       state.remotePkgSessionId = result.sessionId;
       const task = result.taskId != null ? ' Remote install task: ' + result.taskId + '.' : '';
-      els.ftpManagerRemotePkgStatus.textContent = 'Install request sent for ' + result.fileName + ' (' + fmtBytes(result.fileSize) + '). The PS4 is downloading from http://' + result.localIp + ':' + result.serverPort + '.' + task + ' Keep the Mac helper and package server running until the PS4 finishes; then choose Stop serving package. The original file was not copied or deleted.';
-      log('Remote PKG install request submitted to PS4 for ' + result.fileName + '; serving the original file read-only over the LAN.');
+      const partCount = Number(result.fileCount || 1);
+      const packageLabel = partCount === 1 ? (result.fileNames && result.fileNames[0] || result.fileName || 'PKG') : (partCount + ' numbered PKG pieces');
+      els.ftpManagerRemotePkgStatus.textContent = 'Install request sent for ' + packageLabel + ' (' + fmtBytes(result.fileSize) + '). The PS4 is downloading from http://' + result.localIp + ':' + result.serverPort + '.' + task + ' Keep the Mac helper and package server running until the PS4 finishes; then choose Stop serving package. Original files were not copied, moved, or deleted.';
+      log('Remote PKG install request submitted to PS4 for ' + packageLabel + '; serving original file(s) read-only over the LAN.');
     } catch (err) {
       els.ftpManagerRemotePkgStatus.textContent = 'Could not start Remote Package Installer: ' + (err.message || String(err)) + ' Confirm the PS4 app is open on port ' + port + ' and the Mac/PS4 can reach each other on the trusted LAN.';
     } finally {

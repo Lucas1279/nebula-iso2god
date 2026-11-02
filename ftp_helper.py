@@ -110,27 +110,84 @@ def choose_local_output_folder():
     return root
 
 
-def choose_remote_pkg_file():
-    """Select an existing macOS PKG without copying it into helper staging."""
+def _order_remote_pkg_files(paths):
+    """Validate a single PKG or a complete, consecutively numbered multipart PKG."""
+    paths = [Path(path).expanduser().resolve(strict=True) for path in paths]
+    if not paths or len(paths) > 64:
+        raise ValueError("Choose one PKG or up to 64 numbered PKG pieces.")
+    for path in paths:
+        if not path.is_file():
+            raise ValueError("Every selected package piece must be a regular file.")
+        size = path.stat().st_size
+        if size <= 0 or size > REMOTE_PKG_FILE_MAX_BYTES:
+            raise ValueError("Each selected PKG piece must be non-empty and no larger than 100 GiB.")
+    if len(paths) == 1 and paths[0].name.lower().endswith(".pkg"):
+        return paths
+    if len(paths) == 1:
+        raise ValueError("Choose one complete .pkg file, or select all numbered pieces together.")
+
+    # flatz RPI expects split-package URLs in piece-index order. Accept the common
+    # _0.pkg / .0.pkg / -0.pkg and .pkg.0 naming variants, but never guess order.
+    piece_patterns = (
+        re.compile(r"^(?P<base>.+?)[._ -](?P<index>[0-9]+)\.pkg$", re.I),
+        re.compile(r"^(?P<base>.+?\.pkg)\.(?P<index>[0-9]+)$", re.I),
+    )
+    indexed = []
+    bases = set()
+    parent_dirs = set()
+    for path in paths:
+        match = next((m for pattern in piece_patterns if (m := pattern.fullmatch(path.name))), None)
+        if not match:
+            raise ValueError("For split RPI packages, select all pieces whose filenames end in _0.pkg, _1.pkg… (or .pkg.0, .pkg.1…).")
+        bases.add(match.group("base").casefold())
+        parent_dirs.add(str(path.parent))
+        indexed.append((int(match.group("index")), path))
+    if len(bases) != 1 or len(parent_dirs) != 1:
+        raise ValueError("Selected pieces must belong to the same package in one folder; choose only one numbered set.")
+    indexed.sort(key=lambda item: item[0])
+    indices = [item[0] for item in indexed]
+    if indices != list(range(len(indexed))):
+        raise ValueError("Select every package piece exactly once, from piece 0 through the last piece; no pieces may be missing.")
+    total = sum(path.stat().st_size for _index, path in indexed)
+    if total > REMOTE_PKG_FILE_MAX_BYTES:
+        raise ValueError("The combined package pieces exceed the 100 GiB limit.")
+    return [path for _index, path in indexed]
+
+
+def choose_remote_pkg_files():
+    """Select one PKG or a complete multipart set without copying/staging it."""
     if not mac_local_folder_picker_available():
         raise RuntimeError("Original-path Remote PKG sending currently requires the macOS helper and osascript.")
-    script = 'POSIX path of (choose file with prompt "Choose the PS4 .pkg file to install")'
+    script = (
+        'set selectedFiles to choose file with prompt "Choose one complete PKG, or select all numbered package pieces" with multiple selections allowed\n'
+        'if class of selectedFiles is alias then set selectedFiles to {selectedFiles}\n'
+        'set pathList to {}\n'
+        'repeat with selectedFile in selectedFiles\n'
+        '    set end of pathList to POSIX path of selectedFile\n'
+        'end repeat\n'
+        'set AppleScript\'s text item delimiters to linefeed\n'
+        'return pathList as text'
+    )
     result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=300)
     if result.returncode:
         detail = (result.stderr or result.stdout or "").strip()
         if "-128" in detail or "User canceled" in detail or "user canceled" in detail:
             return None
         raise RuntimeError(detail or "The macOS file picker failed.")
-    raw_path = result.stdout.strip()
-    if not raw_path:
+    raw_paths = result.stdout.strip()
+    if not raw_paths:
         return None
-    path = Path(raw_path).expanduser().resolve(strict=True)
-    if not path.is_file() or path.suffix.lower() != ".pkg":
-        raise ValueError("Choose one regular .pkg file.")
-    size = path.stat().st_size
-    if size <= 0 or size > REMOTE_PKG_FILE_MAX_BYTES:
-        raise ValueError("The selected PKG must be non-empty and no larger than 100 GiB.")
-    return path
+    return _order_remote_pkg_files([Path(line) for line in raw_paths.splitlines() if line])
+
+
+def choose_remote_pkg_file():
+    """Backward-compatible single-file picker helper."""
+    files = choose_remote_pkg_files()
+    if files is None:
+        return None
+    if len(files) != 1:
+        raise ValueError("Choose a single .pkg file.")
+    return files[0]
 
 
 def remote_pkg_lan_address(peer_host, peer_port):
@@ -153,6 +210,8 @@ def remote_pkg_lan_address(peer_host, peer_port):
 def _remote_pkg_http_handler():
     class RemotePkgFileHandler(http.server.BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
+        server_version = "NebulaPkgHost/1.0"
+        sys_version = ""
 
         def log_message(self, _format, *_args):
             return
@@ -176,20 +235,22 @@ def _remote_pkg_http_handler():
 
         def _serve_pkg(self, send_body):
             session = getattr(self.server, "remote_pkg_session", None)
-            if not session or urllib.parse.urlsplit(self.path).path != session["urlPath"]:
+            url_path = urllib.parse.urlsplit(self.path).path
+            file_entry = session.get("filesByUrlPath", {}).get(url_path) if session else None
+            if not session or not file_entry:
                 return self._reply(404, "Not found")
             now = time.time()
             with LOCK:
                 if session.get("stopped") or now >= session.get("expires", 0):
                     return self._reply(410, "This temporary package URL has expired")
                 session["expires"] = min(session["hardExpires"], now + REMOTE_PKG_SERVER_IDLE_TTL_SECONDS)
-            path = Path(session["path"])
+            path = Path(file_entry["path"])
             try:
                 stat = path.stat()
-                if not path.is_file() or stat.st_size != session["size"] or stat.st_mtime_ns != session["mtimeNs"]:
-                    return self._reply(409, "The selected package changed after sharing began")
+                if not path.is_file() or stat.st_size != file_entry["size"] or stat.st_mtime_ns != file_entry["mtimeNs"]:
+                    return self._reply(409, "The selected package piece changed after sharing began")
             except OSError:
-                return self._reply(410, "The selected package is no longer available")
+                return self._reply(410, "The selected package piece is no longer available")
             size = stat.st_size
             start, end, status = 0, max(-1, size - 1), 200
             range_header = self.headers.get("Range", "").strip()
@@ -206,10 +267,7 @@ def _remote_pkg_http_handler():
                 first, last = match.groups()
                 if not first:
                     suffix = int(last or "0")
-                    if suffix <= 0:
-                        start = size
-                    else:
-                        start = max(0, size - suffix)
+                    start = max(0, size - suffix) if suffix > 0 else size
                     end = size - 1
                 else:
                     start = int(first)
@@ -253,15 +311,19 @@ def _remote_pkg_http_handler():
     return RemotePkgFileHandler
 
 
-def start_remote_pkg_file_server(path, local_ip):
-    path = Path(path).resolve(strict=True)
-    stat = path.stat()
+def start_remote_pkg_files_server(paths, local_ip):
+    paths = _order_remote_pkg_files(paths)
+    files = []
     session_id = secrets.token_urlsafe(24)
     token = secrets.token_urlsafe(32)
-    url_path = "/pkg/" + token + "/" + urllib.parse.quote(path.name, safe="")
+    for index, path in enumerate(paths):
+        stat = path.stat()
+        url_path = "/pkg/" + token + "/" + str(index) + "/" + urllib.parse.quote(path.name, safe="")
+        files.append({"path": str(path), "name": path.name, "size": stat.st_size,
+                      "mtimeNs": stat.st_mtime_ns, "urlPath": url_path})
     now = time.time()
-    session = {"id": session_id, "token": token, "path": str(path), "name": path.name,
-               "size": stat.st_size, "mtimeNs": stat.st_mtime_ns, "urlPath": url_path,
+    session = {"id": session_id, "files": files, "filesByUrlPath": {item["urlPath"]: item for item in files},
+               "totalSize": sum(item["size"] for item in files),
                "expires": now + REMOTE_PKG_SERVER_IDLE_TTL_SECONDS,
                "hardExpires": now + 24 * 60 * 60, "stopped": False}
     server = http.server.ThreadingHTTPServer((local_ip, 0), _remote_pkg_http_handler())
@@ -274,8 +336,19 @@ def start_remote_pkg_file_server(path, local_ip):
         REMOTE_PKG_SERVERS[session_id] = session
     session["thread"].start()
     port = server.server_address[1]
-    session["url"] = f"http://{local_ip}:{port}{url_path}"
+    base_url = f"http://{local_ip}:{port}"
+    session["urls"] = [base_url + item["urlPath"] for item in files]
+    session["fileNames"] = [item["name"] for item in files]
+    session["fileSizes"] = [item["size"] for item in files]
+    session["serverPort"] = port
+    if len(files) == 1:
+        session.update({"path": files[0]["path"], "name": files[0]["name"], "size": files[0]["size"],
+                        "mtimeNs": files[0]["mtimeNs"], "urlPath": files[0]["urlPath"], "url": session["urls"][0]})
     return session
+
+
+def start_remote_pkg_file_server(path, local_ip):
+    return start_remote_pkg_files_server([path], local_ip)
 
 
 def stop_remote_pkg_file_server(session_id):
@@ -783,14 +856,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     raise ValueError("Enter a valid Remote Package Installer API port.") from exc
                 if rpi_port < 1 or rpi_port > 65535:
                     raise ValueError("Remote Package Installer port must be between 1 and 65535.")
-                pkg_path = choose_remote_pkg_file()
-                if pkg_path is None:
+                pkg_paths = choose_remote_pkg_files()
+                if pkg_paths is None:
                     return send_json(self, 200, {"cancelled": True})
                 peer_ip, local_ip = remote_pkg_lan_address(ps4_host, rpi_port)
-                session = start_remote_pkg_file_server(pkg_path, local_ip)
+                session = start_remote_pkg_files_server(pkg_paths, local_ip)
                 install_request = urllib.request.Request(
                     f"http://{peer_ip}:{rpi_port}/api/install",
-                    data=json.dumps({"type": "direct", "packages": [session["url"]]}).encode("utf-8"),
+                    data=json.dumps({"type": "direct", "packages": session["urls"]}).encode("utf-8"),
                     headers={"Content-Type": "application/json", "Accept": "application/json"},
                     method="POST")
                 try:
@@ -805,9 +878,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 except Exception:
                     stop_remote_pkg_file_server(session["id"])
                     raise
-                return send_json(self, 200, {"ok": True, "sessionId": session["id"], "fileName": pkg_path.name,
-                                             "fileSize": session["size"], "localIp": local_ip,
-                                             "serverPort": session["server"].server_address[1],
+                return send_json(self, 200, {"ok": True, "sessionId": session["id"],
+                                             "fileName": session["fileNames"][0] if len(session["files"]) == 1 else None,
+                                             "fileNames": session["fileNames"], "fileCount": len(session["files"]),
+                                             "fileSize": session["totalSize"], "localIp": local_ip,
+                                             "serverPort": session["serverPort"],
                                              "rpiPort": rpi_port, "rpiResponse": rpi_result,
                                              "taskId": rpi_result.get("task_id") if isinstance(rpi_result, dict) else None})
 
