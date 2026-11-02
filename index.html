@@ -414,7 +414,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.13 · build 2026-10-31</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.14 · build 2026-11-01</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -443,7 +443,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
     </div>
     <div class="raw-steps workflow-mode-hidden" id="ftpManagerSteps" aria-label="FTP file manager steps">
       <span class="raw-step"><span class="n">1</span> Connect</span><span class="raw-step-sep" aria-hidden="true">›</span>
-      <span class="raw-step"><span class="n">2</span> Browse Xbox folders</span><span class="raw-step-sep" aria-hidden="true">›</span>
+      <span class="raw-step"><span class="n">2</span> Browse console folders</span><span class="raw-step-sep" aria-hidden="true">›</span>
       <span class="raw-step"><span class="n">3</span> Upload or remove</span>
     </div>
   </header>
@@ -456,35 +456,36 @@ body.ftp-manager-dialog-open{overflow:hidden}
       <button class="mode-btn" id="taskSnesMode" type="button" aria-pressed="false"><b>🕹️ SNES360 ROM uploader</b><span>Copy supported .sfc/.smc ROMs to the Xbox over FTP, unchanged.</span></button>
       <button class="mode-btn" id="taskModsMode" type="button" aria-pressed="false" hidden><b>🧩 Inspect / apply game mods</b><span>Legacy hidden workflow.</span></button>
       <button class="mode-btn" id="taskFtpMode" type="button" aria-pressed="false"><b>🗂️ Xbox FTP file manager</b><span>View, add, and remove files on the console.</span></button>
+      <button class="mode-btn" id="taskPs4FtpMode" type="button" aria-pressed="false"><b>🎮 PS4 FTP PKG manager</b><span>Browse a PS4 FTP server and send PKG files.</span></button>
     </div>
     <section class="card" data-workflow="ftp-manager" id="ftpManagerCard" aria-labelledby="ftpManagerHeading" hidden>
       <h2 id="ftpManagerHeading">🗂️ Xbox FTP file manager</h2>
-      <p class="muted small" style="line-height:1.6">Connect to Aurora/FreeStyle Dash FTP on your trusted home LAN. Browse the selected drive, create folders, upload any file type or folders from this computer, import selected Xbox files to this computer, open/edit Aurora's launch.ini, and delete remote items. This general-purpose manager does no content-specific filtering or conversion. Direct .zip and .7z archives are unpacked locally, then their files are uploaded unchanged. FTP is unencrypted; never expose it to the internet.</p>
-      <div class="setup" id="ftpManagerDownload" style="margin-top:12px"><strong>Windows and Mac FTP helpers</strong><p class="muted small" style="margin:5px 0 10px">On Windows, extract the Windows helper ZIP and run <code>Start Nebula ISO2GOD.bat</code>. On Mac, use the one-tap <code>Nebula ISO2GOD.command</code> launcher. Python 3 is required; keep the helper window open while FTP is running.</p><div class="btn-row"><a class="btn primary small" style="display:inline-block;text-decoration:none" href="./Nebula-ISO2GOD-Windows-Helper.zip" download="Nebula-ISO2GOD-Windows-Helper.zip">⬇ Download Windows helper (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="./Nebula-ISO2GOD-One-File-Fixed.zip" download="Nebula-ISO2GOD-One-File-Fixed.zip">Mac one-tap helper (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="./nebula-iso2god-timeout-fix.zip" download="nebula-iso2god-timeout-fix.zip">Mac full helper bundle (.zip)</a></div><div class="muted tiny" style="margin-top:8px">FTP staging files are removed after upload success, cancel, or helper shutdown. If the helper quits unexpectedly, abandoned stages are cleared the next time it starts. The source/output files on your computer and Xbox are not deleted.</div></div>
+      <p class="muted small" id="ftpManagerDescription" style="line-height:1.6">Connect to Aurora/FreeStyle Dash FTP on your trusted home LAN. Browse the selected drive, create folders, upload any file type or folders from this computer, import selected Xbox files to this computer, open/edit Aurora's launch.ini, and delete remote items. This general-purpose manager does no content-specific filtering or conversion. Direct .zip and .7z archives are unpacked locally, then their files are uploaded unchanged. FTP is unencrypted; never expose it to the internet.</p>
+      <div class="setup" id="ftpManagerDownload" style="margin-top:12px"><strong>Windows and Mac FTP helpers</strong><p class="muted small" style="margin:5px 0 10px">On Windows, extract the Windows helper ZIP and run <code>Start Nebula ISO2GOD.bat</code>. On Mac, use the one-tap <code>Nebula ISO2GOD.command</code> launcher. Python 3 is required; keep the helper window open while FTP is running.</p><div class="btn-row"><a class="btn primary small" style="display:inline-block;text-decoration:none" href="./Nebula-ISO2GOD-Windows-Helper.zip" download="Nebula-ISO2GOD-Windows-Helper.zip">⬇ Download Windows helper (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="./Nebula-ISO2GOD-One-File-Fixed.zip" download="Nebula-ISO2GOD-One-File-Fixed.zip">Mac one-tap helper (.zip)</a><a class="btn small" style="display:inline-block;text-decoration:none" href="./nebula-iso2god-timeout-fix.zip" download="nebula-iso2god-timeout-fix.zip">Mac full helper bundle (.zip)</a></div><div class="muted tiny" style="margin-top:8px">FTP staging files are removed after upload success, cancel, or helper shutdown. If the helper quits unexpectedly, abandoned stages are cleared the next time it starts. The source/output files on your computer and the destination console are not deleted.</div></div>
       <div class="setup" style="margin-top:12px"><strong>Connection</strong>
         <div class="muted small" style="margin-top:5px">Start the local helper on this computer and use its local page. The browser cannot connect directly to raw FTP.</div>
         <div class="grid2" style="margin-top:10px">
-          <div><label class="f" for="ftpManagerHost">Xbox IP address</label><input id="ftpManagerHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
-          <div><label class="f" for="ftpManagerPort">FTP port</label><input id="ftpManagerPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
-          <div><label class="f" for="ftpManagerUser">FTP username</label><input id="ftpManagerUser" type="text" placeholder="Check Aurora/FreeStyle FTP settings" autocomplete="off"></div>
+          <div><label class="f" id="ftpManagerHostLabel" for="ftpManagerHost">Xbox IP address</label><input id="ftpManagerHost" type="text" placeholder="192.168.1.50" autocomplete="off"></div>
+          <div><label class="f" id="ftpManagerPortLabel" for="ftpManagerPort">FTP port</label><input id="ftpManagerPort" type="text" value="21" inputmode="numeric" autocomplete="off"></div>
+          <div><label class="f" id="ftpManagerUserLabel" for="ftpManagerUser">FTP username</label><input id="ftpManagerUser" type="text" placeholder="Check Aurora/FreeStyle FTP settings" autocomplete="off"></div>
           <div><label class="f" for="ftpManagerPassword">FTP password</label><input id="ftpManagerPassword" type="password" autocomplete="off"></div>
-          <div style="grid-column:1/-1"><label class="f" for="ftpManagerBasePath">Starting drive / FTP path</label><input id="ftpManagerBasePath" type="text" value="Usb1" autocomplete="off"><div class="muted tiny">Enter the exact starting drive/path syntax exposed by your dashboard FTP server, such as <code>Hdd1:/</code>, <code>Usb0:/</code>, or a server-specific form like <code>usb0</code>. A non-empty path is sent exactly as typed and is never rewritten; a blank field defaults to <code>Usb1</code>. Browsing and actions stay below this starting path. Press Enter in any connection field to try the connection.</div></div>
+          <div style="grid-column:1/-1"><label class="f" id="ftpManagerBasePathLabel" for="ftpManagerBasePath">Starting drive / FTP path</label><input id="ftpManagerBasePath" type="text" value="Usb1" autocomplete="off"><div class="muted tiny" id="ftpManagerBasePathHint">Enter the exact starting drive/path syntax exposed by your dashboard FTP server, such as <code>Hdd1:/</code>, <code>Usb0:/</code>, or a server-specific form like <code>usb0</code>. A non-empty path is sent exactly as typed and is never rewritten; a blank field defaults to <code>Usb1</code>. Browsing and actions stay below this starting path. Press Enter in any connection field to try the connection.</div></div>
         </div>
-        <label class="check small"><input id="ftpManagerRemember" type="checkbox"><span>Remember Xbox IP and username in this browser. The password is never saved.</span></label>
+        <label class="check small"><input id="ftpManagerRemember" type="checkbox"><span id="ftpManagerRememberText">Remember Xbox IP and username in this browser. The password is never saved.</span></label>
         <div class="btn-row"><button class="btn primary" id="ftpManagerConnectBtn" type="button" disabled>Connect &amp; browse</button><span class="muted" id="ftpManagerStatus" role="status" aria-live="polite">Start ftp_helper.py locally to enable the file manager.</span></div>
       </div>
       <div class="setup ftp-manager-browser" id="ftpManagerBrowser" hidden style="margin-top:12px">
         <div class="ftp-manager-toolbar">
-          <div class="ftp-manager-location"><strong>Remote location</strong><div id="ftpManagerLocation" class="muted small"></div><div id="ftpManagerBreadcrumbs" class="ftp-breadcrumbs" aria-label="Remote folder path"></div><div id="ftpManagerStorageInfo" class="ftp-manager-storage muted tiny" aria-live="polite" title="Free space is shown only if the Xbox FTP server supports the optional AVBL command.">Free space: not checked</div></div>
+          <div class="ftp-manager-location"><strong>Remote location</strong><div id="ftpManagerLocation" class="muted small"></div><div id="ftpManagerBreadcrumbs" class="ftp-breadcrumbs" aria-label="Remote folder path"></div><div id="ftpManagerStorageInfo" class="ftp-manager-storage muted tiny" aria-live="polite" title="Free space is shown only if the FTP server supports the optional AVBL command.">Free space: not checked</div></div>
           <div class="btn-row ftp-manager-actions" role="toolbar" aria-label="Remote file actions">
             <button class="btn small" id="ftpManagerUpBtn" type="button" aria-label="Go up one folder" title="Go to the parent folder">↑ Up</button>
             <button class="btn small" id="ftpManagerRefreshBtn" type="button" aria-label="Refresh remote listing" title="Refresh the current remote folder">↻ Refresh</button>
             <button class="btn small" id="ftpManagerMkdirBtn" type="button" aria-label="Create a new remote folder" title="Create and open a folder here">＋ New folder</button>
-            <button class="btn small" id="ftpManagerUploadBtn" type="button" aria-label="Upload files to this folder" title="Upload files into the current Xbox folder">⬆ Upload files</button>
+            <button class="btn small" id="ftpManagerUploadBtn" type="button" aria-label="Upload files to this folder" title="Upload files into the current console folder">⬆ Upload files</button>
             <button class="btn small" id="ftpManagerUploadFolderBtn" type="button" aria-label="Upload a folder to this folder" title="Upload a folder and its contents">⬆ Upload folder</button>
-            <button class="btn small" id="ftpManagerDownloadBtn" type="button" aria-label="Import selected Xbox files to this computer" disabled>⬇ Import</button>
-            <button class="btn small" id="ftpManagerCopyDesktopBtn" type="button" aria-label="Copy selected Xbox files to a folder, starting at Desktop" title="Choose Desktop in the system folder picker to copy files there. This requires a browser with folder access support." disabled>🖥 Copy to Desktop</button>
-            <button class="btn small" id="ftpManagerPrepareDragBtn" type="button" aria-label="Prepare selected Xbox files for drag-out" disabled>↘ Prepare drag-out</button>
+            <button class="btn small" id="ftpManagerDownloadBtn" type="button" aria-label="Import selected console files to this computer" disabled>⬇ Import</button>
+            <button class="btn small" id="ftpManagerCopyDesktopBtn" type="button" aria-label="Copy selected console files to a folder, starting at Desktop" title="Choose Desktop in the system folder picker to copy files there. This requires a browser with folder access support." disabled>🖥 Copy to Desktop</button>
+            <button class="btn small" id="ftpManagerPrepareDragBtn" type="button" aria-label="Prepare selected console files for drag-out" disabled>↘ Prepare drag-out</button>
             <button class="btn small" id="ftpManagerEditBtn" type="button" aria-label="Edit the selected launch.ini" disabled>✎ Edit launch.ini</button>
             <button class="btn small danger" id="ftpManagerDeleteBtn" type="button" aria-label="Delete selected remote files or folders" disabled>🗑 Delete</button>
           </div>
@@ -494,11 +495,11 @@ body.ftp-manager-dialog-open{overflow:hidden}
           <button class="btn small" id="ftpManagerJumpBtn" type="button" disabled>Open folder</button>
           <span class="muted tiny" style="flex:1 1 100%">Use this if a folder (including an empty folder) is missing from the listing. After opening it, Upload files, Upload folder, and the drop area send items into that current folder.</span>
         </div>
-        <div class="muted tiny" style="margin-top:8px">Select rows to highlight them. Click and hold a row checkbox, then drag across other checkboxes; or hold the blank edge/space of a row (outside its filename and buttons) and drag across rows to highlight or unhighlight them. Shift-click also selects a range. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. To move remote files, drag a file row onto a destination folder row; selected file rows move together, and name collisions are never overwritten. Double-click a filename to rename that remote file. Select files and choose <strong>Copy to Desktop</strong> to open a system folder picker (choose Desktop there; supported browsers may start the picker at Desktop), or choose <strong>Import</strong> to save to Downloads as a compatible fallback. For real desktop drag-out in Chrome/Edge, select one file up to 64 MiB, choose <strong>Prepare drag-out</strong>, then drag that row out within 15 minutes. Safari/Firefox cannot reliably export a file by page drag; use <strong>Import</strong> there and for larger files or batches. Click the <code>launch.ini</code> filename once to open it in the built-in text editor, or double-click it to rename; you can also select it and choose <strong>Edit launch.ini</strong>. Saving edits writes the text back over FTP after confirmation. Keep a backup before editing console configuration. Files stream through the helper without an extra disk copy during ordinary import; folder downloads aren’t supported.</div>
+        <div class="muted tiny" id="ftpManagerUsageHelp" style="margin-top:8px">Select rows to highlight them. Click and hold a row checkbox, then drag across other checkboxes; or hold the blank edge/space of a row (outside its filename and buttons) and drag across rows to highlight or unhighlight them. Shift-click also selects a range. Scroll the listing to browse long folders; click a folder name to open it, even when it contains no files. To move remote files, drag a file row onto a destination folder row; selected file rows move together, and name collisions are never overwritten. Double-click a filename to rename that remote file. Select files and choose <strong>Copy to Desktop</strong> to open a system folder picker (choose Desktop there; supported browsers may start the picker at Desktop), or choose <strong>Import</strong> to save to Downloads as a compatible fallback. For real desktop drag-out in Chrome/Edge, select one file up to 64 MiB, choose <strong>Prepare drag-out</strong>, then drag that row out within 15 minutes. Safari/Firefox cannot reliably export a file by page drag; use <strong>Import</strong> there and for larger files or batches. Click the <code>launch.ini</code> filename once to open it in the built-in text editor, or double-click it to rename; you can also select it and choose <strong>Edit launch.ini</strong>. Saving edits writes the text back over FTP after confirmation. Keep a backup before editing console configuration. Files stream through the helper without an extra disk copy during ordinary import; folder downloads aren’t supported.</div>
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
-        <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this Xbox folder">
-          <div class="big" aria-hidden="true">📂</div><div class="t">Drop multiple files or a folder here</div><div class="s">Any file type uploads byte-for-byte with the selected name into the current Xbox folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within Xbox FTP, or prepare one small file for a real desktop drag-out in supported browsers. The manager does not rewrite names; the Xbox filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.</div>
+        <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this console folder">
+          <div class="big" aria-hidden="true">📂</div><div class="t" id="ftpManagerDropTitle">Drop multiple files or a folder here</div><div class="s" id="ftpManagerDropDescription">Any file type uploads byte-for-byte with the selected name into the current console folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within console FTP, or prepare one small file for a real desktop drag-out in supported browsers. The manager does not rewrite names; the console filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.</div>
         </div>
         <div class="setup" id="ftpManagerArchiveProgressWrap" hidden style="margin-top:10px">
           <div class="bar-wrap thin"><div class="bar thin" id="ftpManagerArchiveProgressBar" style="width:0%"></div></div>
@@ -1040,7 +1041,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.13 · build 2026-10-31</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.14 · build 2026-11-01</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -2168,7 +2169,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     rawFtpHost: $('rawFtpHost'), rawFtpPort: $('rawFtpPort'), rawFtpUser: $('rawFtpUser'), rawFtpPassword: $('rawFtpPassword'), rawFtpPath: $('rawFtpPath'),
     rawFtpConnectBtn: $('rawFtpConnectBtn'), rawFtpStatus: $('rawFtpStatus'), rawContentFiles: $('rawContentFiles'), rawChooseFolderBtn: $('rawChooseFolderBtn'),
     rawArchiveInput: $('rawArchiveInput'), rawArchiveBrowseBtn: $('rawArchiveBrowseBtn'), rawArchiveStatus: $('rawArchiveStatus'), rawArchiveProgressWrap: $('rawArchiveProgressWrap'), rawArchiveProgressBar: $('rawArchiveProgressBar'), rawArchiveCancelBtn: $('rawArchiveCancelBtn'),
-    taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), taskPsxMode: $('taskPsxMode'), taskSnesMode: $('taskSnesMode'), taskModsMode: $('taskModsMode'), taskFtpMode: $('taskFtpMode'), heroIsoIntro: $('heroIsoIntro'), heroPsxIntro: $('heroPsxIntro'), heroSnesIntro: $('heroSnesIntro'), heroModsIntro: $('heroModsIntro'), heroFtpIntro: $('heroFtpIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), psxSteps: $('psxSteps'), snesSteps: $('snesSteps'), modsSteps: $('modsSteps'), ftpManagerSteps: $('ftpManagerSteps'), supportBadges: $('supportBadges'), appBuildLabel: $('appBuildLabel'), footerBuildLabel: $('footerBuildLabel'),
+    taskIsoMode: $('taskIsoMode'), taskRawMode: $('taskRawMode'), taskPsxMode: $('taskPsxMode'), taskSnesMode: $('taskSnesMode'), taskModsMode: $('taskModsMode'), taskFtpMode: $('taskFtpMode'), taskPs4FtpMode: $('taskPs4FtpMode'), heroIsoIntro: $('heroIsoIntro'), heroPsxIntro: $('heroPsxIntro'), heroSnesIntro: $('heroSnesIntro'), heroModsIntro: $('heroModsIntro'), heroFtpIntro: $('heroFtpIntro'), isoSteps: $('isoSteps'), rawSteps: $('rawSteps'), psxSteps: $('psxSteps'), snesSteps: $('snesSteps'), modsSteps: $('modsSteps'), ftpManagerSteps: $('ftpManagerSteps'), supportBadges: $('supportBadges'), appBuildLabel: $('appBuildLabel'), footerBuildLabel: $('footerBuildLabel'),
     ftpManagerCard: $('ftpManagerCard'), ftpManagerBrowser: $('ftpManagerBrowser'), ftpManagerHost: $('ftpManagerHost'), ftpManagerPort: $('ftpManagerPort'), ftpManagerUser: $('ftpManagerUser'), ftpManagerPassword: $('ftpManagerPassword'), ftpManagerBasePath: $('ftpManagerBasePath'), ftpManagerRemember: $('ftpManagerRemember'), ftpManagerConnectBtn: $('ftpManagerConnectBtn'), ftpManagerStatus: $('ftpManagerStatus'), ftpManagerLocation: $('ftpManagerLocation'), ftpManagerStorageInfo: $('ftpManagerStorageInfo'), ftpManagerBreadcrumbs: $('ftpManagerBreadcrumbs'), ftpManagerUpBtn: $('ftpManagerUpBtn'), ftpManagerRefreshBtn: $('ftpManagerRefreshBtn'), ftpManagerBackBtn: $('ftpManagerBackBtn'), ftpManagerForwardBtn: $('ftpManagerForwardBtn'), ftpManagerMkdirBtn: $('ftpManagerMkdirBtn'), ftpManagerUploadBtn: $('ftpManagerUploadBtn'), ftpManagerUploadFolderBtn: $('ftpManagerUploadFolderBtn'), ftpManagerDownloadBtn: $('ftpManagerDownloadBtn'), ftpManagerCopyDesktopBtn: $('ftpManagerCopyDesktopBtn'), ftpManagerPrepareDragBtn: $('ftpManagerPrepareDragBtn'), ftpManagerEditBtn: $('ftpManagerEditBtn'), ftpManagerDeleteBtn: $('ftpManagerDeleteBtn'), ftpManagerFilesInput: $('ftpManagerFilesInput'), ftpManagerModal: $('ftpManagerModal'), ftpManagerModalCard: $('ftpManagerModalCard'), ftpManagerModalTitle: $('ftpManagerModalTitle'), ftpManagerModalMessage: $('ftpManagerModalMessage'), ftpManagerPromptWrap: $('ftpManagerPromptWrap'), ftpManagerPromptInput: $('ftpManagerPromptInput'), ftpManagerEditorWrap: $('ftpManagerEditorWrap'), ftpManagerEditorText: $('ftpManagerEditorText'), ftpManagerModalCancel: $('ftpManagerModalCancel'), ftpManagerModalConfirm: $('ftpManagerModalConfirm'), ftpManagerFolderInput: $('ftpManagerFolderInput'), ftpManagerDropZone: $('ftpManagerDropZone'), ftpManagerSearch: $('ftpManagerSearch'), ftpManagerJumpPath: $('ftpManagerJumpPath'), ftpManagerJumpBtn: $('ftpManagerJumpBtn'), ftpManagerActivity: $('ftpManagerActivity'), ftpManagerTableBody: $('ftpManagerTableBody'), ftpManagerEmpty: $('ftpManagerEmpty'), ftpManagerSelectAll: $('ftpManagerSelectAll'), ftpManagerUseIsoBtn: $('ftpManagerUseIsoBtn'), ftpManagerUseXblaBtn: $('ftpManagerUseXblaBtn'), ftpManagerUsePs1Btn: $('ftpManagerUsePs1Btn'), ftpManagerArchiveProgressWrap: $('ftpManagerArchiveProgressWrap'), ftpManagerArchiveProgressBar: $('ftpManagerArchiveProgressBar'), ftpManagerArchiveStatus: $('ftpManagerArchiveStatus'), ftpManagerArchiveCancelBtn: $('ftpManagerArchiveCancelBtn'),
     snesContentCard: $('snesContentCard'), snesDropZone: $('snesDropZone'), snesRomInput: $('snesRomInput'), snesArchiveInput: $('snesArchiveInput'), snesChooseRomsBtn: $('snesChooseRomsBtn'), snesChooseArchiveBtn: $('snesChooseArchiveBtn'), snesClearRomsBtn: $('snesClearRomsBtn'), snesRomSummary: $('snesRomSummary'), snesRomList: $('snesRomList'), snesArchiveStatus: $('snesArchiveStatus'), snesArchiveProgressWrap: $('snesArchiveProgressWrap'), snesArchiveProgressBar: $('snesArchiveProgressBar'), snesArchiveCancelBtn: $('snesArchiveCancelBtn'), snesFtpPreset: $('snesFtpPreset'), snesFtpPath: $('snesFtpPath'), snesFtpRomDir: $('snesFtpRomDir'), snesFtpHost: $('snesFtpHost'), snesFtpPort: $('snesFtpPort'), snesFtpUser: $('snesFtpUser'), snesFtpPassword: $('snesFtpPassword'), rememberFtpSnes: $('rememberFtpSnes'), snesFtpConnectBtn: $('snesFtpConnectBtn'), snesFtpStatus: $('snesFtpStatus'), snesUploadBtn: $('snesUploadBtn'), snesFtpLive: $('snesFtpLive'), snesFtpLiveBar: $('snesFtpLiveBar'), snesFtpLiveText: $('snesFtpLiveText'), snesFtpRetryActions: $('snesFtpRetryActions'), snesFtpRetryBtn: $('snesFtpRetryBtn'), snesFtpCancelBtn: $('snesFtpCancelBtn'),
     rawContentUploadCard: $('rawContentUploadCard'), rawFtpUploadBtn: $('rawFtpUploadBtn'), rawFtpUploadResult: $('rawFtpUploadResult'), rawFtpLive: $('rawFtpLive'), rawOverallLiveText: $('rawOverallLiveText'), rawOverallLiveBar: $('rawOverallLiveBar'), rawFtpLiveText: $('rawFtpLiveText'), rawFtpLiveBar: $('rawFtpLiveBar'), rawDropZone: $('rawDropZone'), rawSelectedFiles: $('rawSelectedFiles'),
@@ -2205,8 +2206,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.9.13';
-  const APP_BUILD = '2026-10-31';
+  const APP_VERSION = '1.9.14';
+  const APP_BUILD = '2026-11-01';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
   if (els.footerBuildLabel) els.footerBuildLabel.textContent = APP_BUILD_LABEL;
@@ -2215,7 +2216,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     file: null, reader: null, analysis: null,
     outputMode: hasDirPicker ? 'folder' : 'zip',
     dirHandle: null, localFolderSession: null, localFolderPickerAvailable: false, gameDirHandle: null, gameOutputName: '', zipHandle: null, zipSuggestedName: '',
-    ftpToken: null, ftpConnected: false, rawFtpConnected: false, snesFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerHistory: [[]], ftpManagerHistoryIndex: 0, ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpArchiveTargetSegments: [], ftpActiveStageId: null, ftpManagerBasePath: 'Usb1', ftpManagerCwd: '', rawUploading: false, snesBusy: false, snesFtpActive: false, snesRoms: [], rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
+    ftpToken: null, ftpConnected: false, rawFtpConnected: false, snesFtpConnected: false, ftpManagerConnected: false, ftpManagerBusy: false, ftpManagerSegments: [], ftpManagerHistory: [[]], ftpManagerHistoryIndex: 0, ftpManagerEntries: [], ftpManagerSelected: new Set(), ftpArchiveTargetSegments: [], ftpActiveStageId: null, ftpManagerBasePath: 'Usb1', ftpManagerPlatform: 'xbox', ftpManagerSettings: { xbox: null, ps4: null }, ftpManagerCwd: '', rawUploading: false, snesBusy: false, snesFtpActive: false, snesRoms: [], rawFiles: [], rawUploadTotalBytes: 0, rawUploadCompletedBytes: 0, rawUploadCurrentBytes: 0, rawUploadCurrentIndex: 0, rawUploadItemCount: 0, taskMode: 'iso',
     modsFiles: [], modsReplacements: [], modsReady: false, modsTargetIndex: new Map(),
     converting: false, cancelRequested: false,
     batchFiles: [], batchSkipped: 0, batchIndex: 0, batchCompleted: 0, batchRunning: false, batchFinished: false, batchStartTime: 0, batchEndTime: 0, batchKnownTitleIds: [],
@@ -2709,6 +2710,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }, { passive: true });
 
   const FTP_IDENTITY_KEY = 'nebula-iso2god-ftp-identity-v1';
+  const PS4_FTP_IDENTITY_KEY = 'nebula-iso2god-ps4-ftp-identity-v1';
   function identityFields(source) {
     if (source === 'snes') return [els.snesFtpHost, els.snesFtpUser];
     if (source === 'raw') return [els.rawFtpHost, els.rawFtpUser];
@@ -2724,6 +2726,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.ftpManagerRemember.checked = checked;
   }
   function saveFtpIdentity(source, invalidateConnections) {
+    if (source === 'manager' && state.ftpManagerPlatform === 'ps4') {
+      const ps4Identity = { host: els.ftpManagerHost.value.trim(), user: els.ftpManagerUser.value };
+      try {
+        if (els.ftpManagerRemember.checked) localStorage.setItem(PS4_FTP_IDENTITY_KEY, JSON.stringify(ps4Identity));
+        else localStorage.removeItem(PS4_FTP_IDENTITY_KEY);
+      } catch (_) {}
+      if (invalidateConnections) invalidateFtpManager('PS4 FTP settings changed; reconnect to browse.');
+      return;
+    }
     const [hostField, userField] = identityFields(source);
     const host = hostField.value.trim();
     const user = userField.value;
@@ -2745,6 +2756,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function changeRememberFtp(source) {
     const field = source === 'raw' ? els.rememberFtpRaw : source === 'psx' ? els.rememberFtpPsx : source === 'snes' ? els.rememberFtpSnes : source === 'manager' ? els.ftpManagerRemember : els.rememberFtpIso;
+    if (source === 'manager' && state.ftpManagerPlatform === 'ps4') {
+      saveFtpIdentity('manager', true);
+      return;
+    }
     if (!field.checked) {
       setRememberCheckboxes(false);
       try { localStorage.removeItem(FTP_IDENTITY_KEY); } catch (_) {}
@@ -2760,9 +2775,17 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         for (const [h, u] of [[els.ftpHost, els.ftpUser], [els.rawFtpHost, els.rawFtpUser], [els.psxFtpHost, els.psxFtpUser], [els.snesFtpHost, els.snesFtpUser], [els.ftpManagerHost, els.ftpManagerUser]]) { h.value = saved.host; u.value = saved.user; }
         setRememberCheckboxes(true);
       }
+      const ps4 = JSON.parse(localStorage.getItem(PS4_FTP_IDENTITY_KEY) || 'null');
+      if (ps4 && typeof ps4.host === 'string' && typeof ps4.user === 'string') {
+        state.ftpManagerSettings.ps4 = { host: ps4.host, user: ps4.user, password: '', port: '2121', basePath: '/' };
+      }
     } catch (_) {}
   }
   function persistIdentityOnInput(source) {
+    if (source === 'manager' && state.ftpManagerPlatform === 'ps4') {
+      if (els.ftpManagerRemember.checked) saveFtpIdentity('manager', false);
+      return;
+    }
     if (els.rememberFtpIso.checked || els.rememberFtpRaw.checked || els.rememberFtpPsx.checked || els.rememberFtpSnes.checked || els.ftpManagerRemember.checked) saveFtpIdentity(source, true);
   }
   els.rememberFtpIso.addEventListener('change', () => changeRememberFtp('iso'));
@@ -2897,13 +2920,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   /* ---------------- top-level workflow tabs ---------------- */
   function setTaskMode(mode) {
     if ((state.converting || state.batchRunning || state.rawUploading || state.psxBusy || state.snesBusy || state.ftpManagerBusy || state.archiveBusy || state.psxArchiveBatchActive) && mode !== state.taskMode) return;
-    state.taskMode = (mode === 'raw' || mode === 'psx' || mode === 'snes' || mode === 'ftp') ? mode : 'iso';
+    state.taskMode = (mode === 'raw' || mode === 'psx' || mode === 'snes' || mode === 'ftp' || mode === 'ps4ftp') ? mode : 'iso';
+    const ps4Ftp = state.taskMode === 'ps4ftp';
+    const ftpManager = state.taskMode === 'ftp' || ps4Ftp;
+    if (ftpManager) managerSetPlatform(ps4Ftp ? 'ps4' : 'xbox');
     const iso = state.taskMode === 'iso';
     const raw = state.taskMode === 'raw';
     const psx = state.taskMode === 'psx';
     const snes = state.taskMode === 'snes';
     const mods = state.taskMode === 'mods';
-    const ftpManager = state.taskMode === 'ftp';
     document.querySelectorAll('[data-workflow="iso"]').forEach(el => el.classList.toggle('workflow-mode-hidden', !(iso || mods)));
     els.rawContentUploadCard.hidden = !raw;
     els.psxContentCard.hidden = !psx;
@@ -2928,13 +2953,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.taskPsxMode.classList.toggle('active', psx);
     els.taskSnesMode.classList.toggle('active', snes);
     els.taskModsMode.classList.toggle('active', mods);
-    els.taskFtpMode.classList.toggle('active', ftpManager);
+    els.taskFtpMode.classList.toggle('active', state.taskMode === 'ftp');
+    els.taskPs4FtpMode.classList.toggle('active', ps4Ftp);
     els.taskIsoMode.setAttribute('aria-pressed', iso ? 'true' : 'false');
     els.taskRawMode.setAttribute('aria-pressed', raw ? 'true' : 'false');
     els.taskPsxMode.setAttribute('aria-pressed', psx ? 'true' : 'false');
     els.taskSnesMode.setAttribute('aria-pressed', snes ? 'true' : 'false');
     els.taskModsMode.setAttribute('aria-pressed', mods ? 'true' : 'false');
-    els.taskFtpMode.setAttribute('aria-pressed', ftpManager ? 'true' : 'false');
+    els.taskFtpMode.setAttribute('aria-pressed', state.taskMode === 'ftp' ? 'true' : 'false');
+    els.taskPs4FtpMode.setAttribute('aria-pressed', ps4Ftp ? 'true' : 'false');
     if (mods) els.convertBtn.textContent = state.outputMode === 'game-folder' ? 'Build extracted modded game folder' : 'Build modded GOD';
     else if (!state.converting && !state.batchRunning) els.convertBtn.textContent = state.batchFiles.length > 1 ? 'Convert & upload ' + state.batchFiles.length + ' ISOs' : 'Convert ISO → GOD';
     if (state.analysis && (iso || mods)) refreshPlanAndTree();
@@ -2949,6 +2976,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   els.taskSnesMode.addEventListener('click', () => setTaskMode('snes'));
   els.taskModsMode.addEventListener('click', () => setTaskMode('mods'));
   els.taskFtpMode.addEventListener('click', () => setTaskMode('ftp'));
+  els.taskPs4FtpMode.addEventListener('click', () => setTaskMode('ps4ftp'));
 
   /* ---------------- support badges / mode UI ---------------- */
   function renderSupport() {
@@ -3820,7 +3848,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     els.snesUploadBtn.disabled = !ready || !ftpReady || blocked;
     els.snesUploadBtn.textContent = state.snesBusy ? 'Uploading ROM data…' : 'Upload ' + (state.snesRoms.length || '') + (state.snesRoms.length ? ' ROM' + (state.snesRoms.length === 1 ? '' : 's') + ' (data unchanged)' : ' ROMs (data unchanged)');
     els.snesDropZone.setAttribute('data-disabled', blocked ? 'true' : 'false');
-    for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskModsMode, els.taskFtpMode]) el.disabled = blocked;
+    for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskModsMode, els.taskFtpMode, els.taskPs4FtpMode]) el.disabled = blocked;
     for (const el of [els.snesFtpHost, els.snesFtpPort, els.snesFtpUser, els.snesFtpPassword, els.snesFtpPath, els.snesFtpRomDir, els.snesFtpPreset]) el.disabled = state.snesBusy;
   }
   async function handleSnesImport(fileList, { allowArchive = true } = {}) {
@@ -4117,7 +4145,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     state.archiveKind = kind;
     if (kind === 'ftp' && state.ftpManagerConnected) managerSetBusy(active);
     const controlsLocked = active || state.psxArchiveBatchActive;
-    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskFtpMode, els.taskModsMode, els.psxArchiveInput, els.psxArchiveBrowseBtn, els.snesRomInput, els.snesArchiveInput, els.snesChooseRomsBtn, els.snesChooseArchiveBtn, els.snesFtpConnectBtn, els.modsFilesInput, els.modsFolderInput, els.modsChooseFilesBtn, els.modsChooseFolderBtn]) el.disabled = controlsLocked;
+    for (const el of [els.browseBtn, els.fileInput, els.archiveBrowseBtn, els.archiveInput, els.resetBtn, els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskFtpMode, els.taskPs4FtpMode, els.taskModsMode, els.psxArchiveInput, els.psxArchiveBrowseBtn, els.snesRomInput, els.snesArchiveInput, els.snesChooseRomsBtn, els.snesChooseArchiveBtn, els.snesFtpConnectBtn, els.modsFilesInput, els.modsFolderInput, els.modsChooseFilesBtn, els.modsChooseFolderBtn]) el.disabled = controlsLocked;
     const ui = archiveUi(kind);
     ui.cancelBtn.hidden = !active;
     if (active) {
@@ -5361,6 +5389,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   /* ---------------- remote Xbox FTP file manager ---------------- */
   const FTP_MANAGER_DRAG_OUT_MAX_BYTES = 64 * 1024 * 1024;
+  const FTP_MANAGER_MAX_FILE_BYTES = 100 * 1024 * 1024 * 1024;
   const ftpManagerDragOutFiles = new Map();
   function managerDragOutKey(segments) { return JSON.stringify(segments || []); }
   function managerSupportsExternalFileDrag() {
@@ -5386,6 +5415,72 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   function managerIsRemoteDrag(dataTransfer) {
     return !!(dataTransfer && Array.from(dataTransfer.types || []).includes('application/x-nebula-ftp-move'));
   }
+  const FTP_MANAGER_XBOX_USAGE_HELP = $('ftpManagerUsageHelp').innerHTML;
+  function managerSetPlatform(platform) {
+    const next = platform === 'ps4' ? 'ps4' : 'xbox';
+    if (state.ftpManagerPlatform === next) return;
+    const previous = state.ftpManagerPlatform || 'xbox';
+    state.ftpManagerSettings[previous] = {
+      host: els.ftpManagerHost.value,
+      port: els.ftpManagerPort.value,
+      user: els.ftpManagerUser.value,
+      password: els.ftpManagerPassword.value,
+      basePath: els.ftpManagerBasePath.value,
+    };
+    state.ftpManagerPlatform = next;
+    let settings = state.ftpManagerSettings[next];
+    if (next === 'ps4' && !settings) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(PS4_FTP_IDENTITY_KEY) || 'null');
+        if (saved && typeof saved.host === 'string') settings = { host: saved.host, user: saved.user || 'anonymous', password: '', port: '2121', basePath: '/' };
+      } catch (_) {}
+    }
+    if (!settings) settings = next === 'ps4'
+      ? { host: '', port: '2121', user: 'anonymous', password: '', basePath: '/' }
+      : { host: '', port: '21', user: '', password: '', basePath: 'Usb1' };
+    state.ftpManagerSettings[next] = { ...settings };
+    els.ftpManagerHost.value = settings.host || '';
+    els.ftpManagerPort.value = settings.port || (next === 'ps4' ? '2121' : '21');
+    els.ftpManagerUser.value = settings.user || (next === 'ps4' ? 'anonymous' : '');
+    els.ftpManagerPassword.value = settings.password || '';
+    els.ftpManagerBasePath.value = settings.basePath || (next === 'ps4' ? '/' : 'Usb1');
+    let rememberedIdentity = false;
+    try { rememberedIdentity = !!localStorage.getItem(next === 'ps4' ? PS4_FTP_IDENTITY_KEY : FTP_IDENTITY_KEY); } catch (_) {}
+    els.ftpManagerRemember.checked = rememberedIdentity;
+
+    const ps4 = next === 'ps4';
+    $('ftpManagerHeading').textContent = ps4 ? '🎮 PS4 FTP package manager' : '🗂️ Xbox FTP file manager';
+    $('ftpManagerDescription').textContent = ps4
+      ? 'Connect to a PS4 FTP service on your trusted home LAN. GoldHEN commonly uses port 2121 and an anonymous login; other PS4 FTP payloads may use a different port, so the connection fields are editable. The manager opens or creates /data/pkg by default, uploads PKG files unchanged, and can browse/import other files. FTP only copies the package; it does not install it. Temporary upload staging on this computer is cleared after success/cancel or helper shutdown; files on the PS4 are not auto-deleted.'
+      : 'Connect to Aurora/FreeStyle Dash FTP on your trusted home LAN. Browse the selected drive, create folders, upload any file type or folders from this computer, import selected Xbox files to this computer, open/edit Aurora\'s launch.ini, and delete remote items. This general-purpose manager does no content-specific filtering or conversion. Direct .zip and .7z archives are unpacked locally, then their files are uploaded unchanged. FTP is unencrypted; never expose it to the internet.';
+    $('ftpManagerHostLabel').textContent = ps4 ? 'PS4 IP address' : 'Xbox IP address';
+    $('ftpManagerPortLabel').textContent = 'FTP port';
+    $('ftpManagerUserLabel').textContent = 'FTP username';
+    els.ftpManagerHost.placeholder = ps4 ? '192.168.1.80' : '192.168.1.50';
+    els.ftpManagerUser.placeholder = ps4 ? 'anonymous (GoldHEN default)' : 'Check Aurora/FreeStyle FTP settings';
+    $('ftpManagerBasePathLabel').textContent = ps4 ? 'PS4 FTP root path' : 'Starting drive / FTP path';
+    $('ftpManagerBasePathHint').textContent = ps4
+      ? 'GoldHEN normally exposes the filesystem from /; keep this as / to open or create /data/pkg automatically. Change the FTP port for other PS4 payloads. Browsing remains under this root.'
+      : 'Enter the exact starting drive/path syntax exposed by your dashboard FTP server (for example Hdd1:/, Usb0:/, or usb0). A non-empty path is sent exactly as typed; blank defaults to Usb1. Browsing and actions stay below this starting path.';
+    $('ftpManagerRememberText').textContent = ps4
+      ? 'Remember PS4 IP and username in this browser. The password is never saved.'
+      : 'Remember Xbox IP and username in this browser. The password is never saved.';
+    els.heroFtpIntro.textContent = ps4
+      ? 'Browse your PS4 over its local FTP service and transfer PKG files to /data/pkg without changing their contents.'
+      : 'Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items.';
+    els.ftpManagerUseIsoBtn.hidden = ps4;
+    els.ftpManagerUseXblaBtn.hidden = ps4;
+    els.ftpManagerUsePs1Btn.hidden = ps4;
+    $('ftpManagerDropTitle').textContent = ps4 ? 'Drop PKG files or other files/folders here' : 'Drop multiple files or a folder here';
+    $('ftpManagerDropDescription').textContent = ps4
+      ? 'PKG files and other file types upload unchanged to the current PS4 folder. The default /data/pkg folder is opened automatically. Multiple files upload one at a time; folder drops keep their subfolder structure. ZIP/7z archives are unpacked locally. Drag a remote file row onto a folder row to move it, or use Import to download remote files. FTP copies the PKG only; install it separately on the PS4. Only the local temporary staging file is auto-cleared after completion or cancel; the PS4 copy stays in place.'
+      : 'Any file type uploads byte-for-byte with the selected name into the current console folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within console FTP, or prepare one small file for a real desktop drag-out in supported browsers. The manager does not rewrite names; the console filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.';
+    $('ftpManagerUsageHelp').innerHTML = ps4
+      ? 'Select rows to highlight them, then use <strong>⬆ Upload files</strong>, <strong>⬆ Upload folder</strong>, or drop files to send them. Select PKG files and upload them to <code>/data/pkg</code>; the manager preserves the filename and bytes and does not install the package. Use <strong>Import</strong> to download selected remote files. The same folder navigation, create, move, rename, and delete controls are available. The file manager never deletes PS4 files automatically; only local temporary upload staging is cleared after success/cancel or helper shutdown.'
+      : FTP_MANAGER_XBOX_USAGE_HELP;
+    invalidateFtpManager(ps4 ? 'PS4 selected; connect to the PS4 FTP server to continue.' : 'Xbox selected; reconnect to the Xbox FTP server to continue.');
+  }
+  function managerConsoleName() { return state.ftpManagerPlatform === 'ps4' ? 'PS4' : 'Xbox'; }
   function managerSetActivity(message, isError = false) {
     const text = message || '';
     const lower = String(text).toLowerCase();
@@ -5403,7 +5498,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
   function managerBasePathValue() {
     const raw = els.ftpManagerBasePath.value;
-    return raw.trim() ? raw : 'Usb1';
+    return raw.trim() ? raw : (state.ftpManagerPlatform === 'ps4' ? '/' : 'Usb1');
   }
   function managerCurrentPath() {
     const base = managerBasePathValue();
@@ -5416,7 +5511,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     for (const el of [els.ftpManagerHost, els.ftpManagerPort, els.ftpManagerUser, els.ftpManagerPassword, els.ftpManagerBasePath, els.ftpManagerRemember]) el.disabled = !!busy;
     for (const el of [els.ftpManagerUpBtn, els.ftpManagerRefreshBtn, els.ftpManagerBackBtn, els.ftpManagerForwardBtn, els.ftpManagerMkdirBtn, els.ftpManagerUploadBtn, els.ftpManagerUploadFolderBtn, els.ftpManagerDownloadBtn, els.ftpManagerCopyDesktopBtn, els.ftpManagerPrepareDragBtn, els.ftpManagerEditBtn, els.ftpManagerDeleteBtn, els.ftpManagerFilesInput, els.ftpManagerFolderInput, els.ftpManagerSelectAll, els.ftpManagerSearch, els.ftpManagerJumpPath, els.ftpManagerJumpBtn]) el.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerConnectBtn.disabled = !!busy || !state.ftpToken;
-    for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskFtpMode]) el.disabled = !!busy;
+    for (const el of [els.taskIsoMode, els.taskRawMode, els.taskPsxMode, els.taskSnesMode, els.taskFtpMode, els.taskPs4FtpMode]) el.disabled = !!busy;
     els.ftpManagerUseIsoBtn.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerUseXblaBtn.disabled = !!busy || !state.ftpManagerConnected;
     els.ftpManagerUsePs1Btn.disabled = !!busy || !state.ftpManagerConnected;
@@ -5705,7 +5800,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const deletable = selected.length > 0 && selected.every(entry => entry.type === 'file' || entry.type === 'dir');
     els.ftpManagerDownloadBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !onlyFiles;
     els.ftpManagerDownloadBtn.textContent = selected.length ? '⬇ Import (' + selected.length + ')' : '⬇ Import';
-    els.ftpManagerDownloadBtn.title = selected.length && !onlyFiles ? 'Open folders and select files to import them to your computer.' : 'Import selected Xbox files to your computer’s Downloads folder.';
+    els.ftpManagerDownloadBtn.title = selected.length && !onlyFiles ? 'Open folders and select files to import them to your computer.' : 'Import selected console files to your computer’s Downloads folder.';
     els.ftpManagerCopyDesktopBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !onlyFiles || !hasDirPicker;
     els.ftpManagerCopyDesktopBtn.textContent = selected.length ? '🖥 Copy to Desktop (' + selected.length + ')' : '🖥 Copy to Desktop';
     els.ftpManagerCopyDesktopBtn.title = !hasDirPicker
@@ -5723,9 +5818,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       : selected.length > 1 ? 'Prepare drag-out handles one file at a time; use Import for multiple files.'
       : selectedBytes > FTP_MANAGER_DRAG_OUT_MAX_BYTES ? 'Drag-out preparation is limited to 64 MiB per file; use Import selected for larger files.'
       : 'Stage one selected file with its real bytes for desktop drag-out (64 MiB maximum, expires after 15 minutes).';
-    const launchIniSelected = selected.length === 1 && selected[0].type === 'file' && selected[0].name.toLocaleLowerCase() === 'launch.ini';
+    const launchIniSelected = state.ftpManagerPlatform !== 'ps4' && selected.length === 1 && selected[0].type === 'file' && selected[0].name.toLocaleLowerCase() === 'launch.ini';
     els.ftpManagerEditBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !launchIniSelected;
-    els.ftpManagerEditBtn.title = launchIniSelected ? 'Open launch.ini in the themed text editor and save edits to Xbox over FTP.' : 'Select exactly one file named launch.ini to edit it.';
+    els.ftpManagerEditBtn.title = launchIniSelected ? 'Open launch.ini in the themed text editor and save edits to Xbox over FTP.' : state.ftpManagerPlatform === 'ps4' ? 'The launch.ini editor is an Xbox-only tool.' : 'Select exactly one file named launch.ini to edit it.';
     els.ftpManagerDeleteBtn.disabled = !state.ftpManagerConnected || state.ftpManagerBusy || !deletable;
     els.ftpManagerDeleteBtn.textContent = selected.length ? '🗑 Delete (' + selected.length + ')' : '🗑 Delete';
     els.ftpManagerSelectAll.checked = visible.length > 0 && selectedVisible.length === visible.length;
@@ -5741,7 +5836,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       if (managerPathKey(path) !== managerPathKey(state.ftpManagerSegments)) return;
       if (result.availableBytes != null && Number.isFinite(Number(result.availableBytes)) && Number(result.availableBytes) >= 0) {
         els.ftpManagerStorageInfo.textContent = 'Free: ' + fmtBytes(Number(result.availableBytes)) + ' available';
-        els.ftpManagerStorageInfo.title = 'Free space reported by the Xbox FTP server for the current remote path.';
+        els.ftpManagerStorageInfo.title = 'Free space reported by the remote FTP server for the current path.';
       } else {
         els.ftpManagerStorageInfo.textContent = 'Free space: not reported';
         els.ftpManagerStorageInfo.title = 'This FTP server does not support the optional AVBL free-space command.';
@@ -5753,7 +5848,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     }
   }
   async function managerRefresh() {
-    if (!state.ftpManagerConnected) throw new Error('Connect to the Xbox FTP server first.');
+    if (!state.ftpManagerConnected) throw new Error('Connect to the ' + managerConsoleName() + ' FTP server first.');
     const result = await bridgeRequest('/api/fs/list', { segments: state.ftpManagerSegments });
     state.ftpManagerCwd = result.cwd || managerCurrentPath();
     state.ftpManagerEntries = Array.isArray(result.entries) ? result.entries : [];
@@ -5857,7 +5952,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     resolve(result);
     if (restore && typeof restore.focus === 'function') restore.focus();
   }
-  function showFtpManagerDialog({ title = 'Xbox FTP', message = '', mode = 'confirm', value = '', confirmLabel = 'Continue', cancelLabel = 'Cancel', danger = false } = {}) {
+  function showFtpManagerDialog({ title = 'FTP file manager', message = '', mode = 'confirm', value = '', confirmLabel = 'Continue', cancelLabel = 'Cancel', danger = false } = {}) {
     if (ftpManagerDialogResolve) return Promise.resolve(null);
     ftpManagerDialogMode = mode;
     ftpManagerDialogPreviousFocus = document.activeElement;
@@ -5958,14 +6053,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   async function ftpManagerConnect() {
     if (state.ftpManagerBusy || !state.ftpToken) return;
-    managerSetActivity('Connecting to Xbox FTP…');
+    const isPs4 = state.ftpManagerPlatform === 'ps4';
+    const consoleName = isPs4 ? 'PS4' : 'Xbox';
+    managerSetActivity('Connecting to ' + consoleName + ' FTP…');
     els.ftpManagerConnectBtn.disabled = true;
     try {
       const basePath = managerBasePathValue();
-      els.ftpManagerStatus.textContent = 'Trying to connect to Xbox FTP at ' + basePath + '…';
+      els.ftpManagerStatus.textContent = 'Trying to connect to ' + consoleName + ' FTP at ' + basePath + '…';
       els.ftpManagerStatus.classList.remove('is-connected');
       const result = await bridgeRequest('/api/connect', {
-        host: els.ftpManagerHost.value.trim(), port: Number(els.ftpManagerPort.value || 21),
+        host: els.ftpManagerHost.value.trim(), port: Number(els.ftpManagerPort.value || (isPs4 ? 2121 : 21)),
         user: els.ftpManagerUser.value, password: els.ftpManagerPassword.value, basePath
       });
       state.ftpManagerBasePath = basePath;
@@ -5983,15 +6080,35 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       els.ftpManagerStatus.classList.add('is-connected');
       els.ftpManagerBrowser.hidden = false;
       managerSetBusy(true);
-      managerSetActivity('Connected; reading remote folder…');
-      try { await managerRefresh(); }
-      catch (err) { managerSetActivity('Connected, but could not list this folder: ' + (err.message || String(err)) + ' Try Refresh; if this continues, check FTP directory-list support in the dashboard.', true); }
+      if (isPs4) {
+        managerSetActivity('Opening or creating PS4 package folder /data/pkg…');
+        try {
+          await managerEnsureDirectory(['data']);
+          await managerEnsureDirectory(['data', 'pkg']);
+          state.ftpManagerSegments = ['data', 'pkg'];
+          managerRecordNavigation(state.ftpManagerSegments);
+          await managerRefresh();
+          managerSetActivity('Connected to PS4. Ready to upload PKG files to ' + managerCurrentPath() + '.');
+        } catch (err) {
+          state.ftpManagerSegments = [];
+          try {
+            await managerRefresh();
+            managerSetActivity('Connected, but could not open /data/pkg: ' + (err.message || String(err)) + '. Browse to a writable package folder or create it manually.', true);
+          } catch (listErr) {
+            throw new Error('Connected, but could not prepare /data/pkg or list the FTP root: ' + (listErr.message || String(listErr)));
+          }
+        }
+      } else {
+        managerSetActivity('Connected; reading remote folder…');
+        try { await managerRefresh(); }
+        catch (err) { managerSetActivity('Connected, but could not list this folder: ' + (err.message || String(err)) + ' Try Refresh; if this continues, check FTP directory-list support in the dashboard.', true); }
+      }
     } catch (err) {
       state.ftpManagerConnected = false;
       els.ftpManagerStatus.textContent = 'Not connected: ' + (err.message || String(err));
       els.ftpManagerStatus.classList.remove('is-connected');
       els.ftpManagerBrowser.hidden = true;
-      managerSetActivity('Check the IP, port, credentials, drive path, and local helper.', true);
+      managerSetActivity('Check the ' + (isPs4 ? 'PS4 FTP service, IP, port, credentials, local network, and local helper.' : 'IP, port, credentials, drive path, and local helper.'), true);
     } finally { managerSetBusy(false); }
   }
   async function managerCreateFolder() {
@@ -6034,7 +6151,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const oldName = entry.name;
     const answer = await showFtpManagerDialog({
       title: 'Rename remote file',
-      message: 'Enter the new filename. The file contents stay on Xbox; only its name changes.',
+      message: 'Enter the new filename. The file contents stay on ' + managerConsoleName() + '; only its name changes.',
       mode: 'prompt', value: oldName, confirmLabel: 'Next'
     });
     if (answer == null) return;
@@ -6090,10 +6207,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     let completed = 0;
     try {
       for (const entry of selected) {
-        managerSetActivity('Preparing Xbox download ' + (completed + 1) + '/' + selected.length + ': ' + entry.name);
+        managerSetActivity('Preparing ' + managerConsoleName() + ' download ' + (completed + 1) + '/' + selected.length + ': ' + entry.name);
         // Use a short-lived, one-use local download ticket and let the browser
         // stream the attachment directly. This avoids buffering large/binary save
-        // files in a Blob and keeps extensionless Xbox save names unchanged.
+        // files in a Blob and keeps extensionless save names unchanged.
         const ticket = await bridgeRequest('/api/fs/download-ticket', {
           segments: [...state.ftpManagerSegments, entry.name]
         });
@@ -6110,7 +6227,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       }
       managerSetActivity('Started browser download for ' + completed + ' file(s). Check your browser’s Downloads list.');
     } catch (err) {
-      managerSetActivity('Could not start Xbox download after ' + completed + ' file(s): ' + (err.message || String(err)), true);
+      managerSetActivity('Could not start ' + managerConsoleName() + ' download after ' + completed + ' file(s): ' + (err.message || String(err)), true);
     } finally { managerSetBusy(false); managerUpdateSelectionControls(); }
   }
   async function managerCopySelectedToDesktop() {
@@ -6166,7 +6283,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     let copied = 0;
     try {
       for (const entry of selected) {
-        managerSetActivity('Copying from Xbox ' + (copied + 1) + '/' + selected.length + ': ' + entry.name);
+        managerSetActivity('Copying from ' + managerConsoleName() + ' ' + (copied + 1) + '/' + selected.length + ': ' + entry.name);
         const blob = await bridgeDownload('/api/fs/download', { segments: [...folder, entry.name] });
         const fileHandle = await destination.getFileHandle(entry.name, { create: true });
         const writable = await fileHandle.createWritable();
@@ -6205,7 +6322,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     managerSetBusy(true);
     let exportId = null;
     try {
-      managerSetActivity('Downloading ' + entry.name + ' from Xbox for drag-out…');
+      managerSetActivity('Downloading ' + entry.name + ' from ' + managerConsoleName() + ' for drag-out…');
       const blob = await bridgeDownload('/api/fs/download', { segments: [...folder, entry.name], maxBytes: FTP_MANAGER_DRAG_OUT_MAX_BYTES });
       if (blob.size > FTP_MANAGER_DRAG_OUT_MAX_BYTES) throw new Error('The file exceeds the 64 MiB drag-out limit; use Import selected instead.');
       managerSetActivity('Staging the actual file bytes locally for desktop drag-out…');
@@ -6272,7 +6389,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         managerSetActivity('Move stopped: the destination already has ' + collisions.join(', ') + '. Existing files are never overwritten by a move.', true);
         return;
       }
-      const ok = await managerConfirm('Move ' + selected.length + ' remote file(s) from ' + managerCurrentPath() + ' into ' + (destinationList.cwd || destinationSegments.join('/')) + '? The files will leave this folder; their contents and names stay unchanged.', { title: 'Move files within Xbox FTP', confirmLabel: 'Move files' });
+      const ok = await managerConfirm('Move ' + selected.length + ' remote file(s) from ' + managerCurrentPath() + ' into ' + (destinationList.cwd || destinationSegments.join('/')) + '? The files will leave this folder; their contents and names stay unchanged.', { title: 'Move files within ' + managerConsoleName() + ' FTP', confirmLabel: 'Move files' });
       if (!ok) { managerSetActivity('Move canceled; no remote files were changed.'); return; }
       managerClearPreparedDragFiles();
       for (let i = 0; i < selected.length; i++) {
@@ -6320,18 +6437,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     await bridgeRequest('/api/fs/mkdir', { segments: segments.slice(0, -1), name: segments[segments.length - 1] });
   }
   async function managerUploadItems(items, targetSegments = state.ftpManagerSegments) {
-    if (!state.ftpManagerConnected) throw new Error('Connect to the Xbox FTP server first.');
+    if (!state.ftpManagerConnected) throw new Error('Connect to the ' + managerConsoleName() + ' FTP server first.');
     if (state.ftpManagerBusy) throw new Error('Another FTP manager action is already in progress.');
     const valid = (items || []).filter(item => item && item.file);
     if (!valid.length) throw new Error('No files were found in that drop/selection.');
     const prepared = valid.map(item => {
       const path = managerSafeRelativePath(item.path || item.file.name);
-      if (item.file.size > 20 * 1024 * 1024 * 1024) throw new Error(item.file.name + ' exceeds the 20 GiB per-file limit.');
+      if (item.file.size > FTP_MANAGER_MAX_FILE_BYTES) throw new Error(item.file.name + ' exceeds the 100 GiB per-file limit.');
       return { file: item.file, path };
     });
     const keys = prepared.map(item => item.path.join('/').toLowerCase());
     if (new Set(keys).size !== keys.length) throw new Error('The selection has duplicate relative filenames. Choose one copy of each file.');
-    if (!await managerConfirm('Upload ' + prepared.length + ' file(s) into ' + managerCurrentPath() + (targetSegments.length > state.ftpManagerSegments.length ? '/' + targetSegments.slice(state.ftpManagerSegments.length).join('/') : '') + '? Matching remote filenames will be replaced.', { title: 'Upload to Xbox', confirmLabel: 'Upload files' })) return false;
+    if (!await managerConfirm('Upload ' + prepared.length + ' file(s) into ' + managerCurrentPath() + (targetSegments.length > state.ftpManagerSegments.length ? '/' + targetSegments.slice(state.ftpManagerSegments.length).join('/') : '') + '? Matching remote filenames will be replaced.', { title: 'Upload to ' + managerConsoleName(), confirmLabel: 'Upload files' })) return false;
     managerSetBusy(true);
     try {
       let completed = 0;
@@ -6468,7 +6585,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     ev.preventDefault(); els.ftpManagerDropZone.classList.remove('dragover');
     if (!state.ftpManagerConnected || state.ftpManagerBusy) return;
     if (managerIsRemoteDrag(ev.dataTransfer)) {
-      managerSetActivity('To move files within Xbox FTP, drop the remote file row directly onto a folder row.');
+      managerSetActivity('To move files within ' + managerConsoleName() + ' FTP, drop the remote file row directly onto a folder row.');
       return;
     }
     try { await managerUploadDataTransfer(ev.dataTransfer, state.ftpManagerSegments); }
@@ -6488,7 +6605,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const file = item.file;
       const unsafeName = !file.name || file.name === '.' || file.name === '..' || file.name.includes('/') || file.name.includes('\\') || Array.from(file.name).some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127);
       if (!/^[0-9A-F]{8}$/.test(item.titleId) || unsafeName) throw new Error('A dropped path or filename is invalid. Drop the Title ID folder and its 000D0000 content files.');
-      if (file.size > 20 * 1024 * 1024 * 1024) throw new Error(file.name + ' exceeds the 20 GiB per-file limit.');
+      if (file.size > 100 * 1024 * 1024 * 1024) throw new Error(file.name + ' exceeds the 100 GiB per-file limit.');
     }
     state.rawUploadTotalBytes = items.reduce((sum, item) => sum + Math.max(0, Number(item.file.size) || 0), 0);
     state.rawUploadCompletedBytes = 0;

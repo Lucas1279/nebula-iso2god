@@ -278,6 +278,30 @@ class FTPRouteTests(unittest.TestCase):
         self.assertEqual(result["cwd"], "/usb1")
         self.assertEqual(ftp_helper.CONFIG["basePath"], "usb1")
 
+    def test_connect_route_accepts_goldhen_default_port_and_anonymous_login(self):
+        captured = []
+
+        class CaptureFTP:
+            def cwd(self, path):
+                self.path = path
+            def pwd(self):
+                return self.path
+            def quit(self):
+                pass
+
+        def login(cfg):
+            captured.append(dict(cfg))
+            return CaptureFTP()
+
+        with patch.object(ftp_helper, "ftp_login", side_effect=login):
+            result = self.post("/api/connect", {
+                "host": "ps4", "port": 2121, "user": "anonymous", "password": "", "basePath": "/"
+            })
+        self.assertEqual(result["cwd"], "/")
+        self.assertEqual(captured[0]["port"], 2121)
+        self.assertEqual(captured[0]["user"], "anonymous")
+        self.assertEqual(ftp_helper.CONFIG["basePath"], "/")
+
     def test_storage_route_reports_optional_free_bytes_or_unavailable(self):
         commands = []
 
@@ -331,6 +355,17 @@ class FTPRouteTests(unittest.TestCase):
         self.assertIn("TYPE I", self.ftp_instances[-1].commands)
         with self.assertRaises(Exception):
             urlopen(self.url + ticket["url"], timeout=3)
+
+    def test_upload_staging_allows_large_ps4_pkg_files_and_keeps_hard_ceiling(self):
+        size = 20 * 1024 * 1024 * 1024 + 1
+        begun = self.post("/api/file/begin", {"segments": ["data", "pkg", "large.pkg"], "size": size})
+        self.assertIn(begun["id"], ftp_helper.ACTIVE)
+        self.post("/api/file/abort", {"id": begun["id"]})
+        request = Request(self.url + "/api/file/begin", data=json.dumps({
+            "segments": ["data", "pkg", "too-large.pkg"], "size": ftp_helper.FTP_FILE_MAX_BYTES + 1
+        }).encode(), method="POST", headers={"Content-Type": "application/json", "X-Nebula-Token": ftp_helper.TOKEN})
+        with self.assertRaises(Exception):
+            urlopen(request, timeout=3)
 
     def test_extensionless_game_save_upload_preserves_binary_bytes(self):
         begun = self.post("/api/file/begin", {

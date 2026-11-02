@@ -1,6 +1,6 @@
 # Nebula ISO2GOD — optional FTP upload
 
-This build includes a local Python helper for FTP because a browser on GitHub Pages cannot open raw FTP connections. The helper serves the page at `http://127.0.0.1:8765/` and connects from your computer to your Xbox.
+This build includes a local Python helper for FTP because a browser on GitHub Pages cannot open raw FTP connections. The helper serves the page at `http://127.0.0.1:8765/` and connects from your computer to your Xbox 360 or PS4 over your trusted LAN.
 
 ## Start it (Windows, macOS, or Linux)
 
@@ -31,6 +31,14 @@ Use **Upload files**, **Upload folder**, or drag PC files/folders into the dashe
 The **Use for ISO → GOD / XBLA / PS1** shortcuts set the selected tool's FTP destination to the currently viewed folder and transfer the active helper connection to that tool. The ISO/XBLA tools create their normal `Content/…` structure below the chosen base; PS1 uploads go to that folder unless a subfolder is selected. Reconnect in the manager when returning to browse, because the helper uses one active FTP connection configuration at a time.
 
 FTP is usually unencrypted. Use this only on a trusted local network. Never forward the Xbox FTP port from your router or expose it to the internet. The helper itself remains loopback-only on your computer; the FTP connection from the helper to the Xbox travels over your LAN.
+
+## PS4 FTP package manager
+
+Choose **PS4 FTP package manager** in the locally served app, enable the FTP server in the PS4 homebrew environment you use, and enter the console LAN IP. GoldHEN commonly uses port `2121`; other PS4 FTP payloads may use different ports, so the host, port, username, password, and starting path are editable. The defaults are port `2121`, username `anonymous`, a blank password, and starting path `/`. GoldHEN must have its FTP server enabled before connecting. See the [ConsoleMods PS4 FTP guide](https://consolemods.org/wiki/PS4:Transferring_Files_with_FTP) for server-specific notes.
+
+After connecting, the manager opens `/data/pkg`, creating `data` and/or `pkg` if needed and permitted by the FTP account. Upload `.pkg` files with **Upload files**, **Upload folder**, or the drop area; files are sent unchanged, keeping their names and bytes. FTP only transfers the package—it does **not** install it. Use the PS4's package installer separately. The manager supports package files up to 100 GiB, but the local helper stages uploads first, so make sure this computer has enough free disk space. Temporary local upload stages are automatically removed after success, cancellation, or helper shutdown (or on the helper's next start after an unexpected exit). The uploaded file on the PS4 is never removed by that cleanup.
+
+PS4 file browsing, upload, download/import, folder creation, rename, move, and manual delete use the same shared file-manager controls. FTP is usually unencrypted; use a trusted home LAN and do not expose the PS4 FTP port to the internet. GoldHEN FTP reference: [ConsoleMods GoldHEN notes](https://consolemods.org/wiki/PS4:GoldHEN).
 
 ## Convert and send an ISO
 

@@ -19,7 +19,7 @@ from pathlib import Path
 
 HOST, PORT = "127.0.0.1", 8765
 CONNECT_TIMEOUT = 25
-TRANSFER_IDLE_TIMEOUT = 180  # Xbox USB/network writes can pause; allow 3 minutes without a packet.
+TRANSFER_IDLE_TIMEOUT = 180  # Console USB/network writes can pause; allow 3 minutes without a packet.
 ROOT = Path(__file__).resolve().parent
 TOKEN = secrets.token_urlsafe(32)
 LOCK = threading.Lock()
@@ -30,6 +30,7 @@ LOCAL_OUTPUT_SESSIONS = {}
 LOCAL_OUTPUT_FILES = {}
 LOCAL_OUTPUT_SESSION_TTL = 12 * 60 * 60
 LOCAL_OUTPUT_MAX_FILE = 20 * 1024 * 1024 * 1024
+FTP_FILE_MAX_BYTES = 100 * 1024 * 1024 * 1024
 DRAG_EXPORT_MAX_BYTES = 64 * 1024 * 1024
 DRAG_EXPORT_TTL_SECONDS = 15 * 60
 DOWNLOAD_TICKETS = {}
@@ -50,7 +51,7 @@ def ftp_login(cfg):
     ftp = ftplib.FTP()
     ftp.connect(cfg["host"], cfg["port"], timeout=CONNECT_TIMEOUT)
     ftp.login(cfg["user"], cfg["password"])
-    # Keep connection/login failures quick, but tolerate slow Xbox USB/HDD writes.
+    # Keep connection/login failures quick, but tolerate slow console storage writes.
     ftp.timeout = TRANSFER_IDLE_TIMEOUT
     control = getattr(ftp, "sock", None)
     if control is not None:
@@ -294,7 +295,7 @@ def ftp_list_entries(ftp):
     try:
         names = ftp.nlst()
     except (ftplib.error_perm, OSError, EOFError) as exc:
-        raise RuntimeError("This Xbox FTP server did not provide a readable directory listing: " + str(exc))
+        raise RuntimeError("This FTP server did not provide a readable directory listing: " + str(exc))
     current = ftp.pwd()
     seen = set()
     for raw_name in names:
@@ -388,7 +389,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _stream_remote_file(self, segments, cfg, max_bytes):
-        """Stream one Xbox file as an attachment without changing its name or bytes."""
+        """Stream one console file as an attachment without changing its name or bytes."""
         parent, name = segments[:-1], clean_name(segments[-1])
         ftp = ftp_login(cfg)
         data_sock = None
@@ -408,7 +409,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 raise ValueError("That file exceeds the requested import size limit.")
 
             # ftplib's transfercmd does not switch to binary mode by itself.
-            # Xbox game saves are opaque bytes (often extensionless), so TYPE I
+            # Console game saves are opaque bytes (often extensionless), so TYPE I
             # is required to prevent ASCII newline conversion/corruption.
             ftp.voidcmd("TYPE I")
             ftp.timeout = TRANSFER_IDLE_TIMEOUT
@@ -468,7 +469,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         DOWNLOAD_TICKETS.pop(ticket_id, None)
                 ticket = DOWNLOAD_TICKETS.pop(ident, None)
             if not ticket or ticket.get("expires", 0) <= now:
-                return send_json(self, 404, {"error": "This Xbox download link expired or was already used. Select the file and import it again."})
+                return send_json(self, 404, {"error": "This console download link expired or was already used. Select the file and import it again."})
             try:
                 return self._stream_remote_file(ticket["segments"], ticket["config"], ticket["maxBytes"])
             except Exception as exc:
@@ -743,7 +744,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if not base.strip():
                     base = "Hdd1:/"
                 if not host or len(host) > 253 or port < 1 or port > 65535 or not user:
-                    raise ValueError("Enter a valid Xbox IP/host, port, and username.")
+                    raise ValueError("Enter a valid console IP/host, port, and username.")
                 if any(c in value for value in (host, user, password, base) for c in ("\n", "\r", "\x00")):
                     raise ValueError("Invalid connection field.")
                 trial = {"host": host, "port": port, "user": user, "password": password, "basePath": base}
@@ -763,12 +764,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 segments = clean_segments(data.get("segments", []), allow_empty=True)
                 cfg = CONFIG
                 if not cfg:
-                    raise ValueError("Connect to the Xbox FTP server first.")
+                    raise ValueError("Connect to the FTP server first.")
                 ftp = ftp_login(cfg)
                 try:
                     cwd = ftp_cwd(ftp, cfg, segments)
                     # Browsing should fail fast rather than leave the page stuck if
-                    # an Xbox dashboard's directory-list command stalls.
+                    # a console FTP server's directory-list command stalls.
                     ftp.timeout = 12
                     control = getattr(ftp, "sock", None)
                     if control is not None:
@@ -790,12 +791,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         if ticket.get("expires", 0) <= now:
                             DOWNLOAD_TICKETS.pop(ticket_id, None)
                     if not cfg:
-                        raise ValueError("Connect to the Xbox FTP server first.")
+                        raise ValueError("Connect to the FTP server first.")
                     ident = secrets.token_urlsafe(32)
                     DOWNLOAD_TICKETS[ident] = {
                         "segments": segments,
                         "config": cfg,
-                        "maxBytes": 20 * 1024 * 1024 * 1024,
+                        "maxBytes": FTP_FILE_MAX_BYTES,
                         "expires": now + DOWNLOAD_TICKET_TTL_SECONDS,
                     }
                 return send_json(self, 200, {
@@ -810,8 +811,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 with LOCK:
                     cfg = dict(CONFIG) if CONFIG else None
                 if not cfg:
-                    raise ValueError("Connect to the Xbox FTP server first.")
-                max_bytes = 20 * 1024 * 1024 * 1024
+                    raise ValueError("Connect to the FTP server first.")
+                max_bytes = FTP_FILE_MAX_BYTES
                 requested_limit = data.get("maxBytes")
                 if requested_limit is not None:
                     if isinstance(requested_limit, bool):
@@ -821,7 +822,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     except (TypeError, ValueError):
                         raise ValueError("Invalid download size limit.")
                     if requested_limit < 1 or requested_limit > max_bytes:
-                        raise ValueError("Download size limit must be between 1 byte and 20 GiB.")
+                        raise ValueError("Download size limit must be between 1 byte and 100 GiB.")
                     max_bytes = requested_limit
                 return self._stream_remote_file(segments, cfg, max_bytes)
 
@@ -830,7 +831,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 segments = clean_segments(data.get("segments"), allow_empty=True)
                 cfg = CONFIG
                 if not cfg:
-                    raise ValueError("Connect to the Xbox FTP server first.")
+                    raise ValueError("Connect to the FTP server first.")
                 ftp = ftp_login(cfg)
                 try:
                     ftp_cwd(ftp, cfg, segments)
@@ -846,7 +847,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 name = clean_name(data.get("name"))
                 cfg = CONFIG
                 if not cfg:
-                    raise ValueError("Connect to the Xbox FTP server first.")
+                    raise ValueError("Connect to the FTP server first.")
                 ftp = ftp_login(cfg)
                 try:
                     ftp_cwd(ftp, cfg, segments)
@@ -884,7 +885,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     raise ValueError("Choose a destination subfolder.")
                 cfg = CONFIG
                 if not cfg:
-                    raise ValueError("Connect to the Xbox FTP server first.")
+                    raise ValueError("Connect to the FTP server first.")
                 ftp = ftp_login(cfg)
                 try:
                     ftp_cwd(ftp, cfg, source_parent)
@@ -914,7 +915,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     raise ValueError("Case-only renames are not supported; choose a different filename.")
                 cfg = CONFIG
                 if not cfg:
-                    raise ValueError("Connect to the Xbox FTP server first.")
+                    raise ValueError("Connect to the FTP server first.")
                 ftp = ftp_login(cfg)
                 try:
                     ftp_cwd(ftp, cfg, parent)
@@ -936,7 +937,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 recursive = data.get("recursive", False) is True
                 cfg = CONFIG
                 if not cfg:
-                    raise ValueError("Connect to the Xbox FTP server first.")
+                    raise ValueError("Connect to the FTP server first.")
                 parent = segments[:-1]
                 name = clean_name(segments[-1])
                 ftp = ftp_login(cfg)
@@ -970,10 +971,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 data = json.loads(self._body().decode("utf-8"))
                 segments = clean_segments(data.get("segments"))
                 expected = int(data.get("size", -1))
-                if expected < 0 or expected > 20 * 1024 * 1024 * 1024:
+                if expected < 0 or expected > FTP_FILE_MAX_BYTES:
                     raise ValueError("Invalid expected file size.")
                 if not CONFIG:
-                    raise ValueError("Connect to the Xbox FTP server first.")
+                    raise ValueError("Connect to the FTP server first.")
                 ident = secrets.token_urlsafe(18)
                 fd, tmp = tempfile.mkstemp(prefix="nebula-ftp-", suffix=".part")
                 os.close(fd)
@@ -1054,7 +1055,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 except Exception as exc:
                     message = str(exc) or exc.__class__.__name__
                     if isinstance(exc, (TimeoutError, socket.timeout)) or message.lower() == "timed out":
-                        message = "FTP transfer stalled for 180 seconds. Check the Xbox/USB/network, then retry; wired Ethernet is more reliable."
+                        message = "FTP transfer stalled for 180 seconds. Check the console, storage, and network, then retry; wired Ethernet is more reliable."
                     with LOCK:
                         item["state"] = "error"
                         item["error"] = message
