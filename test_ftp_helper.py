@@ -445,7 +445,7 @@ class FTPRouteTests(unittest.TestCase):
 
     def test_remote_pkg_file_server_supports_head_and_byte_ranges_without_copying_source(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            source = Path(temp_dir) / "Example.pkg"
+            source = Path(temp_dir) / "Example [EU] Game.pkg"
             payload = bytes(range(256)) * 100
             source.write_bytes(payload)
             session = ftp_helper.start_remote_pkg_file_server(source, "127.0.0.1")
@@ -453,6 +453,9 @@ class FTPRouteTests(unittest.TestCase):
                 with urlopen(session["url"], timeout=3) as response:
                     self.assertEqual(response.status, 200)
                     self.assertEqual(response.headers.get("Accept-Ranges"), "bytes")
+                    self.assertEqual(response.headers.get("Content-Disposition"), 'attachment; filename="package-0.pkg"')
+                    self.assertNotIn(" ", session["url"])
+                    self.assertNotIn("[", session["url"])
                     self.assertEqual(response.read(), payload)
                 request = Request(session["url"], headers={"Range": "bytes=17-39"})
                 with urlopen(request, timeout=3) as response:
@@ -496,13 +499,38 @@ class FTPRouteTests(unittest.TestCase):
             body = json.loads(requests[0].data)
             self.assertEqual(body["type"], "direct")
             self.assertEqual(len(body["packages"]), 1)
-            self.assertIn("Game.pkg", body["packages"][0])
+            self.assertTrue(body["packages"][0].endswith("/0.pkg"))
+            self.assertEqual(result["fileName"], "Game.pkg")
             with urlopen(body["packages"][0], timeout=3) as response:
                 self.assertEqual(response.read(), payload)
             self.assertTrue(source.exists())
             self.assertEqual(source.read_bytes(), payload)
             stopped = self.post("/api/remote-pkg/stop", {"sessionId": result["sessionId"]})
             self.assertTrue(stopped["stopped"])
+
+    def test_remote_pkg_install_surfaces_ps4_http_error_body(self):
+        from io import BytesIO
+        from urllib.error import HTTPError
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "Game.pkg"
+            source.write_bytes(b"valid-looking pkg bytes")
+            error_body = b'{"status":"fail","error":"Unable to load system file object"}'
+            def fake_open(_request, timeout=None):
+                self.assertEqual(timeout, 20)
+                raise HTTPError("http://192.168.1.20:12800/api/install", 500, "Internal server error", {}, BytesIO(error_body))
+            with (
+                patch.object(ftp_helper, "choose_remote_pkg_files", return_value=[source]),
+                patch.object(ftp_helper, "remote_pkg_lan_address", return_value=("192.168.1.20", "127.0.0.1")),
+                patch.object(ftp_helper.urllib.request, "urlopen", side_effect=fake_open),
+            ):
+                request = Request(self.url + "/api/remote-pkg/install",
+                                  data=json.dumps({"host": "ps4", "port": 12800}).encode(), method="POST",
+                                  headers={"Content-Type": "application/json", "X-Nebula-Token": ftp_helper.TOKEN})
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(request, timeout=3)
+            response_body = json.loads(caught.exception.read())
+            self.assertIn("Unable to load system file object", response_body["error"])
+            self.assertFalse(ftp_helper.REMOTE_PKG_SERVERS)
 
     def test_remote_pkg_multipart_is_sorted_and_posted_as_ordered_original_urls(self):
         class FakeResponse:

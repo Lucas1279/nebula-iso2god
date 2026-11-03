@@ -287,7 +287,7 @@ def _remote_pkg_http_handler():
             self.send_header("Content-Length", str(length))
             self.send_header("Accept-Ranges", "bytes")
             self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Disposition", "attachment; filename*=UTF-8''" + urllib.parse.quote(path.name, safe=""))
+            self.send_header("Content-Disposition", f'attachment; filename="package-{file_entry["index"]}.pkg"')
             if status == 206:
                 self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
             self.send_header("Connection", "close")
@@ -318,8 +318,11 @@ def start_remote_pkg_files_server(paths, local_ip):
     token = secrets.token_urlsafe(32)
     for index, path in enumerate(paths):
         stat = path.stat()
-        url_path = "/pkg/" + token + "/" + str(index) + "/" + urllib.parse.quote(path.name, safe="")
-        files.append({"path": str(path), "name": path.name, "size": stat.st_size,
+        # Use a short ASCII-only serving alias rather than the user filename.
+        # The legacy PS4 HTTP client is strict about spaces/brackets in URLs;
+        # the PKG's internal metadata, not its URL basename, identifies it.
+        url_path = "/pkg/" + token + "/" + str(index) + ".pkg"
+        files.append({"path": str(path), "name": path.name, "index": index, "size": stat.st_size,
                       "mtimeNs": stat.st_mtime_ns, "urlPath": url_path})
     now = time.time()
     session = {"id": session_id, "files": files, "filesByUrlPath": {item["urlPath"]: item for item in files},
@@ -875,6 +878,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
                             rpi_result = {"message": body[:4000]}
                         if isinstance(rpi_result, dict) and str(rpi_result.get("status", "")).lower() in ("error", "failed"):
                             raise RuntimeError(str(rpi_result.get("message") or rpi_result.get("error") or "Remote Package Installer rejected the request."))
+                except urllib.error.HTTPError as exc:
+                    # Preserve the PS4 app's JSON error body; the HTTP status alone
+                    # hides useful diagnostics such as an unreadable PKG SFO or a
+                    # BGFT prerequisite failure.
+                    try:
+                        detail_body = exc.read(1024 * 1024).decode("utf-8", "replace")
+                    except Exception:
+                        detail_body = ""
+                    detail = detail_body
+                    try:
+                        detail_json = json.loads(detail_body) if detail_body else {}
+                        if isinstance(detail_json, dict):
+                            detail = str(detail_json.get("error") or detail_json.get("message") or detail_body)
+                    except json.JSONDecodeError:
+                        pass
+                    stop_remote_pkg_file_server(session["id"])
+                    raise RuntimeError(f"PS4 Remote Package Installer returned HTTP {exc.code}: {detail[:1500] or exc.reason}") from exc
                 except Exception:
                     stop_remote_pkg_file_server(session["id"])
                     raise

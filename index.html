@@ -418,7 +418,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
     <p id="heroModsIntro" class="workflow-mode-hidden">Build an extracted Xbox 360 game folder from an ISO and overlay game-specific mod files, including new or resized files. This packages files; it does not create a compatible menu or make plugin XEX files load automatically.</p>
     <p id="heroFtpIntro" class="workflow-mode-hidden">Browse and manage any file types on your Xbox 360 over your home-network FTP connection. Upload or import files and folders, create folders, and remove remote items. Direct .zip/.7z archives can be unpacked locally before uploading their contents.</p>
     <div class="badges" id="supportBadges"></div>
-    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.20 · build 2026-11-02</div>
+    <div class="build-line" id="appBuildLabel">Nebula ISO2GOD 1.9.23 · build 2026-11-02</div>
     <div class="tiny muted" style="margin-top:6px">Long jobs request a screen wake lock on supported browsers, and release it when finished. Keep this tab visible; browser limits, device sleep settings, or closing a laptop lid can override the request.</div>
     <div class="steps" id="isoSteps" aria-label="How it works">
       <div class="step"><b><span class="n">1</span> Import</b><span>Drop in an XGD2, XGD3, XGD1 or XSF/XISO image. The Title ID, Media ID and game details are read from <span class="kbd">default.xex</span>.</span></div>
@@ -510,7 +510,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
         <input id="ftpManagerFilesInput" type="file" multiple hidden>
         <input id="ftpManagerFolderInput" type="file" webkitdirectory directory multiple hidden>
         <div class="drop ftp-manager-drop" id="ftpManagerDropZone" role="region" aria-label="Drop files or folders here to upload to this console folder">
-          <div class="big" aria-hidden="true">📂</div><div class="t" id="ftpManagerDropTitle">Drop multiple files or a folder here</div><div class="s" id="ftpManagerDropDescription">Any file type uploads byte-for-byte with the selected name into the current console folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within console FTP, or prepare one small file for a real desktop drag-out in supported browsers. The manager does not rewrite names; the console filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.</div>
+          <div class="big" aria-hidden="true">📂</div><div class="t" id="ftpManagerDropTitle">Drop multiple files or a folder here</div><div class="s" id="ftpManagerDropDescription">Any file type uploads byte-for-byte with the selected name into the current console folder; multiple files upload one at a time and folder uploads retain the selected top-level folder (for example, Scorpion) plus every nested folder and file. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within console FTP, or prepare one small file for a real desktop drag-out in supported browsers. The manager does not rewrite names; the console filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.</div>
         </div>
         <div class="setup" id="ftpManagerArchiveProgressWrap" hidden style="margin-top:10px">
           <div class="bar-wrap thin"><div class="bar thin" id="ftpManagerArchiveProgressBar" style="width:0%"></div></div>
@@ -1052,7 +1052,7 @@ body.ftp-manager-dialog-open{overflow:hidden}
 
   <footer>
     <div>🎮 <strong>Nebula ISO2GOD</strong> — sibling of <a href="https://lucas1279.github.io/Nebula-convert/">NebulaConvert</a>, same nebula, different mission.</div>
-    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.20 · build 2026-11-02</div>
+    <div class="tiny" id="footerBuildLabel" style="margin-top:6px">Nebula ISO2GOD 1.9.23 · build 2026-11-02</div>
     <div class="tiny" style="margin-top:8px">Nebula ISO2GOD · a local, in-browser reimplementation of the Iso2God SVOD writer.<br>
     Format references: Chilano’s Iso2God, <span>iso2god-rs</span> (MIT), and the Free60 STFS/SVOD &amp; XDVDFS documentation.<br>
     Not affiliated with Microsoft or Xbox. Use only with backups of games you own.</div>
@@ -2217,7 +2217,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
 
   const hasDirPicker = typeof window.showDirectoryPicker === 'function';
   const hasSavePicker = typeof window.showSaveFilePicker === 'function';
-  const APP_VERSION = '1.9.20';
+  const APP_VERSION = '1.9.23';
   const APP_BUILD = '2026-11-02';
   const APP_BUILD_LABEL = 'Nebula ISO2GOD ' + APP_VERSION + ' · build ' + APP_BUILD;
   if (els.appBuildLabel) els.appBuildLabel.textContent = APP_BUILD_LABEL;
@@ -5272,7 +5272,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   }
 
   class FTPWriter {
-    constructor(token) { this.token = token; this.id = null; this.segments = null; this.written = 0; this.expected = 0; }
+    constructor(token, onManagerProgress = null) { this.token = token; this.id = null; this.segments = null; this.written = 0; this.expected = 0; this.onManagerProgress = onManagerProgress; }
+    reportManagerProgress(phase, fraction, detail = '') {
+      if (typeof this.onManagerProgress === 'function') {
+        try { this.onManagerProgress({ phase, fraction: Math.max(0, Math.min(1, Number(fraction) || 0)), detail }); } catch (_) {}
+      }
+    }
     async beginFile(segments, expectedSize) {
       this.segments = segments;
       this.expected = expectedSize;
@@ -5285,6 +5290,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       state.ftpActivity = 'staging';
       setFtpLive('Staging ' + shortName + ' locally: 0 / ' + fmtBytes(expectedSize) + ' (not sent to ' + target + ' yet)', 0);
       log('Staging ' + segments.join('/') + ' for FTP transfer…');
+      this.reportManagerProgress('staging', 0, 'Starting local staging');
     }
     async write(chunk) {
       const blob = chunk instanceof Blob ? chunk : new Blob([chunk]);
@@ -5295,7 +5301,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
         this.written += part.size;
         const shortName = this.segments[this.segments.length - 1];
         const target = ftpDestinationName();
-        setFtpLive('Staging ' + shortName + ' locally: ' + fmtBytes(this.written) + ' / ' + fmtBytes(this.expected) + ' (not sent to ' + target + ' yet)', this.expected ? this.written / this.expected : 0);
+        const stagedFraction = this.expected ? this.written / this.expected : 1;
+        setFtpLive('Staging ' + shortName + ' locally: ' + fmtBytes(this.written) + ' / ' + fmtBytes(this.expected) + ' (not sent to ' + target + ' yet)', stagedFraction);
+        this.reportManagerProgress('staging', stagedFraction, fmtBytes(this.written) + ' / ' + fmtBytes(this.expected));
       }
     }
     async endFile() {
@@ -5306,6 +5314,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
       const id = this.id;
       state.ftpActivity = 'uploading';
       setFtpLive('Connecting to ' + target + ' to upload ' + shortName + '…', 0);
+      this.reportManagerProgress('uploading', 0, 'Connecting to console');
       while (true) {
         let finished = false, failure = null, lastSent = 0;
         let lastSampleAt = performance.now(), liveRate = 0;
@@ -5346,6 +5355,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
             }
             if (status.state === 'connecting') {
               setFtpLive('Connecting to ' + target + ' for ' + shortName + '…', 0);
+              this.reportManagerProgress('uploading', 0, 'Connecting to console');
             } else if (status.state === 'uploading') {
               const frac = total ? Math.min(1, sent / total) : 0;
               const now = performance.now();
@@ -5355,11 +5365,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
               }
               const rateLabel = liveRate ? ' • ' + fmtBytes(liveRate) + '/s' : '';
               setFtpLive('Uploading ' + shortName + ' to ' + target + ': ' + fmtBytes(sent) + ' / ' + fmtBytes(total) + ' (' + Math.floor(frac * 100) + '%)' + rateLabel, frac);
+              this.reportManagerProgress('uploading', frac, fmtBytes(sent) + ' / ' + fmtBytes(total));
             } else if (status.state === 'done') {
               lastSent = total;
               setFtpLive(target + ' received ' + shortName + '; waiting for FTP confirmation…', 1);
+              this.reportManagerProgress('uploading', 1, 'Waiting for FTP confirmation');
             } else if (status.state === 'error') {
               lastSent = sent;
+              this.reportManagerProgress('uploading', total ? sent / total : 0, status.error || 'FTP upload failed');
               failure = new Error(status.error || 'FTP upload failed.');
             }
           } catch (err) {
@@ -5492,10 +5505,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     updateRemotePkgControls();
     $('ftpManagerDropTitle').textContent = ps4 ? 'Drop PKG files or other files/folders here' : 'Drop multiple files or a folder here';
     $('ftpManagerDropDescription').textContent = ps4
-      ? 'Any ordinary file type can be uploaded byte-for-byte to the current PS4 folder. ZIP/7z archives are unpacked locally and their contained files upload unchanged with the folder layout preserved; the original archive stays unchanged on your computer. Folder uploads preserve the complete relative directory structure and filenames. The default /data/pkg folder is opened automatically. Multiple files upload one at a time. Drag a remote file row onto a folder row to move it, or use Import to download remote files. FTP upload only copies files; use the Remote Package Installer panel above to install a PKG directly from its original Mac file. Existing FTP staging cleanup is unchanged; PS4 files are never auto-deleted.'
-      : 'Any file type uploads byte-for-byte with the selected name into the current console folder; multiple files upload one at a time and folder drops keep their subfolder structure. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within console FTP, or prepare one small file for a real desktop drag-out in supported browsers. The manager does not rewrite names; the console filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.';
+      ? 'Any ordinary file type can be uploaded byte-for-byte to the current PS4 folder. ZIP/7z archives are unpacked locally and their contained files upload unchanged with the folder layout preserved; the original archive stays unchanged on your computer. Folder uploads preserve the selected top-level folder (for example, Scorpion) and its complete nested directory structure and filenames. The default /data/pkg folder is opened automatically. Multiple files upload one at a time. Drag a remote file row onto a folder row to move it, or use Import to download remote files. FTP upload only copies files; use the Remote Package Installer panel above to install a PKG directly from its original Mac file. Existing FTP staging cleanup is unchanged; PS4 files are never auto-deleted.'
+      : 'Any file type uploads byte-for-byte with the selected name into the current console folder; multiple files upload one at a time and folder uploads retain the selected top-level folder (for example, Scorpion) plus every nested folder and file. Drop one .zip or .7z by itself to unpack it locally and upload its contents; the source archive is unchanged. Archives inside a folder upload stay as files. Drop onto a listed folder to upload there instead. Drag a remote file row onto a folder row to move it within console FTP, or prepare one small file for a real desktop drag-out in supported browsers. The manager does not rewrite names; the console filesystem may reject names it does not support or that are too long. Existing same-named files may be replaced.';
     $('ftpManagerUsageHelp').innerHTML = ps4
-      ? 'Upload any ordinary file type byte-for-byte. A single ZIP/7z archive is unpacked locally and its contents upload unchanged, preserving nested paths; the original archive on your computer stays unchanged. Folder uploads keep the original nested folder layout and filenames. Use <strong>⬆ Upload files</strong>, <strong>⬆ Upload folder</strong>, or drop files/folders into the current folder. Use the Remote Package Installer panel above to install PKGs directly from the original Mac file; the file manager can also copy files to <code>/data/pkg</code> over FTP. Use <strong>Import</strong> to download selected remote files. Choose <strong>🧩 GoldHEN folder</strong> to browse <code>/data/GoldHEN</code>, then click <code>plugins.ini</code> or select it and choose <strong>Edit plugins.ini</strong> to view/change the text configuration. The same folder navigation, create, move, rename, and delete controls are available. The file manager never deletes PS4 files automatically; only local temporary upload staging is cleared after success/cancel or helper shutdown.'
+      ? 'Upload any ordinary file type byte-for-byte. A single ZIP/7z archive is unpacked locally and its contents upload unchanged, preserving nested paths; the original archive on your computer stays unchanged. Folder uploads keep the selected top-level folder (for example, Scorpion) and every nested folder and filename. Use <strong>⬆ Upload files</strong>, <strong>⬆ Upload folder</strong>, or drop files/folders into the current folder. Use the Remote Package Installer panel above to install PKGs directly from the original Mac file; the file manager can also copy files to <code>/data/pkg</code> over FTP. Use <strong>Import</strong> to download selected remote files. Choose <strong>🧩 GoldHEN folder</strong> to browse <code>/data/GoldHEN</code>, then click <code>plugins.ini</code> or select it and choose <strong>Edit plugins.ini</strong> to view/change the text configuration. The same folder navigation, create, move, rename, and delete controls are available. The file manager never deletes PS4 files automatically; only local temporary upload staging is cleared after success/cancel or helper shutdown.'
       : FTP_MANAGER_XBOX_USAGE_HELP;
     invalidateFtpManager(ps4 ? 'PS4 selected; connect to the PS4 FTP server to continue.' : 'Xbox selected; reconnect to the Xbox FTP server to continue.');
   }
@@ -5506,7 +5519,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     const kind = isError || /failed|stopped|could not|error/.test(lower) ? 'is-error'
       : /^deleting\b/.test(lower) ? 'is-deleting'
       : /^uploading\b/.test(lower) ? 'is-uploading'
-      : /\b(connecting|opening|reading|refreshing|creating|importing|preparing|checking|moving)\b/.test(lower) ? 'is-working'
+      : /\b(connecting|opening|reading|refreshing|creating|importing|preparing|checking|moving|staging)\b/.test(lower) ? 'is-working'
       : /^(uploaded|deleted|imported|created|prepared|moved)\b/.test(lower) ? 'is-success'
       : '';
     els.ftpManagerActivity.textContent = text;
@@ -6532,7 +6545,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
   async function managerReadDataTransfer(dt) {
     const items = Array.from((dt && dt.items) || []);
     const entries = items.map(item => item.webkitGetAsEntry ? item.webkitGetAsEntry() : null).filter(Boolean);
-    if (entries.length) return { files: (await Promise.all(entries.map(entry => managerReadEntry(entry, '')))).flat(), folderDrop: entries.some(entry => entry.isDirectory) };
+    if (entries.length) return { files: (await Promise.all(entries.map(entry => managerReadEntry(entry, entry.isDirectory ? entry.name : '')))).flat(), folderDrop: entries.some(entry => entry.isDirectory) };
     const files = Array.from((dt && dt.files) || []).map(file => ({ file, path: file.webkitRelativePath || file.name }));
     return { files, folderDrop: files.some(item => String(item.path || '').includes('/')) };
   }
@@ -6556,17 +6569,33 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Iso2GodEng
     managerSetBusy(true);
     try {
       let completed = 0;
+      let completedBytes = 0;
+      const totalBytes = prepared.reduce((sum, item) => sum + item.file.size, 0);
       for (const item of prepared) {
         const dirs = [...targetSegments, ...item.path.slice(0, -1)];
         for (let i = targetSegments.length + 1; i <= dirs.length; i++) await managerEnsureDirectory(dirs.slice(0, i));
-        managerSetActivity('Uploading ' + (completed + 1) + '/' + prepared.length + ': ' + item.path.join('/'));
-        const writer = new FTPWriter(state.ftpToken);
+        const itemNumber = completed + 1;
+        const overallProgress = (phase, fraction) => {
+          const f = Math.max(0, Math.min(1, Number(fraction) || 0));
+          const phaseFraction = phase === 'staging' ? f * 0.5 : 0.5 + f * 0.5;
+          if (totalBytes > 0) return (completedBytes + item.file.size * phaseFraction) / totalBytes;
+          return (completed + phaseFraction) / prepared.length;
+        };
+        const writer = new FTPWriter(state.ftpToken, progress => {
+          const stage = progress.phase === 'staging' ? 'Staging locally' : 'Uploading by FTP';
+          const detail = progress.detail ? ' · ' + progress.detail : '';
+          managerSetActivity(stage + ' ' + itemNumber + '/' + prepared.length + ': ' + item.path.join('/') + detail, false, overallProgress(progress.phase, progress.fraction));
+        });
+        managerSetActivity('Preparing upload ' + itemNumber + '/' + prepared.length + ': ' + item.path.join('/'), false, overallProgress('staging', 0));
         try {
           await writer.beginFile([...dirs, item.path[item.path.length - 1]], item.file.size);
           await writer.write(item.file);
           await writer.endFile();
         } catch (err) { await writer.abort(); throw new Error(item.path.join('/') + ': ' + (err.message || String(err))); }
         completed++;
+        completedBytes += item.file.size;
+        const totalProgress = totalBytes > 0 ? completedBytes / totalBytes : completed / prepared.length;
+        managerSetActivity('Uploaded ' + completed + '/' + prepared.length + ': ' + item.path.join('/'), false, totalProgress);
       }
       await managerRefresh();
       managerSetActivity('Uploaded ' + completed + ' file(s) successfully.');
